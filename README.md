@@ -1,4 +1,4 @@
-pencil
+Pencil
 ======
 
-A microframework for Rust
+A microframework for Rust.
