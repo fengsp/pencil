@@ -3,3 +3,7 @@
 name = "pencil"
 version = "0.0.1"
 authors = ["Shipeng Feng <fsp261@gmail.com>"]
+
+[lib]
+name = "pencil"
+path = "src/pencil/lib.rs"

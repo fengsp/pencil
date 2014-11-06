@@ -7,4 +7,7 @@ test:
 docs: build
 	@cargo doc --no-deps
 
+update:
+	@curl -s https://static.rust-lang.org/rustup.sh | sudo sh
+
 .PHONY: build test docs
