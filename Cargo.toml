@@ -7,3 +7,7 @@ authors = ["Shipeng Feng <fsp261@gmail.com>"]
 [lib]
 name = "pencil"
 path = "src/pencil/lib.rs"
+
+[dependencies.http]
+
+git = "https://github.com/chris-morgan/rust-http.git"
