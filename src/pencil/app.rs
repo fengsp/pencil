@@ -14,6 +14,8 @@ use http::headers::content_type::MediaType;
 pub struct Pencil {
     url_map: HashMap<String, String>,
     view_functions: HashMap<String, String>,
+    before_request_funcs: Vec<String>,
+    after_request_funcs: Vec<String>,
 }
 
 /// The pencil object acts as the central application object.
@@ -24,6 +26,8 @@ impl Pencil {
         Pencil {
             url_map: HashMap::new(),
             view_functions: HashMap::new(),
+            before_request_funcs: vec![],
+            after_request_funcs: vec![String::from_str("after")],
         }
     }
 
@@ -33,15 +37,15 @@ impl Pencil {
         self.view_functions.insert(endpoint, view_func);
     }
 
-    /// The actual application.  Middlewares can be applied here.
-    pub fn app(&self, request: Request, w: &mut ResponseWriter) {
-        w.headers.content_type = Some(MediaType {
-            type_ : String::from_str("text"),
-            subtype: String::from_str("plain"),
-            parameters: vec!((String::from_str("charset"), String::from_str("UTF-8")))
-        });
-        w.headers.server = Some(String::from_str("Pencil"));
+    /// Called before the actual request dispatching, you can return value
+    /// from here and stop the further request handling.
+    fn preprocess_request(&self) {
+        for x in self.before_request_funcs.iter() {
+            println!("{}", x);
+        }
+    }
 
+    fn dispatch_request(&self, request: Request) -> String {
         let request_url = match request.request_uri {
             AbsolutePath(url) => {
                 println!("{}", url);
@@ -52,7 +56,7 @@ impl Pencil {
                 "wtf".to_string()
             },
         };
-        let response = match self.url_map.find(&request_url) {
+        let rv = match self.url_map.find(&request_url) {
             Some(endpoint) => {
                 match self.view_functions.find(endpoint) {
                     Some(response) => response.clone(),
@@ -61,7 +65,44 @@ impl Pencil {
             },
             _ => String::from_str("404"),
         };
+        return rv;
+    }
 
+    /// Converts the return value from a view function to a real
+    /// response object.
+    fn make_response(&self, rv: String) -> String {
+        return rv;
+    }
+
+    /// Modify the response object before it's sent to the HTTP server.
+    fn process_response(&self, response: &mut String) {
+        // TODO: reverse order
+        for x in self.after_request_funcs.iter() {
+            response.push_str(x.as_slice());
+        }
+    }
+
+    /// Dispatches the request and performs request pre and postprocessing
+    /// as well as HTTP error handling.
+    fn full_dispatch_request(&self, request: Request) -> String {
+        self.preprocess_request();
+        let rv = self.dispatch_request(request);
+        // self.handle_user_exception(e)
+        let mut response = self.make_response(rv);
+        self.process_response(&mut response);
+        return response;
+    }
+
+    /// The actual application.  Middlewares can be applied here.
+    pub fn app(&self, request: Request, w: &mut ResponseWriter) {
+        let response = self.full_dispatch_request(request);
+
+        w.headers.content_type = Some(MediaType {
+            type_ : String::from_str("text"),
+            subtype: String::from_str("plain"),
+            parameters: vec!((String::from_str("charset"), String::from_str("UTF-8")))
+        });
+        w.headers.server = Some(String::from_str("Pencil"));
         w.write(response.as_bytes()).unwrap();
     }
 
