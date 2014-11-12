@@ -13,9 +13,11 @@ use http::headers::content_type::MediaType;
 #[deriving(Clone)]
 pub struct Pencil {
     url_map: HashMap<String, String>,
+    // A dictionary of all view functions registered.
     view_functions: HashMap<String, String>,
     before_request_funcs: Vec<String>,
     after_request_funcs: Vec<String>,
+    teardown_request_funcs: Vec<String>,
 }
 
 /// The pencil object acts as the central application object.
@@ -28,6 +30,7 @@ impl Pencil {
             view_functions: HashMap::new(),
             before_request_funcs: vec![],
             after_request_funcs: vec![String::from_str("after")],
+            teardown_request_funcs: vec![],
         }
     }
 
@@ -35,6 +38,23 @@ impl Pencil {
     pub fn add_url_rule(&mut self, rule: String, endpoint: String, view_func: String) {
         self.url_map.insert(rule, endpoint.clone());
         self.view_functions.insert(endpoint, view_func);
+    }
+
+    /// Registers a function to run before each request.
+    pub fn before_request(&mut self, f: String) {
+        self.before_request_funcs.push(f);
+    }
+
+    /// Registers a function to run after each request.  Your function
+    /// must take a response object and modify it.
+    pub fn after_request(&mut self, f: String) {
+        self.after_request_funcs.push(f);
+    }
+
+    /// Registers a function to run at the end of each request,
+    /// regardless of whether there was an error or not.
+    pub fn teardown_request(&mut self, f: String) {
+        self.teardown_request_funcs.push(f);
     }
 
     /// Called before the actual request dispatching, you can return value
@@ -45,6 +65,8 @@ impl Pencil {
         }
     }
 
+    /// Does the request dispatching.  Matches the URL and returns the return
+    /// value of the view.
     fn dispatch_request(&self, request: Request) -> String {
         let request_url = match request.request_uri {
             AbsolutePath(url) => {
@@ -82,6 +104,14 @@ impl Pencil {
         }
     }
 
+    /// Called after the actual request dispatching.
+    fn do_teardown_request(&self) {
+        // TODO: reverse order
+        for x in self.teardown_request_funcs.iter() {
+            println!("{}", x);
+        }
+    }
+
     /// Dispatches the request and performs request pre and postprocessing
     /// as well as HTTP error handling.
     fn full_dispatch_request(&self, request: Request) -> String {
@@ -94,8 +124,11 @@ impl Pencil {
     }
 
     /// The actual application.  Middlewares can be applied here.
+    /// You can do this:
+    ///     application.app = MyMiddleware(application.app)
     pub fn app(&self, request: Request, w: &mut ResponseWriter) {
         let response = self.full_dispatch_request(request);
+        // self.handle_exception(e)
 
         w.headers.content_type = Some(MediaType {
             type_ : String::from_str("text"),
@@ -104,6 +137,8 @@ impl Pencil {
         });
         w.headers.server = Some(String::from_str("Pencil"));
         w.write(response.as_bytes()).unwrap();
+        
+        self.do_teardown_request();
     }
 
     /// Runs the application on a local development server.
