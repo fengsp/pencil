@@ -28,7 +28,7 @@ pub struct Pencil {
     before_request_funcs: Vec<String>,
     after_request_funcs: Vec<String>,
     teardown_request_funcs: Vec<String>,
-    error_handler_spec: HashMap<String, PencilResult>,
+    error_handlers: HashMap<String, PencilResult>,
 }
 
 
@@ -43,7 +43,7 @@ impl Pencil {
             before_request_funcs: vec![],
             after_request_funcs: vec![String::from_str("after")],
             teardown_request_funcs: vec![],
-            error_handler_spec: HashMap::new(),
+            error_handlers: HashMap::new(),
         }
     }
 
@@ -68,6 +68,12 @@ impl Pencil {
     /// regardless of whether there was an error or not.
     pub fn teardown_request(&mut self, f: String) {
         self.teardown_request_funcs.push(f);
+    }
+
+    /// Registers a function as one error handler.
+    pub fn register_error_handler(&mut self, error: PencilError, f: PencilResult) {
+        // TODO: seperate http code and others
+        self.error_handlers.insert(error.desc, f);
     }
 
     /// Called before the actual request dispatching, you can return value
@@ -130,7 +136,7 @@ impl Pencil {
 
     /// This method is called whenever an error occurs that should be handled.
     fn handle_user_error(&self, e: PencilError) -> PencilResult {
-        match self.error_handler_spec.find(&e.desc) {
+        match self.error_handlers.find(&e.desc) {
             Some(handler) => handler.clone(),
             _ => self.handle_http_error(e),
         }
@@ -138,7 +144,7 @@ impl Pencil {
 
     /// Handles an HTTP error.
     fn handle_http_error(&self, e: PencilError) -> PencilResult {
-        match self.error_handler_spec.find(&e.desc) {
+        match self.error_handlers.find(&e.desc) {
             Some(handler) => handler.clone(),
             _ => PenError(e),
         }
@@ -148,7 +154,7 @@ impl Pencil {
     /// handled.
     fn handle_error(&self, e: PencilError) -> PencilResult {
         self.log_error(&e);
-        match self.error_handler_spec.find(&e.desc) {
+        match self.error_handlers.find(&e.desc) {
             Some(handler) => handler.clone(),
             _ => PenError(e),  // 500
         }
