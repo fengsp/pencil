@@ -9,16 +9,20 @@ use http::server::{Config, Server, Request, ResponseWriter};
 use http::server::request::AbsolutePath;
 use http::headers::content_type::MediaType;
 
+use types::{PencilResult, HTTPError};
+
+
 /// The pencil type.
 #[deriving(Clone)]
 pub struct Pencil {
     url_map: HashMap<String, String>,
     // A dictionary of all view functions registered.
-    view_functions: HashMap<String, String>,
+    view_functions: HashMap<String, PencilResult>,
     before_request_funcs: Vec<String>,
     after_request_funcs: Vec<String>,
     teardown_request_funcs: Vec<String>,
 }
+
 
 /// The pencil object acts as the central application object.
 impl Pencil {
@@ -92,8 +96,11 @@ impl Pencil {
 
     /// Converts the return value from a view function to a real
     /// response object.
-    fn make_response(&self, rv: String) -> String {
-        return rv;
+    fn make_response(&self, rv: PencilResult) -> String {
+        match rv {
+            Ok(rv) => rv,
+            Err(e) => e.desc,
+        }
     }
 
     /// Modify the response object before it's sent to the HTTP server.
@@ -112,12 +119,45 @@ impl Pencil {
         }
     }
 
+    /// This method is called whenever an error occurs that should be handled.
+    fn handle_user_error(&self, e: HTTPError) -> PencilResult {
+        return self.handle_http_error(e);
+        match self.error_handler_spec.find(e) {
+            Some(handler) => handler,
+            _ => e,
+        }
+    }
+
+    /// Handles an HTTP error.
+    fn handler_http_error(&self, e: HTTPError) -> PencilResult {
+        match self.error_handler_spec.find(e) {
+            Some(handler) => handler,
+            _ => e,
+        }
+    }
+
+    /// Default error handing that kicks in when an error occurs that is not
+    /// handled.
+    fn handle_error(&self, e: HTTPError) -> PencilResult {
+        self.log_error(e);
+        match self.error_handler_spec.find(e) {
+            Some(handler) => handler,
+            _ => e,  // 500
+        }
+    }
+
+    /// Logs an error.
+    fn log_error(&self, e: HTTPError) {
+    }
+
     /// Dispatches the request and performs request pre and postprocessing
     /// as well as HTTP error handling.
     fn full_dispatch_request(&self, request: Request) -> String {
         self.preprocess_request();
-        let rv = self.dispatch_request(request);
-        // self.handle_user_exception(e)
+        let rv = match self.dispatch_request(request) {
+            Ok(rv) => rv,
+            Err(e) => self.handle_user_error(e),
+        };
         let mut response = self.make_response(rv);
         self.process_response(&mut response);
         return response;
@@ -127,8 +167,10 @@ impl Pencil {
     /// You can do this:
     ///     application.app = MyMiddleware(application.app)
     pub fn app(&self, request: Request, w: &mut ResponseWriter) {
-        let response = self.full_dispatch_request(request);
-        // self.handle_exception(e)
+        let response = match self.full_dispatch_request(request) {
+            Ok(response) => response,
+            Err(e) => self.make_response(self.handle_error(e)),
+        };
 
         w.headers.content_type = Some(MediaType {
             type_ : String::from_str("text"),
@@ -146,6 +188,7 @@ impl Pencil {
         self.serve_forever();
     }
 }
+
 
 impl Server for Pencil {
 

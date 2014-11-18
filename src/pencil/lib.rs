@@ -17,3 +17,4 @@ extern crate http;
 pub use app::Pencil;
 
 mod app;
+mod types;
