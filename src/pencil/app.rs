@@ -31,7 +31,6 @@ pub struct Pencil {
     error_handlers: HashMap<String, PencilResult>,
 }
 
-
 /// The pencil object acts as the central application object.
 impl Pencil {
 
@@ -73,7 +72,7 @@ impl Pencil {
     /// Registers a function as one error handler.
     pub fn register_error_handler(&mut self, error: PencilError, f: PencilResult) {
         // TODO: seperate http code and others
-        self.error_handlers.insert(error.desc, f);
+        self.error_handlers.insert(error.description(), f);
     }
 
     /// Called before the actual request dispatching, you can return value
@@ -114,7 +113,7 @@ impl Pencil {
     fn make_response(&self, rv: PencilResult) -> Response {
         match rv {
             PenValue(rv) => rv,
-            PenError(e) => e.desc,
+            PenError(e) => e.description(),
         }
     }
 
@@ -136,7 +135,7 @@ impl Pencil {
 
     /// This method is called whenever an error occurs that should be handled.
     fn handle_user_error(&self, e: PencilError) -> PencilResult {
-        match self.error_handlers.find(&e.desc) {
+        match self.error_handlers.find(e.description()) {
             Some(handler) => handler.clone(),
             _ => self.handle_http_error(e),
         }
@@ -144,7 +143,7 @@ impl Pencil {
 
     /// Handles an HTTP error.
     fn handle_http_error(&self, e: PencilError) -> PencilResult {
-        match self.error_handlers.find(&e.desc) {
+        match self.error_handlers.find(e.description()) {
             Some(handler) => handler.clone(),
             _ => PenError(e),
         }
@@ -153,16 +152,16 @@ impl Pencil {
     /// Default error handing that kicks in when an error occurs that is not
     /// handled.
     fn handle_error(&self, e: PencilError) -> PencilResult {
-        self.log_error(&e);
-        match self.error_handlers.find(&e.desc) {
+        self.log_error(e);
+        match self.error_handlers.find(e.description()) {
             Some(handler) => handler.clone(),
             _ => PenError(e),  // 500
         }
     }
 
     /// Logs an error.
-    fn log_error(&self, e: &PencilError) {
-        println!("{}", e.desc);
+    fn log_error(&self, e: PencilError) {
+        println!("{}", e.description());
     }
 
     /// Dispatches the request and performs request pre and postprocessing
@@ -203,7 +202,6 @@ impl Pencil {
         self.serve_forever();
     }
 }
-
 
 impl Server for Pencil {
 
