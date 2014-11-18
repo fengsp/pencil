@@ -15,6 +15,11 @@ extern crate http;
 
 /* public api */
 pub use app::Pencil;
+pub use types::{
+    PencilResult,
+        PenValue,
+        PenError,
+};
 
 mod app;
 mod types;

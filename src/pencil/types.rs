@@ -3,13 +3,27 @@
 // Licensed under the BSD License, see LICENSE for more details.
 
 
-/// The HTTP Exception type.
-#[deriving(Clone)]
+/// The HTTP Error type.
 pub struct HTTPError {
     code: int,
-    description: String,
+    desc: String,
+}
+
+
+/// The Pencil Error type.
+#[deriving(Clone)]
+pub struct PencilError {
+    pub desc: String,
 }
 
 
 /// Result type.
-pub type PencilResult = Result<String, HTTPError>;
+#[deriving(Clone)]
+pub enum PencilResult {
+    PenValue(String),
+    PenError(PencilError),
+}
+
+
+/// Response type.
+pub type Response = String;

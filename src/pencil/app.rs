@@ -9,7 +9,14 @@ use http::server::{Config, Server, Request, ResponseWriter};
 use http::server::request::AbsolutePath;
 use http::headers::content_type::MediaType;
 
-use types::{PencilResult, HTTPError};
+use types::{
+    PencilResult,
+        PenValue,
+        PenError,
+    PencilError,
+
+    Response,
+};
 
 
 /// The pencil type.
@@ -21,6 +28,7 @@ pub struct Pencil {
     before_request_funcs: Vec<String>,
     after_request_funcs: Vec<String>,
     teardown_request_funcs: Vec<String>,
+    error_handler_spec: HashMap<String, PencilResult>,
 }
 
 
@@ -35,11 +43,12 @@ impl Pencil {
             before_request_funcs: vec![],
             after_request_funcs: vec![String::from_str("after")],
             teardown_request_funcs: vec![],
+            error_handler_spec: HashMap::new(),
         }
     }
 
     /// Connects a URL rule.
-    pub fn add_url_rule(&mut self, rule: String, endpoint: String, view_func: String) {
+    pub fn add_url_rule(&mut self, rule: String, endpoint: String, view_func: PencilResult) {
         self.url_map.insert(rule, endpoint.clone());
         self.view_functions.insert(endpoint, view_func);
     }
@@ -71,7 +80,7 @@ impl Pencil {
 
     /// Does the request dispatching.  Matches the URL and returns the return
     /// value of the view.
-    fn dispatch_request(&self, request: Request) -> String {
+    fn dispatch_request(&self, request: Request) -> PencilResult {
         let request_url = match request.request_uri {
             AbsolutePath(url) => {
                 println!("{}", url);
@@ -86,20 +95,20 @@ impl Pencil {
             Some(endpoint) => {
                 match self.view_functions.find(endpoint) {
                     Some(response) => response.clone(),
-                    _ => String::from_str("No such handler"),
+                    _ => PenValue(String::from_str("No such handler")),
                 }
             },
-            _ => String::from_str("404"),
+            _ => PenValue(String::from_str("404")),
         };
         return rv;
     }
 
     /// Converts the return value from a view function to a real
     /// response object.
-    fn make_response(&self, rv: PencilResult) -> String {
+    fn make_response(&self, rv: PencilResult) -> Response {
         match rv {
-            Ok(rv) => rv,
-            Err(e) => e.desc,
+            PenValue(rv) => rv,
+            PenError(e) => e.desc,
         }
     }
 
@@ -120,47 +129,47 @@ impl Pencil {
     }
 
     /// This method is called whenever an error occurs that should be handled.
-    fn handle_user_error(&self, e: HTTPError) -> PencilResult {
-        return self.handle_http_error(e);
-        match self.error_handler_spec.find(e) {
-            Some(handler) => handler,
-            _ => e,
+    fn handle_user_error(&self, e: PencilError) -> PencilResult {
+        match self.error_handler_spec.find(&e.desc) {
+            Some(handler) => handler.clone(),
+            _ => self.handle_http_error(e),
         }
     }
 
     /// Handles an HTTP error.
-    fn handler_http_error(&self, e: HTTPError) -> PencilResult {
-        match self.error_handler_spec.find(e) {
-            Some(handler) => handler,
-            _ => e,
+    fn handle_http_error(&self, e: PencilError) -> PencilResult {
+        match self.error_handler_spec.find(&e.desc) {
+            Some(handler) => handler.clone(),
+            _ => PenError(e),
         }
     }
 
     /// Default error handing that kicks in when an error occurs that is not
     /// handled.
-    fn handle_error(&self, e: HTTPError) -> PencilResult {
-        self.log_error(e);
-        match self.error_handler_spec.find(e) {
-            Some(handler) => handler,
-            _ => e,  // 500
+    fn handle_error(&self, e: PencilError) -> PencilResult {
+        self.log_error(&e);
+        match self.error_handler_spec.find(&e.desc) {
+            Some(handler) => handler.clone(),
+            _ => PenError(e),  // 500
         }
     }
 
     /// Logs an error.
-    fn log_error(&self, e: HTTPError) {
+    fn log_error(&self, e: &PencilError) {
+        println!("{}", e.desc);
     }
 
     /// Dispatches the request and performs request pre and postprocessing
     /// as well as HTTP error handling.
-    fn full_dispatch_request(&self, request: Request) -> String {
+    fn full_dispatch_request(&self, request: Request) -> Result<Response, PencilError> {
         self.preprocess_request();
         let rv = match self.dispatch_request(request) {
-            Ok(rv) => rv,
-            Err(e) => self.handle_user_error(e),
+            PenValue(rv) => PenValue(rv),
+            PenError(e) => self.handle_user_error(e),
         };
         let mut response = self.make_response(rv);
         self.process_response(&mut response);
-        return response;
+        return Ok(response);
     }
 
     /// The actual application.  Middlewares can be applied here.
