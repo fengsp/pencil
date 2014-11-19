@@ -73,7 +73,3 @@ pub enum PencilResult {
     PenValue(String),
     PenError(PencilError),
 }
-
-
-/// Response type.
-pub type Response = String;
