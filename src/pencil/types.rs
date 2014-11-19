@@ -5,6 +5,14 @@
 use std::error;
 
 
+pub use self::PencilResult::{
+    PenValue, PenError
+};
+pub use self::PencilError::{
+    PencilHTTPError
+};
+
+
 /// The HTTP Error type.
 #[deriving(Clone)]
 pub struct HTTPError {
@@ -19,10 +27,6 @@ impl error::Error for HTTPError {
     }
     
     fn detail(&self) -> Option<String> {
-        None
-    }
-    
-    fn cause(&self) -> Option<&error::Error> {
         None
     }
 }
@@ -51,7 +55,7 @@ impl error::Error for PencilError {
 
     fn detail(&self) -> Option<String> {
         match *self {
-            PencilHTTPError(err) => None,
+            PencilHTTPError(err) => err.detail(),
         }
     }
 

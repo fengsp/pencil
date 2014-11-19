@@ -4,6 +4,7 @@
 
 use std::collections::HashMap;
 use std::io::net::ip::{SocketAddr, Ipv4Addr};
+use std::error::Error;
 
 use http::server::{Config, Server, Request, ResponseWriter};
 use http::server::request::AbsolutePath;
@@ -13,6 +14,7 @@ use types::{
     PencilResult,
         PenValue,
         PenError,
+
     PencilError,
 
     Response,
@@ -72,7 +74,7 @@ impl Pencil {
     /// Registers a function as one error handler.
     pub fn register_error_handler(&mut self, error: PencilError, f: PencilResult) {
         // TODO: seperate http code and others
-        self.error_handlers.insert(error.description(), f);
+        self.error_handlers.insert(error.description().to_string(), f);
     }
 
     /// Called before the actual request dispatching, you can return value
@@ -96,9 +98,9 @@ impl Pencil {
                 "wtf".to_string()
             },
         };
-        let rv = match self.url_map.find(&request_url) {
+        let rv = match self.url_map.get(&request_url) {
             Some(endpoint) => {
-                match self.view_functions.find(endpoint) {
+                match self.view_functions.get(endpoint) {
                     Some(response) => response.clone(),
                     _ => PenValue(String::from_str("No such handler")),
                 }
@@ -113,7 +115,7 @@ impl Pencil {
     fn make_response(&self, rv: PencilResult) -> Response {
         match rv {
             PenValue(rv) => rv,
-            PenError(e) => e.description(),
+            PenError(e) => e.description().to_string(),
         }
     }
 
@@ -135,7 +137,7 @@ impl Pencil {
 
     /// This method is called whenever an error occurs that should be handled.
     fn handle_user_error(&self, e: PencilError) -> PencilResult {
-        match self.error_handlers.find(e.description()) {
+        match self.error_handlers.get(&e.description().to_string()) {
             Some(handler) => handler.clone(),
             _ => self.handle_http_error(e),
         }
@@ -143,7 +145,7 @@ impl Pencil {
 
     /// Handles an HTTP error.
     fn handle_http_error(&self, e: PencilError) -> PencilResult {
-        match self.error_handlers.find(e.description()) {
+        match self.error_handlers.get(&e.description().to_string()) {
             Some(handler) => handler.clone(),
             _ => PenError(e),
         }
@@ -153,7 +155,7 @@ impl Pencil {
     /// handled.
     fn handle_error(&self, e: PencilError) -> PencilResult {
         self.log_error(e);
-        match self.error_handlers.find(e.description()) {
+        match self.error_handlers.get(&e.description().to_string()) {
             Some(handler) => handler.clone(),
             _ => PenError(e),  // 500
         }
