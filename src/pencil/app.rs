@@ -115,16 +115,16 @@ impl Pencil {
     /// response object.
     fn make_response(&self, rv: PencilResult) -> Response {
         match rv {
-            PenValue(rv) => rv,
-            PenError(e) => e.description().to_string(),
+            PenValue(rv) => Response::new(rv),
+            PenError(e) => Response::new(e.description().to_string()),
         }
     }
 
     /// Modify the response object before it's sent to the HTTP server.
-    fn process_response(&self, response: &mut String) {
+    fn process_response(&self, response: &mut Response) {
         // TODO: reverse order
         for x in self.after_request_funcs.iter() {
-            response.push_str(x.as_slice());
+            response.body.push_str(x.as_slice());
         }
     }
 
@@ -195,7 +195,7 @@ impl Pencil {
             parameters: vec!((String::from_str("charset"), String::from_str("UTF-8")))
         });
         w.headers.server = Some(String::from_str("Pencil"));
-        w.write(response.as_bytes()).unwrap();
+        w.write(response.body.as_bytes()).unwrap();
         
         self.do_teardown_request();
     }
