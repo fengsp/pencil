@@ -14,3 +14,4 @@
 # Added by Shipeng Feng
 example/Cargo.lock
 example/target/
+*.swp
