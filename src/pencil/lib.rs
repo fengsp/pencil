@@ -20,7 +20,10 @@ pub use types::{
         PenValue,
         PenError,
 };
-pub use wrappers::Response;
+pub use wrappers::{
+    Headers,
+    Response,
+};
 
 mod app;
 mod types;

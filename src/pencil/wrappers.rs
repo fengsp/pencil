@@ -2,16 +2,46 @@
 // Copyright (c) 2014 by Shipeng Feng.
 // Licensed under the BSD License, see LICENSE for more details.
 
-use std::collections::HashMap;
+use std::ascii::OwnedAsciiExt;
 
 use http::status;
+
+
+/// Headers type that stores some headers.  It has a HashMap like interface
+/// but is ordered and can store the same keys multiple times.
+pub struct Headers {
+    list: Vec<(String, String)>,
+}
+
+impl Headers {
+    /// Create `Headers`.
+    pub fn new(list: Option<Vec<(String, String)>>) -> Headers {
+        match list {
+            Some(list) => Headers{list: list},
+            None => Headers{list: Vec::new()},
+        }
+    }
+
+    /// Return a reference to the value corresponding to the header key.
+    pub fn get(&self, key:String) -> Option<&String> {
+        let ikey = key.into_ascii_lower();
+        for ref kvpairs in self.list.iter() {
+            let k = kvpairs.ref0();
+            let v = kvpairs.ref1();
+            if k.clone().into_ascii_lower() == ikey {
+                return Some(v)
+            }
+        }
+        return None
+    }
+}
 
 
 /// Response type.  It is just one container with a couple of parameters
 /// (headers, body, status code etc).
 pub struct Response {
     pub status: status::Status,
-    pub headers: HashMap<String, String>,
+    pub headers: Headers,
     pub body: String,
 }
 
@@ -20,7 +50,7 @@ impl Response {
     pub fn new(body: String) -> Response {
         Response {
             status: status::Ok,
-            headers: HashMap::new(),
+            headers: Headers::new(None),
             body: body,
         }
     }
