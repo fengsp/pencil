@@ -2,9 +2,32 @@
 // Copyright (c) 2014 by Shipeng Feng.
 // Licensed under the BSD License, see LICENSE for more details.
 
+use core;
+use std::iter;
 use std::ascii::OwnedAsciiExt;
 
 use http::status;
+
+
+/// Headers iterator.
+pub struct HeaderEntries<'a> {
+    inner: core::slice::Items<'a, (String, String)>,
+}
+
+impl<'a> Iterator<(&'a String, &'a String)> for HeaderEntries<'a> {
+    fn next(&mut self) -> Option<(&'a String, &'a String)> {
+        match self.inner.next() {
+            Some(ref kvpairs) => Some((kvpairs.ref0(), kvpairs.ref1())),
+            None => None,
+        }
+    }
+}
+
+
+/// Header keys iterator.
+pub type HeaderKeys<'a> = iter::Map<'static, (&'a String, &'a String), &'a String, HeaderEntries<'a>>;
+/// Header values iterator.
+pub type HeaderValues<'a> = iter::Map<'static, (&'a String, &'a String), &'a String, HeaderEntries<'a>>;
 
 
 /// Headers type that stores some headers.  It has a HashMap like interface
@@ -23,7 +46,7 @@ impl Headers {
     }
 
     /// Return a reference to the value corresponding to the header key.
-    pub fn get(&self, key:String) -> Option<&String> {
+    pub fn get(&self, key: String) -> Option<&String> {
         let ikey = key.into_ascii_lower();
         for ref kvpairs in self.list.iter() {
             let k = kvpairs.ref0();
@@ -33,6 +56,39 @@ impl Headers {
             }
         }
         return None
+    }
+
+    /// Return a list of all the references to the values for a given key.
+    /// If that key is not in the headers, the return value will be an empty vector.
+    pub fn get_all(&self, key: String) -> Vec<&String> {
+        let ikey = key.into_ascii_lower();
+        let mut result = Vec::new();
+        for ref kvpairs in self.list.iter() {
+            let k = kvpairs.ref0();
+            let v = kvpairs.ref1();
+            if k.clone().into_ascii_lower() == ikey {
+                result.push(v);
+            }
+        }
+        return result
+    }
+
+    /// An iterator visiting all key-value pairs in sorted order.
+    /// Iterator element type is `(&'a String, &'a String)`.
+    pub fn iter(&self) -> HeaderEntries {
+        HeaderEntries { inner: self.list.iter() }
+    }
+
+    /// An iterator visiting all keys in sorted order.
+    /// Iterator element type is `&'a String`.
+    pub fn keys(&self) -> HeaderKeys {
+        self.iter().map(|(k, _v)| k)
+    }
+
+    /// An iterator visiting all values in sorted order.
+    /// Iterator element type is `&'a String`.
+    pub fn values(&self) -> HeaderValues {
+        self.iter().map(|(_k, v)| v)
     }
 }
 

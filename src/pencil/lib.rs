@@ -12,6 +12,7 @@
 #![experimental]
 
 extern crate http;
+extern crate core;
 
 /* public api */
 pub use app::Pencil;
