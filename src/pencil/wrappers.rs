@@ -10,20 +10,7 @@ use http::status;
 
 
 /// Headers iterator.
-pub struct HeaderEntries<'a> {
-    inner: core::slice::Items<'a, (String, String)>,
-}
-
-impl<'a> Iterator<(&'a String, &'a String)> for HeaderEntries<'a> {
-    fn next(&mut self) -> Option<(&'a String, &'a String)> {
-        match self.inner.next() {
-            Some(ref kvpairs) => Some((kvpairs.ref0(), kvpairs.ref1())),
-            None => None,
-        }
-    }
-}
-
-
+pub type HeaderEntries<'a> = iter::Map<'static, &'a(String, String), (&'a String, &'a String), core::slice::Items<'a, (String, String)>>;
 /// Header keys iterator.
 pub type HeaderKeys<'a> = iter::Map<'static, (&'a String, &'a String), &'a String, HeaderEntries<'a>>;
 /// Header values iterator.
@@ -76,7 +63,7 @@ impl Headers {
     /// An iterator visiting all key-value pairs in sorted order.
     /// Iterator element type is `(&'a String, &'a String)`.
     pub fn iter(&self) -> HeaderEntries {
-        HeaderEntries { inner: self.list.iter() }
+        self.list.iter().map(|ref kvpairs| (kvpairs.ref0(), kvpairs.ref1()))
     }
 
     /// An iterator visiting all keys in sorted order.
