@@ -84,6 +84,24 @@ impl Headers {
         self.list.push((key, value));
     }
 
+    /// Removes a key from the headers, returning the first value at the key
+    /// if the key was previously in the headers.
+    pub fn remove(&mut self, key: String) -> Option<String> {
+        let ikey = key.into_ascii_lower();
+        let mut rv: Option<String> = None;
+        let mut newlist = Vec::new();
+        for kvpairs in self.list.iter() {
+            let k = kvpairs.ref0();
+            let v = kvpairs.ref1();
+            if k.clone().into_ascii_lower() != ikey {
+                newlist.push((k.clone(), v.clone()));
+            } else {
+                rv = Some(v.clone());
+            }
+        }
+        return rv;
+    }
+
     /// Return ths number of elements in the headers.
     pub fn len(&self) -> uint {
         return self.list.len();
