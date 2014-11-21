@@ -25,7 +25,7 @@ impl error::Error for HTTPError {
     fn description(&self) -> &str {
         self.desc
     }
-    
+
     fn detail(&self) -> Option<String> {
         None
     }
@@ -39,14 +39,14 @@ pub enum PencilError {
 }
 
 impl error::FromError<HTTPError> for PencilError {
-    
+
     fn from_error(err: HTTPError) -> PencilError {
         PencilHTTPError(err)
     }
 }
 
 impl error::Error for PencilError {
-    
+
     fn description(&self) -> &str {
         match *self {
             PencilHTTPError(err) => err.desc,

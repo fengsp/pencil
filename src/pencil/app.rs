@@ -196,7 +196,7 @@ impl Pencil {
         });
         w.headers.server = Some(String::from_str("Pencil"));
         w.write(response.body.as_bytes()).unwrap();
-        
+
         self.do_teardown_request();
     }
 
