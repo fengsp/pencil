@@ -95,7 +95,7 @@ impl Headers {
             let v = kvpairs.ref1();
             if k.clone().into_ascii_lower() != ikey {
                 newlist.push((k.clone(), v.clone()));
-            } else {
+            } else if rv != None {
                 rv = Some(v.clone());
             }
         }
