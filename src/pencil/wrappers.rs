@@ -77,6 +77,22 @@ impl Headers {
     pub fn values(&self) -> HeaderValues {
         self.iter().map(|(_k, v)| v)
     }
+
+    /// Add a new header key-value pair to headers.
+    /// TODO: _options_header_vkw
+    pub fn add(&mut self, key: String, value: String) {
+        self.list.push((key, value));
+    }
+
+    /// Return ths number of elements in the headers.
+    pub fn len(&self) -> uint {
+        return self.list.len();
+    }
+
+    /// Clears all headers.
+    pub fn clear(&mut self) {
+        self.list.clear();
+    }
 }
 
 
