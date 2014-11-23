@@ -35,9 +35,9 @@ impl Headers {
     /// Return a reference to the value corresponding to the header key.
     pub fn get(&self, key: String) -> Option<&String> {
         let ikey = key.into_ascii_lower();
-        for ref kvpairs in self.list.iter() {
-            let k = kvpairs.ref0();
-            let v = kvpairs.ref1();
+        for ref kvpair in self.list.iter() {
+            let k = kvpair.ref0();
+            let v = kvpair.ref1();
             if k.clone().into_ascii_lower() == ikey {
                 return Some(v)
             }
@@ -50,9 +50,9 @@ impl Headers {
     pub fn get_all(&self, key: String) -> Vec<&String> {
         let ikey = key.into_ascii_lower();
         let mut result = Vec::new();
-        for ref kvpairs in self.list.iter() {
-            let k = kvpairs.ref0();
-            let v = kvpairs.ref1();
+        for ref kvpair in self.list.iter() {
+            let k = kvpair.ref0();
+            let v = kvpair.ref1();
             if k.clone().into_ascii_lower() == ikey {
                 result.push(v);
             }
@@ -63,7 +63,7 @@ impl Headers {
     /// An iterator visiting all key-value pairs in sorted order.
     /// Iterator element type is `(&'a String, &'a String)`.
     pub fn iter(&self) -> HeaderEntries {
-        self.list.iter().map(|ref kvpairs| (kvpairs.ref0(), kvpairs.ref1()))
+        self.list.iter().map(|ref kvpair| (kvpair.ref0(), kvpair.ref1()))
     }
 
     /// An iterator visiting all keys in sorted order.
@@ -90,16 +90,40 @@ impl Headers {
         let ikey = key.into_ascii_lower();
         let mut rv: Option<String> = None;
         let mut newlist = Vec::new();
-        for kvpairs in self.list.iter() {
-            let k = kvpairs.ref0();
-            let v = kvpairs.ref1();
+        for kvpair in self.list.iter() {
+            let k = kvpair.ref0();
+            let v = kvpair.ref1();
             if k.clone().into_ascii_lower() != ikey {
                 newlist.push((k.clone(), v.clone()));
             } else if rv != None {
                 rv = Some(v.clone());
             }
         }
+        self.list = newlist;
         return rv;
+    }
+
+    /// Removes all headers for `key` and add a new one.  The newly added key either
+    /// appears at the end of the list if there was no entry or replaces the old one.
+    /// TODO: _option_header_vkw
+    pub fn set(&mut self, key: String, value: String) {
+        let ikey = key.clone().into_ascii_lower();
+        let mut key_existed = false;
+        let mut newlist = Vec::new();
+        for kvpair in self.list.iter() {
+            let k = kvpair.ref0();
+            let v = kvpair.ref1();
+            if k.clone().into_ascii_lower() != ikey {
+                newlist.push((k.clone(), v.clone()));
+            } else if !key_existed {
+                newlist.push((key.clone(), value.clone()));
+                key_existed = true;
+            }
+        }
+        if !key_existed {
+            newlist.push((key, value));
+        }
+        self.list = newlist;
     }
 
     /// Return ths number of elements in the headers.
