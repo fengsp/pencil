@@ -191,10 +191,7 @@ impl Response {
     /// Returns the response content type if available.
     pub fn get_content_type(&self) -> Option<String> {
         let rv = self.headers.get(String::from_str("Content-Type"));
-        match rv {
-            Some(content_type) => content_type.clone(),
-            None => None,
-        }
+        rv.map(|content_type| content_type.clone())
     }
 
     /// Set response content type.
