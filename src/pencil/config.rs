@@ -2,8 +2,14 @@
 // Copyright (c) 2014 by Shipeng Feng.
 // Licensed under the BSD License, see LICENSE for more details.
 
-use std::collections::TreeMap;
-use serialize::json::Json;
+use serialize::json::JsonObject;
+
+
+pub trait ConfigTrait {
+    fn from_jsonfile(&mut self, filepath: Path) -> Path {
+        filepath
+    }
+}
 
 
 /// Currently we are using `JsonObject` as config type.  Works like
@@ -27,10 +33,7 @@ use serialize::json::Json;
 /// export YOURAPPLICATION_SETTINGS="/path/to/config/file"
 /// ```
 /// 
-pub type Config = TreeMap<String, Json>;
+pub type Config = JsonObject;
 
-impl Config {
-    pub fn from_jsonfile(&mut self, filepath: Path) {
-        ()
-    }
+impl ConfigTrait for Config {
 }
