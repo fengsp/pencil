@@ -4,9 +4,10 @@
 
 use std::error;
 
+use wrappers::Response;
 
 pub use self::PencilResult::{
-    PenValue, PenError
+    PenValue, PenResponse, PenError
 };
 pub use self::PencilError::{
     PencilHTTPError
@@ -71,5 +72,6 @@ impl error::Error for PencilError {
 #[deriving(Clone)]
 pub enum PencilResult {
     PenValue(String),
+    PenResponse(Response),
     PenError(PencilError),
 }

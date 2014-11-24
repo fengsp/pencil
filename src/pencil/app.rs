@@ -13,6 +13,7 @@ use http::headers::content_type::MediaType;
 use types::{
     PencilResult,
         PenValue,
+        PenResponse,
         PenError,
 
     PencilError,
@@ -116,6 +117,7 @@ impl Pencil {
     fn make_response(&self, rv: PencilResult) -> Response {
         match rv {
             PenValue(rv) => Response::new(rv),
+            PenResponse(response) => response,
             PenError(e) => Response::new(e.description().to_string()),
         }
     }
@@ -173,6 +175,7 @@ impl Pencil {
         self.preprocess_request();
         let rv = match self.dispatch_request(request) {
             PenValue(rv) => PenValue(rv),
+            PenResponse(response) => PenResponse(response),
             PenError(e) => self.handle_user_error(e),
         };
         let mut response = self.make_response(rv);

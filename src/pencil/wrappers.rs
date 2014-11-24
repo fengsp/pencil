@@ -19,6 +19,7 @@ pub type HeaderValues<'a> = iter::Map<'static, (&'a String, &'a String), &'a Str
 
 /// Headers type that stores some headers.  It has a HashMap like interface
 /// but is ordered and can store the same keys multiple times.
+#[deriving(Clone)]
 pub struct Headers {
     list: Vec<(String, String)>,
 }
@@ -140,6 +141,7 @@ impl Headers {
 
 /// Response type.  It is just one container with a couple of parameters
 /// (headers, body, status code etc).
+#[deriving(Clone)]
 pub struct Response {
     status: status::Status,
     pub headers: Headers,

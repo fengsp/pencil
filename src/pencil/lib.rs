@@ -11,21 +11,25 @@
 
 #![experimental]
 
-extern crate http;
 extern crate core;
+extern crate serialize;
+extern crate http;
 
 /* public api */
 pub use app::Pencil;
 pub use types::{
     PencilResult,
         PenValue,
+        PenResponse,
         PenError,
 };
 pub use wrappers::{
     Headers,
     Response,
 };
+pub use json::jsonify;
 
 mod app;
 mod types;
 mod wrappers;
+mod json;
