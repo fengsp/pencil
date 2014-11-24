@@ -5,7 +5,7 @@ test:
 	@RUST_TEST_TASKS=1 cargo test
 
 docs: build
-	@cargo doc --no-deps
+	@cargo doc --no-deps --open
 
 update-rust:
 	@curl -s https://static.rust-lang.org/rustup.sh | sudo sh

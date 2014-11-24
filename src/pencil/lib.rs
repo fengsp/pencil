@@ -28,6 +28,10 @@ pub use wrappers::{
     Response,
 };
 pub use json::jsonify;
+pub use config::{
+    Config,
+    ConfigTrait,
+};
 
 mod app;
 mod types;
