@@ -30,7 +30,6 @@ pub use wrappers::{
 pub use json::jsonify;
 pub use config::{
     Config,
-    ConfigTrait,
 };
 
 mod app;

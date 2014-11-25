@@ -36,9 +36,7 @@ impl Headers {
     /// Return a reference to the value corresponding to the header key.
     pub fn get(&self, key: String) -> Option<&String> {
         let ikey = key.to_ascii_lower();
-        for ref kvpair in self.list.iter() {
-            let k = kvpair.ref0();
-            let v = kvpair.ref1();
+        for &(ref k, ref v) in self.list.iter() {
             if k.to_ascii_lower() == ikey {
                 return Some(v)
             }
@@ -51,9 +49,7 @@ impl Headers {
     pub fn get_all(&self, key: String) -> Vec<&String> {
         let ikey = key.to_ascii_lower();
         let mut result = Vec::new();
-        for ref kvpair in self.list.iter() {
-            let k = kvpair.ref0();
-            let v = kvpair.ref1();
+        for &(ref k, ref v) in self.list.iter() {
             if k.to_ascii_lower() == ikey {
                 result.push(v);
             }
@@ -64,7 +60,7 @@ impl Headers {
     /// An iterator visiting all key-value pairs in sorted order.
     /// Iterator element type is `(&'a String, &'a String)`.
     pub fn iter(&self) -> HeaderEntries {
-        self.list.iter().map(|ref kvpair| (kvpair.ref0(), kvpair.ref1()))
+        self.list.iter().map(|kvpair| (kvpair.ref0(), kvpair.ref1()))
     }
 
     /// An iterator visiting all keys in sorted order.
@@ -91,9 +87,7 @@ impl Headers {
         let ikey = key.to_ascii_lower();
         let mut rv: Option<String> = None;
         let mut newlist = Vec::new();
-        for kvpair in self.list.iter() {
-            let k = kvpair.ref0();
-            let v = kvpair.ref1();
+        for &(ref k, ref v) in self.list.iter() {
             if k.to_ascii_lower() != ikey {
                 newlist.push((k.clone(), v.clone()));
             } else if rv != None {
@@ -111,9 +105,7 @@ impl Headers {
         let ikey = key.to_ascii_lower();
         let mut key_existed = false;
         let mut newlist = Vec::new();
-        for kvpair in self.list.iter() {
-            let k = kvpair.ref0();
-            let v = kvpair.ref1();
+        for &(ref k, ref v) in self.list.iter() {
             if k.to_ascii_lower() != ikey {
                 newlist.push((k.clone(), v.clone()));
             } else if !key_existed {
