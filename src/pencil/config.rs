@@ -15,14 +15,14 @@ pub trait ConfigTrait {
 /// Currently we are using `JsonObject` as config type.  Works like
 /// a JSON Object but provides ways to fill it from JSON files:
 ///
-/// ```rust
+/// ```rust,no_run
 /// app.config.from_jsonfile("yourconfig.json")
 /// ```
 ///
 /// You can also load configurations from an environment variable
 /// pointing to a file:
 ///
-/// ```rust
+/// ```rust,no_run
 /// app.config.from_envvar("YOURAPPLICATION_SETTINGS")
 /// ```
 ///
