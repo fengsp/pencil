@@ -31,6 +31,7 @@ pub use json::jsonify;
 pub use config::{
     Config,
 };
+pub use helpers::make_response;
 
 mod app;
 mod types;
@@ -38,3 +39,4 @@ mod wrappers;
 mod json;
 mod config;
 mod logging;
+mod helpers;

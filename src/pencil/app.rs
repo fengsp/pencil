@@ -22,6 +22,7 @@ use types::{
 use wrappers::{
     Response,
 };
+use helpers;
 use config;
 use logging;
 
@@ -125,11 +126,7 @@ impl Pencil {
     /// Converts the return value from a view function to a real
     /// response object.
     fn make_response(&self, rv: PencilResult) -> Response {
-        match rv {
-            PenValue(rv) => Response::new(rv),
-            PenResponse(response) => response,
-            PenError(e) => Response::new(e.description().to_string()),
-        }
+        return helpers::make_response(rv);
     }
 
     /// Modify the response object before it's sent to the HTTP server.
