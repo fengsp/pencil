@@ -4,6 +4,7 @@
 
 use std::os;
 use std::io::File;
+use std::collections::TreeMap;
 use serialize::json::{JsonObject, Json};
 
 
@@ -27,11 +28,20 @@ use serialize::json::{JsonObject, Json};
 /// export YOURAPPLICATION_SETTINGS="/path/to/config/file"
 /// ```
 ///
+#[deriving(Clone)]
 pub struct Config {
     config: JsonObject,
 }
 
 impl Config {
+    /// Create a `Config` object.
+    pub fn new() -> Config {
+        let json_object: JsonObject = TreeMap::new();
+        Config {
+            config: json_object,
+        }
+    }
+
     /// Set a value for the key.
     pub fn set(&mut self, key: String, value: Json) {
         self.config.insert(key, value);
@@ -45,12 +55,10 @@ impl Config {
     /// Loads a configuration from an environment variable pointing to
     /// a JSON configuration file.
     pub fn from_envvar(&mut self, variable_name: String) {
-        for &(ref key, ref value) in os::env().iter() {
-            if key.clone() == variable_name {
-                return self.from_jsonfile(value.clone());
-            }
+        match os::getenv(variable_name.as_slice()) {
+            Some(value) => self.from_jsonfile(value.clone()),
+            None => panic!("The environment variable {} is not set.", variable_name),
         }
-        panic!("The environment variable {} is not set.", variable_name);
     }
 
     /// Updates the values in the config from a JSON file.

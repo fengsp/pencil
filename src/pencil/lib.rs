@@ -37,3 +37,4 @@ mod types;
 mod wrappers;
 mod json;
 mod config;
+mod logging;

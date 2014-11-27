@@ -6,7 +6,8 @@ use std::collections::HashMap;
 use std::io::net::ip::{SocketAddr, Ipv4Addr};
 use std::error::Error;
 
-use http::server::{Config, Server, Request, ResponseWriter};
+use http;
+use http::server::{Server, Request, ResponseWriter};
 use http::server::request::AbsolutePath;
 use http::headers::content_type::MediaType;
 
@@ -21,11 +22,14 @@ use types::{
 use wrappers::{
     Response,
 };
+use config;
+use logging;
 
 
 /// The pencil type.
 #[deriving(Clone)]
 pub struct Pencil {
+    pub config: config::Config,
     url_map: HashMap<String, String>,
     // A dictionary of all view functions registered.
     view_functions: HashMap<String, PencilResult>,
@@ -41,6 +45,7 @@ impl Pencil {
     /// Create a new pencil object.
     pub fn new() -> Pencil {
         Pencil {
+            config: config::Config::new(),
             url_map: HashMap::new(),
             view_functions: HashMap::new(),
             before_request_funcs: vec![],
@@ -48,6 +53,11 @@ impl Pencil {
             teardown_request_funcs: vec![],
             error_handlers: HashMap::new(),
         }
+    }
+
+    /// Set global log level based on the application's debug flag.
+    pub fn set_log_level(&self) {
+        logging::set_log_level(self);
     }
 
     /// Connects a URL rule.
@@ -211,8 +221,8 @@ impl Pencil {
 
 impl Server for Pencil {
 
-    fn get_config(&self) -> Config {
-        Config { bind_address: SocketAddr { ip: Ipv4Addr(127, 0, 0, 1), port: 8000 } }
+    fn get_config(&self) -> http::server::Config {
+        http::server::Config { bind_address: SocketAddr { ip: Ipv4Addr(127, 0, 0, 1), port: 8000 } }
     }
 
     fn handle_request(&self, r: Request, w: &mut ResponseWriter) {
