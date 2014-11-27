@@ -196,21 +196,16 @@ impl Pencil {
     /// The actual application.  Middlewares can be applied here.
     /// You can do this:
     ///     application.app = MyMiddleware(application.app)
-    pub fn app(&self, request: Request, w: &mut ResponseWriter) {
+    pub fn app(&self, request: Request) -> Response {
+        // let url_adapter = self.create_url_adapter(request);
+        // request.url_rule, request.view_args = url_adapter.match()
+        // or
+        // request.routing_error = e
         let response = match self.full_dispatch_request(request) {
             Ok(response) => response,
             Err(e) => self.make_response(self.handle_error(e)),
         };
-
-        w.headers.content_type = Some(MediaType {
-            type_ : String::from_str("text"),
-            subtype: String::from_str("plain"),
-            parameters: vec!((String::from_str("charset"), String::from_str("UTF-8")))
-        });
-        w.headers.server = Some(String::from_str("Pencil"));
-        w.write(response.body.as_bytes()).unwrap();
-
-        self.do_teardown_request();
+        return response;
     }
 
     /// Runs the application on a local development server.
@@ -226,6 +221,17 @@ impl Server for Pencil {
     }
 
     fn handle_request(&self, r: Request, w: &mut ResponseWriter) {
-        self.app(r, w);
+        // let request = r;
+        let response = self.app(r);
+
+        w.headers.content_type = Some(MediaType {
+            type_ : String::from_str("text"),
+            subtype: String::from_str("plain"),
+            parameters: vec!((String::from_str("charset"), String::from_str("UTF-8")))
+        });
+        w.headers.server = Some(String::from_str("Pencil"));
+        w.write(response.body.as_bytes()).unwrap();
+
+        self.do_teardown_request();
     }
 }

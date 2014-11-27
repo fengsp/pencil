@@ -148,7 +148,7 @@ impl Response {
             headers: Headers::new(None),
             body: body,
         };
-        let content_type = String::from_str("text/plain; charset=utf-8");
+        let content_type = String::from_str("text/html; charset=utf-8");
         let content_length = response.body.len().to_string();
         response.headers.set(String::from_str("Content-Type"), content_type);
         response.headers.set(String::from_str("Content-Length"), content_length);
