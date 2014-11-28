@@ -31,7 +31,10 @@ pub use json::jsonify;
 pub use config::{
     Config,
 };
-pub use helpers::make_response;
+pub use helpers::{
+    make_response,
+    PathBound,
+};
 
 mod app;
 mod types;

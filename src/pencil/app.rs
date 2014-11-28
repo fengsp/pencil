@@ -5,6 +5,7 @@
 use std::collections::HashMap;
 use std::io::net::ip::{SocketAddr, Ipv4Addr};
 use std::error::Error;
+use std::io::File;
 
 use http;
 use http::server::{Server, Request, ResponseWriter};
@@ -22,6 +23,7 @@ use types::{
 use wrappers::{
     Response,
 };
+use helpers::PathBound;
 use helpers;
 use config;
 use logging;
@@ -31,6 +33,7 @@ use logging;
 #[deriving(Clone)]
 pub struct Pencil {
     pub config: config::Config,
+    root_path: String,
     url_map: HashMap<String, String>,
     // A dictionary of all view functions registered.
     view_functions: HashMap<String, PencilResult>,
@@ -44,8 +47,9 @@ pub struct Pencil {
 impl Pencil {
 
     /// Create a new pencil object.
-    pub fn new() -> Pencil {
+    pub fn new(root_path: &str) -> Pencil {
         Pencil {
+            root_path: root_path.to_string(),
             config: config::Config::new(),
             url_map: HashMap::new(),
             view_functions: HashMap::new(),
@@ -62,9 +66,9 @@ impl Pencil {
     }
 
     /// Connects a URL rule.
-    pub fn add_url_rule(&mut self, rule: String, endpoint: String, view_func: PencilResult) {
-        self.url_map.insert(rule, endpoint.clone());
-        self.view_functions.insert(endpoint, view_func);
+    pub fn add_url_rule(&mut self, rule: &str, endpoint: &str, view_func: PencilResult) {
+        self.url_map.insert(rule.to_string(), endpoint.to_string());
+        self.view_functions.insert(endpoint.to_string(), view_func);
     }
 
     /// Registers a function to run before each request.
@@ -208,6 +212,14 @@ impl Pencil {
     /// Runs the application on a local development server.
     pub fn run(self) {
         self.serve_forever();
+    }
+}
+
+impl PathBound for Pencil {
+    fn open_resource(&self, resource: &str) -> File {
+        let mut path = Path::new(self.root_path.as_slice());
+        path.push(resource);
+        return File::open(&path).unwrap();
     }
 }
 

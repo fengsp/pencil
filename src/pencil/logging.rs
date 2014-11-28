@@ -10,7 +10,7 @@ use app::Pencil;
 
 /// Set global log level based on the application's debug flag.
 pub fn set_log_level(app: &Pencil) {
-    match app.config.get(&String::from_str("DEBUG")) {
+    match app.config.get("DEBUG") {
         Some(value) => {
             match value {
                 &Json::Boolean(value) => {

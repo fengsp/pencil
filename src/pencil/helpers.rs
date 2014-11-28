@@ -3,6 +3,7 @@
 // Licensed under the BSD License, see LICENSE for more details.
 
 use std::error::Error;
+use std::io::File;
 
 use wrappers::Response;
 use types::{
@@ -21,7 +22,7 @@ use types::{
 ///```ignore
 ///fn index() {
 ///    let mut response = make_response(PencilValue(String::from_str("Hello!")));
-///    response.headers.set(String::from_str("X-TEST"), String::from_str("value"));
+///    response.headers.set("X-TEST", "value");
 ///    return response;
 ///}
 ///```
@@ -32,4 +33,28 @@ pub fn make_response(rv: PencilResult) -> Response {
         PenResponse(response) => response,
         PenError(e) => Response::new(e.description().to_string()),
     }
+}
+
+
+/// Path bound trait.
+pub trait PathBound {
+    /// Opens a resource from the root path folder.  Consider the following
+    /// folder structure:
+    ///
+    ///```ignore
+    /// /myapp.rs
+    /// /user.sql
+    /// /templates
+    ///     /index.html
+    ///```
+    ///
+    /// If you want to open the `user.sql` file you should do the following:
+    ///
+    ///```ignore
+    ///let mut file = app.open_resource("user.sql");
+    ///let content = file.read_to_string().unwrap();
+    ///do_something(contents);
+    ///```
+    ///
+    fn open_resource(&self, resource: &str) -> File;
 }

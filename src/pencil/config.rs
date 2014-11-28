@@ -43,27 +43,27 @@ impl Config {
     }
 
     /// Set a value for the key.
-    pub fn set(&mut self, key: String, value: Json) {
-        self.config.insert(key, value);
+    pub fn set(&mut self, key: &str, value: Json) {
+        self.config.insert(key.to_string(), value);
     }
 
     /// Returns a reference to the value corresponding to the key.
-    pub fn get(&self, key: &String) -> Option<&Json> {
-        self.config.get(key)
+    pub fn get(&self, key: &str) -> Option<&Json> {
+        self.config.get(&key.to_string())
     }
 
     /// Loads a configuration from an environment variable pointing to
     /// a JSON configuration file.
-    pub fn from_envvar(&mut self, variable_name: String) {
-        match os::getenv(variable_name.as_slice()) {
-            Some(value) => self.from_jsonfile(value.clone()),
+    pub fn from_envvar(&mut self, variable_name: &str) {
+        match os::getenv(variable_name) {
+            Some(value) => self.from_jsonfile(value.as_slice()),
             None => panic!("The environment variable {} is not set.", variable_name),
         }
     }
 
     /// Updates the values in the config from a JSON file.
-    pub fn from_jsonfile(&mut self, filepath: String) {
-        let path = Path::new(filepath.as_slice());
+    pub fn from_jsonfile(&mut self, filepath: &str) {
+        let path = Path::new(filepath);
         let mut file = File::open(&path).unwrap();
         let content = file.read_to_string().unwrap();
         let object: Json = from_str(content.as_slice()).unwrap();
@@ -76,7 +76,7 @@ impl Config {
     /// Updates the values from the given `JsonObject`.
     pub fn from_object(&mut self, object: JsonObject) {
         for (key, value) in object.iter() {
-            self.set(key.clone(), value.clone());
+            self.set(key.as_slice(), value.clone());
         }
     }
 }
