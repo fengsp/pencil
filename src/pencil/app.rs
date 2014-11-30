@@ -3,14 +3,11 @@
 // Licensed under the BSD License, see LICENSE for more details.
 
 use std::collections::HashMap;
-use std::io::net::ip::{SocketAddr, Ipv4Addr};
 use std::error::Error;
 use std::io::File;
 
-use http;
-use http::server::{Server, Request, ResponseWriter};
+use http::server::Request;
 use http::server::request::AbsolutePath;
-use http::headers::content_type::MediaType;
 
 use types::{
     PencilResult,
@@ -27,6 +24,7 @@ use helpers::PathBound;
 use helpers;
 use config;
 use logging;
+use serving::run_server;
 
 
 /// The pencil type.
@@ -142,7 +140,7 @@ impl Pencil {
     }
 
     /// Called after the actual request dispatching.
-    fn do_teardown_request(&self) {
+    pub fn do_teardown_request(&self) {
         // TODO: reverse order
         for x in self.teardown_request_funcs.iter() {
             println!("{}", x);
@@ -197,7 +195,7 @@ impl Pencil {
     /// The actual application.  Middlewares can be applied here.
     /// You can do this:
     ///     application.app = MyMiddleware(application.app)
-    pub fn app(&self, request: Request) -> Response {
+    pub fn handle_request(&self, request: Request) -> Response {
         // let url_adapter = self.create_url_adapter(request);
         // request.url_rule, request.view_args = url_adapter.match()
         // or
@@ -211,7 +209,7 @@ impl Pencil {
 
     /// Runs the application on a local development server.
     pub fn run(self) {
-        self.serve_forever();
+        run_server(self);
     }
 }
 
@@ -220,27 +218,5 @@ impl PathBound for Pencil {
         let mut path = Path::new(self.root_path.as_slice());
         path.push(resource);
         return File::open(&path).unwrap();
-    }
-}
-
-impl Server for Pencil {
-
-    fn get_config(&self) -> http::server::Config {
-        http::server::Config { bind_address: SocketAddr { ip: Ipv4Addr(127, 0, 0, 1), port: 8000 } }
-    }
-
-    fn handle_request(&self, r: Request, w: &mut ResponseWriter) {
-        // let request = r;
-        let response = self.app(r);
-
-        w.headers.content_type = Some(MediaType {
-            type_ : String::from_str("text"),
-            subtype: String::from_str("plain"),
-            parameters: vec!((String::from_str("charset"), String::from_str("UTF-8")))
-        });
-        w.headers.server = Some(String::from_str("Pencil"));
-        w.write(response.body.as_bytes()).unwrap();
-
-        self.do_teardown_request();
     }
 }

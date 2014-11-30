@@ -37,6 +37,9 @@ pub use helpers::{
     make_response,
     PathBound,
 };
+pub use serving::{
+    run_server,
+};
 
 mod app;
 mod types;
@@ -46,3 +49,4 @@ mod json;
 mod config;
 mod logging;
 mod helpers;
+mod serving;
