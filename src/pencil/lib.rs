@@ -23,8 +23,10 @@ pub use types::{
         PenResponse,
         PenError,
 };
-pub use wrappers::{
+pub use datastructures::{
     Headers,
+};
+pub use wrappers::{
     Response,
 };
 pub use json::jsonify;
@@ -38,6 +40,7 @@ pub use helpers::{
 
 mod app;
 mod types;
+mod datastructures;
 mod wrappers;
 mod json;
 mod config;
