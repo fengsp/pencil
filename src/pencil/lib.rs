@@ -22,6 +22,7 @@ pub use types::{
         PenValue,
         PenResponse,
         PenError,
+    PencilError,
 };
 pub use datastructures::{
     Headers,
@@ -40,6 +41,9 @@ pub use helpers::{
 pub use serving::{
     run_server,
 };
+pub use errors::{
+    HTTPError,
+};
 
 mod app;
 mod types;
@@ -50,3 +54,4 @@ mod config;
 mod logging;
 mod helpers;
 mod serving;
+mod errors;

@@ -5,6 +5,7 @@
 use std::error;
 
 use wrappers::Response;
+use errors::HTTPError;
 
 pub use self::PencilResult::{
     PenValue, PenResponse, PenError
@@ -12,25 +13,6 @@ pub use self::PencilResult::{
 pub use self::PencilError::{
     PencilHTTPError
 };
-
-
-/// The HTTP Error type.
-#[deriving(Clone)]
-pub struct HTTPError {
-    pub code: int,
-    pub desc: &'static str,
-}
-
-impl error::Error for HTTPError {
-
-    fn description(&self) -> &str {
-        self.desc
-    }
-
-    fn detail(&self) -> Option<String> {
-        None
-    }
-}
 
 
 /// The Pencil Error type.
