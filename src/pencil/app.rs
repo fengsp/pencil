@@ -25,6 +25,7 @@ use helpers;
 use config;
 use logging;
 use serving::run_server;
+use routing::{Map, Rule};
 
 
 /// The pencil type.
@@ -32,7 +33,7 @@ use serving::run_server;
 pub struct Pencil {
     pub config: config::Config,
     root_path: String,
-    url_map: HashMap<String, String>,
+    url_map: Map,
     // A dictionary of all view functions registered.
     view_functions: HashMap<String, PencilResult>,
     before_request_funcs: Vec<String>,
@@ -49,7 +50,7 @@ impl Pencil {
         Pencil {
             root_path: root_path.to_string(),
             config: config::Config::new(),
-            url_map: HashMap::new(),
+            url_map: Map::new(),
             view_functions: HashMap::new(),
             before_request_funcs: vec![],
             after_request_funcs: vec![String::from_str("after")],
@@ -63,9 +64,16 @@ impl Pencil {
         logging::set_log_level(self);
     }
 
+    /// A shortcut that is used to register a view function for a given
+    /// URL rule.
+    pub fn route(&mut self, rule: &'static str, methods: Vec<&str>, endpoint: &str, view_func: PencilResult) {
+        self.add_url_rule(rule, methods, endpoint, view_func);
+    }
+
     /// Connects a URL rule.
-    pub fn add_url_rule(&mut self, rule: &str, endpoint: &str, view_func: PencilResult) {
-        self.url_map.insert(rule.to_string(), endpoint.to_string());
+    pub fn add_url_rule(&mut self, rule: &'static str, methods: Vec<&str>, endpoint: &str, view_func: PencilResult) {
+        let url_rule = Rule::new(rule, methods, endpoint);
+        self.url_map.add(url_rule);
         self.view_functions.insert(endpoint.to_string(), view_func);
     }
 
@@ -113,9 +121,11 @@ impl Pencil {
                 "wtf".to_string()
             },
         };
-        let rv = match self.url_map.get(&request_url) {
-            Some(endpoint) => {
-                match self.view_functions.get(endpoint) {
+        let url_adapter = self.url_map.bind(request_url, String::from_str("GET"));
+        let rv = match url_adapter.captures() {
+            Ok(caps) => {
+                let (rule, params) = caps;
+                match self.view_functions.get(&rule.endpoint) {
                     Some(response) => response.clone(),
                     _ => PenValue(String::from_str("No such handler")),
                 }

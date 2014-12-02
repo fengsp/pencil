@@ -13,6 +13,7 @@
 
 extern crate core;
 extern crate serialize;
+extern crate regex;
 extern crate http;
 
 /* public api */
@@ -55,3 +56,4 @@ mod logging;
 mod helpers;
 mod serving;
 mod errors;
+mod routing;

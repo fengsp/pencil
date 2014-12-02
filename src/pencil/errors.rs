@@ -12,6 +12,16 @@ pub struct HTTPError {
     pub desc: &'static str,
 }
 
+impl HTTPError {
+    /// Create a new `HTTPError`.
+    pub fn new(code: int) -> HTTPError {
+        HTTPError {
+            code: code,
+            desc: "HTTP Error",
+        }
+    }
+}
+
 impl error::Error for HTTPError {
 
     fn description(&self) -> &str {
