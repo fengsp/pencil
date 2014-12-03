@@ -66,12 +66,12 @@ impl Pencil {
 
     /// A shortcut that is used to register a view function for a given
     /// URL rule.
-    pub fn route(&mut self, rule: &'static str, methods: Vec<&str>, endpoint: &str, view_func: PencilResult) {
+    pub fn route(&mut self, rule: &'static str, methods: &[&str], endpoint: &str, view_func: PencilResult) {
         self.add_url_rule(rule, methods, endpoint, view_func);
     }
 
     /// Connects a URL rule.
-    pub fn add_url_rule(&mut self, rule: &'static str, methods: Vec<&str>, endpoint: &str, view_func: PencilResult) {
+    pub fn add_url_rule(&mut self, rule: &'static str, methods: &[&str], endpoint: &str, view_func: PencilResult) {
         let url_rule = Rule::new(rule, methods, endpoint);
         self.url_map.add(url_rule);
         self.view_functions.insert(endpoint.to_string(), view_func);
@@ -125,6 +125,9 @@ impl Pencil {
         let rv = match url_adapter.captures() {
             Ok(caps) => {
                 let (rule, params) = caps;
+                for p in params.iter() {
+                    println!("{}", p);
+                }
                 match self.view_functions.get(&rule.endpoint) {
                     Some(response) => response.clone(),
                     _ => PenValue(String::from_str("No such handler")),

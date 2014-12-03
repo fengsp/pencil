@@ -23,7 +23,7 @@ pub struct Rule {
 
 impl Rule {
     /// Create a new `Rule`.
-    pub fn new(rule: &'static str, methods: Vec<&str>, endpoint: &str) -> Rule {
+    pub fn new(rule: &'static str, methods: &[&str], endpoint: &str) -> Rule {
         let mut upper_methods: HashSet<String> = HashSet::new();
         for &method in methods.iter() {
             let upper_method = method.to_string().to_ascii_upper();
@@ -108,7 +108,7 @@ impl<'m> MapAdapter<'m> {
                 Some(params) => { rv = params; },
                 None => { continue; },
             }
-            if !rule.methods.contains(self.method.as_slice()) {
+            if !rule.methods.contains(&self.method) {
                 for method in rule.methods.iter() {
                     have_match_for.insert(method);
                 }
