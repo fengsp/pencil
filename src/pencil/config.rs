@@ -5,7 +5,7 @@
 use std::os;
 use std::io::File;
 use std::collections::TreeMap;
-use serialize::json::{JsonObject, Json};
+use serialize::json::{Object, Json};
 
 
 /// We provide ways to fill it from JSON files:
@@ -30,13 +30,13 @@ use serialize::json::{JsonObject, Json};
 ///
 #[deriving(Clone)]
 pub struct Config {
-    config: JsonObject,
+    config: Object,
 }
 
 impl Config {
     /// Create a `Config` object.
     pub fn new() -> Config {
-        let json_object: JsonObject = TreeMap::new();
+        let json_object: Object = TreeMap::new();
         Config {
             config: json_object,
         }
@@ -73,8 +73,8 @@ impl Config {
         }
     }
 
-    /// Updates the values from the given `JsonObject`.
-    pub fn from_object(&mut self, object: JsonObject) {
+    /// Updates the values from the given `Object`.
+    pub fn from_object(&mut self, object: Object) {
         for (key, value) in object.iter() {
             self.set(key.as_slice(), value.clone());
         }

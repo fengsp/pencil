@@ -2,6 +2,7 @@
 // Copyright (c) 2014 by Shipeng Feng.
 // Licensed under the BSD License, see LICENSE for more details.
 
+#![allow(unused_attributes)]
 #![crate_name = "pencil"]
 #![crate_type = "lib"]
 #![license = "BSD"]

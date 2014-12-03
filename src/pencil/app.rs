@@ -7,7 +7,7 @@ use std::error::Error;
 use std::io::File;
 
 use http::server::Request;
-use http::server::request::AbsolutePath;
+use http::server::request::RequestUri::AbsolutePath;
 
 use types::{
     PencilResult,
