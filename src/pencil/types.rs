@@ -61,4 +61,4 @@ pub enum PencilResult {
 
 
 /// View function type.
-pub type View = fn(Request, Params) -> PencilResult;
+pub type ViewFunc = fn(Request, Params) -> PencilResult;

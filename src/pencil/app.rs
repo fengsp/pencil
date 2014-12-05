@@ -15,7 +15,7 @@ use types::{
         PenError,
 
     PencilError,
-    View,
+    ViewFunc,
 };
 use wrappers::{
     Request,
@@ -36,7 +36,7 @@ pub struct Pencil {
     root_path: String,
     url_map: Map,
     // A dictionary of all view functions registered.
-    view_functions: HashMap<String, View>,
+    view_functions: HashMap<String, ViewFunc>,
     before_request_funcs: Vec<String>,
     after_request_funcs: Vec<String>,
     teardown_request_funcs: Vec<String>,
@@ -67,12 +67,12 @@ impl Pencil {
 
     /// A shortcut that is used to register a view function for a given
     /// URL rule.
-    pub fn route(&mut self, rule: &'static str, methods: &[&str], endpoint: &str, view_func: View) {
+    pub fn route(&mut self, rule: &'static str, methods: &[&str], endpoint: &str, view_func: ViewFunc) {
         self.add_url_rule(rule, methods, endpoint, view_func);
     }
 
     /// Connects a URL rule.
-    pub fn add_url_rule(&mut self, rule: &'static str, methods: &[&str], endpoint: &str, view_func: View) {
+    pub fn add_url_rule(&mut self, rule: &'static str, methods: &[&str], endpoint: &str, view_func: ViewFunc) {
         let url_rule = Rule::new(rule, methods, endpoint);
         self.url_map.add(url_rule);
         self.view_functions.insert(endpoint.to_string(), view_func);
