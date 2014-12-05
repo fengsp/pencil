@@ -6,7 +6,6 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::io::File;
 
-use http::server::Request;
 use http::server::request::RequestUri::AbsolutePath;
 
 use types::{
@@ -16,8 +15,10 @@ use types::{
         PenError,
 
     PencilError,
+    View,
 };
 use wrappers::{
+    Request,
     Response,
 };
 use helpers::PathBound;
@@ -35,7 +36,7 @@ pub struct Pencil {
     root_path: String,
     url_map: Map,
     // A dictionary of all view functions registered.
-    view_functions: HashMap<String, PencilResult>,
+    view_functions: HashMap<String, View>,
     before_request_funcs: Vec<String>,
     after_request_funcs: Vec<String>,
     teardown_request_funcs: Vec<String>,
@@ -66,12 +67,12 @@ impl Pencil {
 
     /// A shortcut that is used to register a view function for a given
     /// URL rule.
-    pub fn route(&mut self, rule: &'static str, methods: &[&str], endpoint: &str, view_func: PencilResult) {
+    pub fn route(&mut self, rule: &'static str, methods: &[&str], endpoint: &str, view_func: View) {
         self.add_url_rule(rule, methods, endpoint, view_func);
     }
 
     /// Connects a URL rule.
-    pub fn add_url_rule(&mut self, rule: &'static str, methods: &[&str], endpoint: &str, view_func: PencilResult) {
+    pub fn add_url_rule(&mut self, rule: &'static str, methods: &[&str], endpoint: &str, view_func: View) {
         let url_rule = Rule::new(rule, methods, endpoint);
         self.url_map.add(url_rule);
         self.view_functions.insert(endpoint.to_string(), view_func);
@@ -112,9 +113,9 @@ impl Pencil {
     /// value of the view.
     fn dispatch_request(&self, request: Request) -> PencilResult {
         let request_url = match request.request_uri {
-            AbsolutePath(url) => {
+            AbsolutePath(ref url) => {
                 println!("{}", url);
-                url
+                url.clone()
             },
             _ => {
                 println!("{}", "WTF!");
@@ -129,7 +130,7 @@ impl Pencil {
                     println!("{}", p);
                 }
                 match self.view_functions.get(&rule.endpoint) {
-                    Some(response) => response.clone(),
+                    Some(&view_func) => view_func(request, params),
                     _ => PenValue(String::from_str("No such handler")),
                 }
             },

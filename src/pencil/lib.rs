@@ -30,6 +30,7 @@ pub use datastructures::{
     Headers,
 };
 pub use wrappers::{
+    Request,
     Response,
 };
 pub use json::jsonify;
@@ -43,6 +44,7 @@ pub use helpers::{
 pub use serving::{
     run_server,
 };
+pub use routing::Params;
 pub use errors::{
     HTTPError,
 };

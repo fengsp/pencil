@@ -3,6 +3,7 @@
 // Licensed under the BSD License, see LICENSE for more details.
 
 use http::status;
+pub use http::server::Request;
 
 use datastructures::Headers;
 

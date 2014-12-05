@@ -9,7 +9,7 @@ use std::ascii::AsciiExt;
 use errors::HTTPError;
 
 
-type Params = Vec<String>;
+pub type Params = Vec<String>;
 
 
 /// A Rule represents one URL pattern.

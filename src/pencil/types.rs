@@ -4,8 +4,9 @@
 
 use std::error;
 
-use wrappers::Response;
+use wrappers::{Request, Response};
 use errors::HTTPError;
+use routing::Params;
 
 pub use self::PencilResult::{
     PenValue, PenResponse, PenError
@@ -57,3 +58,7 @@ pub enum PencilResult {
     PenResponse(Response),
     PenError(PencilError),
 }
+
+
+/// View function type.
+pub type View = fn(Request, Params) -> PencilResult;
