@@ -10,7 +10,7 @@ fn user(_: Request, params: Params) -> PencilResult {
 
 
 fn main() {
-    let mut app: Pencil = Pencil::new("/web/example");
+    let mut app = Pencil::new("/web/example");
     app.route(r"/user/(\d+)", &["GET"], "user", user);
     app.run();
 }
