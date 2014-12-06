@@ -32,24 +32,27 @@ use routing::{Map, Rule};
 /// The pencil type.
 #[deriving(Clone)]
 pub struct Pencil {
+    pub root_path: String,
+    pub static_folder: String,
+    pub static_url_path: String,
     pub config: config::Config,
-    root_path: String,
-    url_map: Map,
+    pub url_map: Map,
     // A dictionary of all view functions registered.
-    view_functions: HashMap<String, ViewFunc>,
-    before_request_funcs: Vec<String>,
-    after_request_funcs: Vec<String>,
-    teardown_request_funcs: Vec<String>,
-    error_handlers: HashMap<String, PencilResult>,
+    pub view_functions: HashMap<String, ViewFunc>,
+    pub before_request_funcs: Vec<String>,
+    pub after_request_funcs: Vec<String>,
+    pub teardown_request_funcs: Vec<String>,
+    pub error_handlers: HashMap<String, PencilResult>,
 }
 
 /// The pencil object acts as the central application object.
 impl Pencil {
-
     /// Create a new pencil object.
     pub fn new(root_path: &str) -> Pencil {
         Pencil {
             root_path: root_path.to_string(),
+            static_folder: String::from_str("static"),
+            static_url_path: String::from_str("/static"),
             config: config::Config::new(),
             url_map: Map::new(),
             view_functions: HashMap::new(),

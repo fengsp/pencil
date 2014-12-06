@@ -58,3 +58,20 @@ pub trait PathBound {
     ///
     fn open_resource(&self, resource: &str) -> File;
 }
+
+
+/// Safely join directory and filename, otherwise this returns None.
+pub fn safe_join(directory: &str, filename: &str) -> Option<Path> {
+    let directory = Path::new(directory);
+    let filename = Path::new(filename);
+    match filename.as_str() {
+        Some(filename_str) => {
+            if filename.is_absolute() | (filename_str == "..") | (filename_str.starts_with("../")) {
+                None
+            } else {
+                Some(directory.join(filename_str))
+            }
+        },
+        None => None,
+    }
+}

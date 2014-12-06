@@ -40,6 +40,7 @@ pub use config::{
 pub use helpers::{
     make_response,
     PathBound,
+    safe_join,
 };
 pub use serving::{
     run_server,
