@@ -49,6 +49,7 @@ pub use routing::Params;
 pub use errors::{
     HTTPError,
 };
+pub use testing::Client;
 
 mod app;
 mod types;
@@ -61,3 +62,4 @@ mod helpers;
 mod serving;
 mod errors;
 mod routing;
+mod testing;

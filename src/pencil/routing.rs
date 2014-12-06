@@ -92,7 +92,7 @@ pub struct MapAdapter<'m> {
 }
 
 impl<'m> MapAdapter<'m> {
-    pub fn new(map: &'m Map, path: String, method: String) -> MapAdapter<'m> {
+    pub fn new(map: &Map, path: String, method: String) -> MapAdapter {
         MapAdapter {
             map: map,
             path: path,

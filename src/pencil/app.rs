@@ -27,6 +27,7 @@ use config;
 use logging;
 use serving::run_server;
 use routing::{Map, Rule};
+use testing::Client;
 
 
 /// The pencil type.
@@ -102,6 +103,19 @@ impl Pencil {
     pub fn register_error_handler(&mut self, error: PencilError, f: PencilResult) {
         // TODO: seperate http code and others
         self.error_handlers.insert(error.description().to_string(), f);
+    }
+
+    /// Creates a test client for this application, you can use it
+    /// like this:
+    ///
+    ///```ignore
+    ///let client = app.test_client();
+    ///let response = client.get('/');
+    ///assert!(response.code, 200);
+    ///```
+    ///
+    pub fn test_client(&self) -> Client {
+        Client::new(self)
     }
 
     /// Called before the actual request dispatching, you can return value
