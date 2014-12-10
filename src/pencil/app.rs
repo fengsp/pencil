@@ -27,7 +27,7 @@ use config;
 use logging;
 use serving::run_server;
 use routing::{Map, Rule};
-use testing::Client;
+use testing::PencilClient;
 
 
 /// The pencil type.
@@ -113,9 +113,8 @@ impl Pencil {
     ///let response = client.get('/');
     ///assert!(response.code, 200);
     ///```
-    ///
-    pub fn test_client(&self) -> Client {
-        Client::new(self)
+    pub fn test_client(&self) -> PencilClient {
+        PencilClient::new(self)
     }
 
     /// Called before the actual request dispatching, you can return value

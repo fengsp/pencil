@@ -27,7 +27,6 @@ use serialize::json::{Object, Json};
 /// ```bash
 /// export YOURAPPLICATION_SETTINGS="/path/to/config/file"
 /// ```
-///
 #[deriving(Clone)]
 pub struct Config {
     config: Object,

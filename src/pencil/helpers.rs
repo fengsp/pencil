@@ -26,7 +26,6 @@ use types::{
 ///    return response;
 ///}
 ///```
-///
 pub fn make_response(rv: PencilResult) -> Response {
     match rv {
         PenValue(rv) => Response::new(rv),
@@ -55,7 +54,6 @@ pub trait PathBound {
     ///let content = file.read_to_string().unwrap();
     ///do_something(contents);
     ///```
-    ///
     fn open_resource(&self, resource: &str) -> File;
 }
 

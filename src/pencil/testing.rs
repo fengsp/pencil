@@ -7,14 +7,14 @@ use wrappers::{Request, Response};
 
 
 /// This type allows to send requests to a wrapped application.
-pub struct Client<'c> {
+pub struct PencilClient<'c> {
     application: &'c Pencil,
 }
 
-impl<'c> Client<'c> {
-    /// Create a new `Client`.
-    pub fn new(application: &Pencil) -> Client {
-        Client { application: application }
+impl<'c> PencilClient<'c> {
+    /// Create a new `PencilClient`.
+    pub fn new(application: &Pencil) -> PencilClient {
+        PencilClient { application: application }
     }
 
     /// Get wrapped application.
