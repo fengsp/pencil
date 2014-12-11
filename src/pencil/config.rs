@@ -8,7 +8,7 @@ use std::collections::TreeMap;
 use serialize::json::{Object, Json};
 
 
-/// We provide ways to fill it from JSON files:
+/// The pencil `Config` type, We provide ways to fill it from JSON files:
 ///
 /// ```rust,no_run
 /// let mut app = pencil::Pencil::new("/demo");
