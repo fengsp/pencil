@@ -1,8 +1,8 @@
 [package]
 
-name = "pencil-example"
+name = "hello"
 version = "0.0.1"
 authors = ["Shipeng Feng <fsp261@gmail.com>"]
 
 [dependencies.pencil]
-path = ".."
+path = "../.."

@@ -12,6 +12,6 @@
 /Cargo.lock
 
 # Added by Shipeng Feng
-example/Cargo.lock
-example/target/
+Cargo.lock
+target
 *.swp
