@@ -33,13 +33,13 @@ impl error::Error for PencilError {
 
     fn description(&self) -> &str {
         match *self {
-            PencilHTTPError(err) => err.desc,
+            PencilHTTPError(ref err) => err.description(),
         }
     }
 
     fn detail(&self) -> Option<String> {
         match *self {
-            PencilHTTPError(err) => err.detail(),
+            PencilHTTPError(ref err) => err.detail(),
         }
     }
 
