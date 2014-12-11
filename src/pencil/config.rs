@@ -10,14 +10,16 @@ use serialize::json::{Object, Json};
 
 /// We provide ways to fill it from JSON files:
 ///
-/// ```ignore
+/// ```rust,no_run
+/// let mut app = pencil::Pencil::new("/demo");
 /// app.config.from_jsonfile("yourconfig.json")
 /// ```
 ///
 /// You can also load configurations from an environment variable
 /// pointing to a file:
 ///
-/// ```ignore
+/// ```rust,no_run
+/// let mut app = pencil::Pencil::new("/demo");
 /// app.config.from_envvar("YOURAPPLICATION_SETTINGS")
 /// ```
 ///
