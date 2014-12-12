@@ -46,7 +46,7 @@
 #![license = "BSD"]
 #![comment = "A microframework for Rust."]
 #![doc(html_logo_url = "https://raw.githubusercontent.com/fengsp/pencil/master/logo/pencil.png",
-       html_favicon_url = "http://www.rust-lang.org/favicon.ico",
+       html_favicon_url = "https://raw.githubusercontent.com/fengsp/pencil/master/logo/favicon.ico",
        html_root_url = "http://fengsp.github.io/pencil/")]
 #![experimental]
 #![deny(non_camel_case_types)]
