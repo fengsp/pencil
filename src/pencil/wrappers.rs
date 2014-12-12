@@ -31,7 +31,7 @@ impl Response {
         return response;
     }
 
-    pub fn get_status_code(&self) -> u16 {
+    pub fn status_code(&self) -> u16 {
         self.status.code()
     }
 
@@ -42,7 +42,7 @@ impl Response {
         }
     }
 
-    pub fn get_status(&self) -> status::Status {
+    pub fn status(&self) -> status::Status {
         self.status.clone()
     }
 
@@ -59,7 +59,7 @@ impl Response {
     }
 
     /// Returns the response content type if available.
-    pub fn get_content_type(&self) -> Option<String> {
+    pub fn content_type(&self) -> Option<String> {
         let rv = self.headers.get("Content-Type");
         rv.map(|content_type| content_type.clone())
     }
@@ -70,7 +70,7 @@ impl Response {
     }
 
     /// Returns the response content length if available.
-    pub fn get_content_length(&self) -> Option<uint> {
+    pub fn content_length(&self) -> Option<uint> {
         let rv = self.headers.get("Content-Length");
         match rv {
             Some(content_length) => from_str(content_length.as_slice()),

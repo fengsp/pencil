@@ -6,7 +6,7 @@ use std::collections::HashSet;
 use regex::Regex;
 use std::ascii::AsciiExt;
 
-use errors::HTTPError;
+use errors::{HTTPError, MethodNotAllowed, NotFound};
 
 
 pub type Params = Vec<String>;
@@ -117,8 +117,8 @@ impl<'m> MapAdapter<'m> {
             return Ok((rule.clone(), rv))
         }
         if !have_match_for.is_empty() {
-            return Err(HTTPError::new(405))
+            return Err(MethodNotAllowed)
         }
-        return Err(HTTPError::new(404))
+        return Err(NotFound)
     }
 }
