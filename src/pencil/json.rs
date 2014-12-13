@@ -17,5 +17,5 @@ pub fn jsonify<'a, T: Encodable<Encoder<'a>, IoError>>(object: &T) -> PencilResu
     let encoded = json::encode(object);
     let mut response = Response::new(encoded);
     response.set_content_type("application/json");
-    return PenResponse(response);
+    return Ok(PenResponse(response));
 }

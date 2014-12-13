@@ -6,7 +6,7 @@ use std::error::Error;
 
 use httputils::get_name_by_http_code;
 
-use types::PenValue;
+use types::PenString;
 use wrappers::Response;
 use helpers::make_response;
 
@@ -116,7 +116,7 @@ impl HTTPError {
 
     /// Get a response object.
     pub fn to_response(&self) -> Response {
-        let mut response = make_response(PenValue(self.get_body()));
+        let mut response = make_response(PenString(self.get_body()));
         response.set_status_code(self.code() as u16);
         response.set_content_type("text/html");
         return response;

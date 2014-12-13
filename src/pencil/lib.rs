@@ -25,11 +25,11 @@
 //! extern crate pencil;
 //!
 //! use pencil::Pencil;
-//! use pencil::{Request, Params, PencilResult, PenValue};
+//! use pencil::{Request, Params, PencilResult, PenString};
 //!
 //!
 //! fn hello(_: Request, _: Params) -> PencilResult {
-//!     PenValue(String::from_str("Hello World!"))
+//!     Ok(PenString(String::from_str("Hello World!")))
 //! }
 //!
 //!
@@ -59,11 +59,11 @@ extern crate http;
 /* public api */
 pub use app::Pencil;
 pub use types::{
-    PencilResult,
-        PenValue,
+    PencilValue,
+        PenString,
         PenResponse,
-        PenError,
     PencilError,
+    PencilResult,
 };
 pub use datastructures::{
     Headers,

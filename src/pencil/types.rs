@@ -8,8 +8,8 @@ use wrappers::{Request, Response};
 use errors::HTTPError;
 use routing::Params;
 
-pub use self::PencilResult::{
-    PenValue, PenResponse, PenError
+pub use self::PencilValue::{
+    PenString, PenResponse
 };
 pub use self::PencilError::{
     PencilHTTPError,
@@ -17,17 +17,40 @@ pub use self::PencilError::{
 };
 
 
+/// The Pencil User Error type.
+#[deriving(Clone)]
+pub struct UserError {
+    pub desc: &'static str,
+    pub detail: Option<String>,
+}
+
+impl error::Error for UserError {
+    fn description(&self) -> &str {
+        self.desc
+    }
+
+    fn detail(&self) -> Option<String> {
+        self.detail.clone()
+    }
+}
+
+
 /// The Pencil Error type.
 #[deriving(Clone)]
 pub enum PencilError {
     PencilHTTPError(HTTPError),
-    PencilUserError(&'static str, Option<String>),
+    PencilUserError(UserError),
 }
 
 impl error::FromError<HTTPError> for PencilError {
-
     fn from_error(err: HTTPError) -> PencilError {
         PencilHTTPError(err)
+    }
+}
+
+impl error::FromError<UserError> for PencilError {
+    fn from_error(err: UserError) -> PencilError {
+        PencilUserError(err)
     }
 }
 
@@ -36,33 +59,36 @@ impl error::Error for PencilError {
     fn description(&self) -> &str {
         match *self {
             PencilHTTPError(ref err) => err.description(),
-            PencilUserError(desc, _) => desc,
+            PencilUserError(ref err) => err.description(),
         }
     }
 
     fn detail(&self) -> Option<String> {
         match *self {
             PencilHTTPError(ref err) => err.detail(),
-            PencilUserError(_, ref detail) => detail.clone(),
+            PencilUserError(ref err) => err.detail(),
         }
     }
 
     fn cause(&self) -> Option<&error::Error> {
         match self {
             &PencilHTTPError(ref err) => Some(&*err as &error::Error),
-            &PencilUserError(_, _) => None,
+            &PencilUserError(_) => None,
         }
     }
 }
 
 
-/// Result type.
+/// Pencil view function return value type.
 #[deriving(Clone)]
-pub enum PencilResult {
-    PenValue(String),
+pub enum PencilValue {
+    PenString(String),
     PenResponse(Response),
-    PenError(PencilError),
 }
+
+
+/// The Pencil Result type.
+pub type PencilResult = Result<PencilValue, PencilError>;
 
 
 /// View function type.

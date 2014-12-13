@@ -9,14 +9,15 @@ use std::io::File;
 use http::server::request::RequestUri::AbsolutePath;
 
 use types::{
-    PencilResult,
-        PenValue,
+    PencilValue,
+        PenString,
         PenResponse,
-        PenError,
 
     PencilError,
         PencilHTTPError,
         PencilUserError,
+
+    PencilResult,
     ViewFunc,
 };
 use wrappers::{
@@ -30,7 +31,7 @@ use logging;
 use serving::run_server;
 use routing::{Map, Rule};
 use testing::PencilClient;
-use errors::HTTPError;
+use errors::{HTTPError, InternalServerError};
 
 
 /// The pencil type.
@@ -150,17 +151,17 @@ impl Pencil {
                 }
                 match self.view_functions.get(&rule.endpoint) {
                     Some(&view_func) => view_func(request, params),
-                    _ => PenValue(String::from_str("No such handler")),
+                    None => Ok(PenString(String::from_str("No such handler"))),
                 }
             },
-            _ => PenValue(String::from_str("404")),
+            _ => Ok((PenString(String::from_str("404")))),
         };
         return rv;
     }
 
     /// Converts the return value from a view function to a real
     /// response object.
-    fn make_response(&self, rv: PencilResult) -> Response {
+    fn make_response(&self, rv: PencilValue) -> Response {
         return helpers::make_response(rv);
     }
 
@@ -184,9 +185,9 @@ impl Pencil {
     fn handle_user_error(&self, e: PencilError) -> PencilResult {
         match e {
             PencilHTTPError(e) => self.handle_http_error(e),
-            PencilUserError(desc, _) => match self.error_handlers.get(desc) {
+            PencilUserError(e) => match self.error_handlers.get(e.description()) {
                 Some(handler) => handler.clone(),
-                _ => PenError(e),
+                None => Err(PencilUserError(e)),
             }
         }
     }
@@ -195,17 +196,28 @@ impl Pencil {
     fn handle_http_error(&self, e: HTTPError) -> PencilResult {
         match self.error_handlers.get(e.description()) {
             Some(handler) => handler.clone(),
-            _ => PenResponse(e.to_response()),
+            None => Ok(PenResponse(e.to_response())),
         }
     }
 
     /// Default error handing that kicks in when an error occurs that is not
     /// handled.
-    fn handle_error(&self, e: PencilError) -> PencilResult {
+    fn handle_error(&self, e: PencilError) -> PencilValue {
         self.log_error(&e);
         match self.error_handlers.get(e.description()) {
-            Some(handler) => handler.clone(),
-            _ => PenError(e),  // 500
+            Some(handler) => {
+                match handler.clone() {
+                    Ok(value) => value,
+                    Err(_) => {
+                        let e = InternalServerError;
+                        PenResponse(e.to_response())
+                    }
+                }
+            },
+            None => {
+                let e = InternalServerError;
+                PenResponse(e.to_response())
+            }
         }
     }
 
@@ -219,13 +231,17 @@ impl Pencil {
     fn full_dispatch_request(&self, request: Request) -> Result<Response, PencilError> {
         self.preprocess_request();
         let rv = match self.dispatch_request(request) {
-            PenValue(rv) => PenValue(rv),
-            PenResponse(response) => PenResponse(response),
-            PenError(e) => self.handle_user_error(e),
+            Ok(value) => Ok(value),
+            Err(e) => self.handle_user_error(e),
         };
-        let mut response = self.make_response(rv);
-        self.process_response(&mut response);
-        return Ok(response);
+        match rv {
+            Ok(value) => {
+                let mut response = self.make_response(value);
+                self.process_response(&mut response);
+                Ok(response)
+            },
+            Err(e) => Err(e),
+        }
     }
 
     /// The actual application.  Middlewares can be applied here.

@@ -2,15 +2,13 @@
 // Copyright (c) 2014 by Shipeng Feng.
 // Licensed under the BSD License, see LICENSE for more details.
 
-use std::error::Error;
 use std::io::File;
 
 use wrappers::Response;
 use types::{
-    PencilResult,
-        PenValue,
+    PencilValue,
+        PenString,
         PenResponse,
-        PenError,
 };
 
 
@@ -26,11 +24,10 @@ use types::{
 ///    return response;
 ///}
 ///```
-pub fn make_response(rv: PencilResult) -> Response {
+pub fn make_response(rv: PencilValue) -> Response {
     match rv {
-        PenValue(rv) => Response::new(rv),
+        PenString(rv) => Response::new(rv),
         PenResponse(response) => response,
-        PenError(e) => Response::new(e.description().to_string()),
     }
 }
 
