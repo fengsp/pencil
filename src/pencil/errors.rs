@@ -6,6 +6,10 @@ use std::error::Error;
 
 use httputils::get_name_by_http_code;
 
+use types::PenValue;
+use wrappers::Response;
+use helpers::make_response;
+
 pub use self::HTTPError::{
     BadRequest,
     Unauthorized,
@@ -108,6 +112,14 @@ impl HTTPError {
     /// Get the HTML body.
     pub fn get_body(&self) -> String {
         format!("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\">\n<title>{} {}</title>\n<h1>{}</h1>\n{}\n", self.code().to_string(), self.name(), self.name(), self.description())
+    }
+
+    /// Get a response object.
+    pub fn to_response(&self) -> Response {
+        let mut response = make_response(PenValue(self.get_body()));
+        response.set_status_code(self.code() as u16);
+        response.set_content_type("text/html");
+        return response;
     }
 }
 

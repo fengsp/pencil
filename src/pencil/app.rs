@@ -15,6 +15,8 @@ use types::{
         PenError,
 
     PencilError,
+        PencilHTTPError,
+        PencilUserError,
     ViewFunc,
 };
 use wrappers::{
@@ -28,6 +30,7 @@ use logging;
 use serving::run_server;
 use routing::{Map, Rule};
 use testing::PencilClient;
+use errors::HTTPError;
 
 
 /// The pencil type.
@@ -43,7 +46,7 @@ pub struct Pencil {
     pub before_request_funcs: Vec<String>,
     pub after_request_funcs: Vec<String>,
     pub teardown_request_funcs: Vec<String>,
-    pub error_handlers: HashMap<String, PencilResult>,
+    pub error_handlers: HashMap<&'static str, PencilResult>,
 }
 
 /// The pencil object acts as the central application object.
@@ -100,9 +103,9 @@ impl Pencil {
     }
 
     /// Registers a function as one error handler.
-    pub fn register_error_handler(&mut self, error: PencilError, f: PencilResult) {
+    pub fn register_error_handler(&mut self, error_desc: &'static str, f: PencilResult) {
         // TODO: seperate http code and others
-        self.error_handlers.insert(error.description().to_string(), f);
+        self.error_handlers.insert(error_desc, f);
     }
 
     /// Creates a test client for this application, you can use it
@@ -179,32 +182,35 @@ impl Pencil {
 
     /// This method is called whenever an error occurs that should be handled.
     fn handle_user_error(&self, e: PencilError) -> PencilResult {
-        match self.error_handlers.get(&e.description().to_string()) {
-            Some(handler) => handler.clone(),
-            _ => self.handle_http_error(e),
+        match e {
+            PencilHTTPError(e) => self.handle_http_error(e),
+            PencilUserError(desc, _) => match self.error_handlers.get(desc) {
+                Some(handler) => handler.clone(),
+                _ => PenError(e),
+            }
         }
     }
 
     /// Handles an HTTP error.
-    fn handle_http_error(&self, e: PencilError) -> PencilResult {
-        match self.error_handlers.get(&e.description().to_string()) {
+    fn handle_http_error(&self, e: HTTPError) -> PencilResult {
+        match self.error_handlers.get(e.description()) {
             Some(handler) => handler.clone(),
-            _ => PenError(e),
+            _ => PenResponse(e.to_response()),
         }
     }
 
     /// Default error handing that kicks in when an error occurs that is not
     /// handled.
     fn handle_error(&self, e: PencilError) -> PencilResult {
-        self.log_error(e);
-        match self.error_handlers.get(&e.description().to_string()) {
+        self.log_error(&e);
+        match self.error_handlers.get(e.description()) {
             Some(handler) => handler.clone(),
             _ => PenError(e),  // 500
         }
     }
 
     /// Logs an error.
-    fn log_error(&self, e: PencilError) {
+    fn log_error(&self, e: &PencilError) {
         println!("{}", e.description());
     }
 

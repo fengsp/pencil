@@ -12,7 +12,8 @@ pub use self::PencilResult::{
     PenValue, PenResponse, PenError
 };
 pub use self::PencilError::{
-    PencilHTTPError
+    PencilHTTPError,
+    PencilUserError
 };
 
 
@@ -20,6 +21,7 @@ pub use self::PencilError::{
 #[deriving(Clone)]
 pub enum PencilError {
     PencilHTTPError(HTTPError),
+    PencilUserError(&'static str, Option<String>),
 }
 
 impl error::FromError<HTTPError> for PencilError {
@@ -34,18 +36,21 @@ impl error::Error for PencilError {
     fn description(&self) -> &str {
         match *self {
             PencilHTTPError(ref err) => err.description(),
+            PencilUserError(desc, _) => desc,
         }
     }
 
     fn detail(&self) -> Option<String> {
         match *self {
             PencilHTTPError(ref err) => err.detail(),
+            PencilUserError(_, ref detail) => detail.clone(),
         }
     }
 
     fn cause(&self) -> Option<&error::Error> {
         match self {
             &PencilHTTPError(ref err) => Some(&*err as &error::Error),
+            &PencilUserError(_, _) => None,
         }
     }
 }
