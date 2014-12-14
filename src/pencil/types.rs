@@ -12,8 +12,8 @@ pub use self::PencilValue::{
     PenString, PenResponse
 };
 pub use self::PencilError::{
-    PencilHTTPError,
-    PencilUserError
+    PenHTTPError,
+    PenUserError
 };
 
 
@@ -38,19 +38,19 @@ impl error::Error for UserError {
 /// The Pencil Error type.
 #[deriving(Clone)]
 pub enum PencilError {
-    PencilHTTPError(HTTPError),
-    PencilUserError(UserError),
+    PenHTTPError(HTTPError),
+    PenUserError(UserError),
 }
 
 impl error::FromError<HTTPError> for PencilError {
     fn from_error(err: HTTPError) -> PencilError {
-        PencilHTTPError(err)
+        PenHTTPError(err)
     }
 }
 
 impl error::FromError<UserError> for PencilError {
     fn from_error(err: UserError) -> PencilError {
-        PencilUserError(err)
+        PenUserError(err)
     }
 }
 
@@ -58,22 +58,22 @@ impl error::Error for PencilError {
 
     fn description(&self) -> &str {
         match *self {
-            PencilHTTPError(ref err) => err.description(),
-            PencilUserError(ref err) => err.description(),
+            PenHTTPError(ref err) => err.description(),
+            PenUserError(ref err) => err.description(),
         }
     }
 
     fn detail(&self) -> Option<String> {
         match *self {
-            PencilHTTPError(ref err) => err.detail(),
-            PencilUserError(ref err) => err.detail(),
+            PenHTTPError(ref err) => err.detail(),
+            PenUserError(ref err) => err.detail(),
         }
     }
 
     fn cause(&self) -> Option<&error::Error> {
         match self {
-            &PencilHTTPError(ref err) => Some(&*err as &error::Error),
-            &PencilUserError(_) => None,
+            &PenHTTPError(ref err) => Some(&*err as &error::Error),
+            &PenUserError(_) => None,
         }
     }
 }

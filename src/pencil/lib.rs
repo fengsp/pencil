@@ -63,7 +63,11 @@ pub use types::{
         PenString,
         PenResponse,
     PencilError,
+        PenHTTPError,
+        PenUserError,
+    UserError,
     PencilResult,
+    ViewFunc,
 };
 pub use datastructures::{
     Headers,

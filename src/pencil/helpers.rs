@@ -17,12 +17,15 @@ use types::{
 /// is converted into a response by Pencil.  You can call this function to
 /// get a response object which you can use to attach headers:
 ///
-///```ignore
-///fn index() {
-///    let mut response = make_response(PencilValue(String::from_str("Hello!")));
-///    response.headers.set("X-TEST", "value");
-///    return response;
-///}
+///```rust,no_run
+/// use pencil::{Request, Params, PencilResult, PenString, PenResponse, make_response};
+///
+///
+/// fn index(_: Request, _: Params) -> PencilResult {
+///     let mut response = make_response(PenString(String::from_str("Hello!")));
+///     response.headers.set("X-TEST", "value");
+///     return Ok(PenResponse(response));
+/// }
 ///```
 pub fn make_response(rv: PencilValue) -> Response {
     match rv {
@@ -46,10 +49,15 @@ pub trait PathBound {
     ///
     /// If you want to open the `user.sql` file you should do the following:
     ///
-    ///```ignore
-    ///let mut file = app.open_resource("user.sql");
-    ///let content = file.read_to_string().unwrap();
-    ///do_something(contents);
+    ///```rust,no_run
+    /// use pencil::PathBound;
+    ///
+    ///
+    /// fn main() {
+    ///     let app = pencil::Pencil::new("/web/demo");
+    ///     let mut file = app.open_resource("user.sql");
+    ///     let content = file.read_to_string().unwrap();
+    /// }
     ///```
     fn open_resource(&self, resource: &str) -> File;
 }

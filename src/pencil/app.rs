@@ -14,8 +14,8 @@ use types::{
         PenResponse,
 
     PencilError,
-        PencilHTTPError,
-        PencilUserError,
+        PenHTTPError,
+        PenUserError,
 
     PencilResult,
     ViewFunc,
@@ -184,10 +184,10 @@ impl Pencil {
     /// This method is called whenever an error occurs that should be handled.
     fn handle_user_error(&self, e: PencilError) -> PencilResult {
         match e {
-            PencilHTTPError(e) => self.handle_http_error(e),
-            PencilUserError(e) => match self.error_handlers.get(e.description()) {
+            PenHTTPError(e) => self.handle_http_error(e),
+            PenUserError(e) => match self.error_handlers.get(e.description()) {
                 Some(handler) => handler.clone(),
-                None => Err(PencilUserError(e)),
+                None => Err(PenUserError(e)),
             }
         }
     }
