@@ -112,11 +112,11 @@ impl Pencil {
     /// Creates a test client for this application, you can use it
     /// like this:
     ///
-    ///```ignore
-    ///let client = app.test_client();
-    ///let response = client.get('/');
-    ///assert!(response.code, 200);
-    ///```
+    /// ```ignore
+    /// let client = app.test_client();
+    /// let response = client.get('/');
+    /// assert!(response.code, 200);
+    /// ```
     pub fn test_client(&self) -> PencilClient {
         PencilClient::new(self)
     }

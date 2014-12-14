@@ -91,6 +91,31 @@ pub use serving::{
 pub use routing::Params;
 pub use errors::{
     HTTPError,
+        BadRequest,
+        Unauthorized,
+        Forbidden,
+        NotFound,
+        MethodNotAllowed,
+        NotAcceptable,
+        RequestTimeout,
+        Conflict,
+        Gone,
+        LengthRequired,
+        PreconditionFailed,
+        RequestEntityTooLarge,
+        RequestURITooLarge,
+        UnsupportedMediaType,
+        RequestedRangeNotSatisfiable,
+        ExpectationFailed,
+        ImATeapot,
+        UnprocessableEntity,
+        PreconditionRequired,
+        TooManyRequests,
+        RequestHeaderFieldsTooLarge,
+        InternalServerError,
+        NotImplemented,
+        BadGateway,
+        ServiceUnavailable,
 };
 pub use testing::PencilClient;
 

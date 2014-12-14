@@ -39,7 +39,18 @@ pub use self::HTTPError::{
 };
 
 
-/// The HTTP Error type.
+/// The HTTP Error type you can return from within your views to trigger a
+/// non-200 response.  Here is one usage example:
+///
+/// ```rust,no_run
+/// use pencil::{Request, Params, PencilResult};
+/// use pencil::{NotFound, PenHTTPError};
+///
+///
+/// fn view(_: Request, _: Params) -> PencilResult {
+///     return Err(PenHTTPError(NotFound))
+/// }
+/// ```
 #[deriving(Clone)]
 pub enum HTTPError {
     BadRequest,
@@ -111,7 +122,7 @@ impl HTTPError {
 
     /// Get the HTML body.
     pub fn get_body(&self) -> String {
-        format!("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\">\n<title>{} {}</title>\n<h1>{}</h1>\n{}\n", self.code().to_string(), self.name(), self.name(), self.description())
+        format!("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\">\n<title>{} {}</title>\n<h1>{}</h1>\n<p>{}</p>\n", self.code().to_string(), self.name(), self.name(), self.description())
     }
 
     /// Get a response object.

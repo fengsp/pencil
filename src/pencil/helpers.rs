@@ -17,7 +17,7 @@ use types::{
 /// is converted into a response by Pencil.  You can call this function to
 /// get a response object which you can use to attach headers:
 ///
-///```rust,no_run
+/// ```rust,no_run
 /// use pencil::{Request, Params, PencilResult, PenString, PenResponse, make_response};
 ///
 ///
@@ -26,7 +26,7 @@ use types::{
 ///     response.headers.set("X-TEST", "value");
 ///     return Ok(PenResponse(response));
 /// }
-///```
+/// ```
 pub fn make_response(rv: PencilValue) -> Response {
     match rv {
         PenString(rv) => Response::new(rv),
@@ -40,16 +40,16 @@ pub trait PathBound {
     /// Opens a resource from the root path folder.  Consider the following
     /// folder structure:
     ///
-    ///```ignore
+    /// ```ignore
     /// /myapp.rs
     /// /user.sql
     /// /templates
     ///     /index.html
-    ///```
+    /// ```
     ///
     /// If you want to open the `user.sql` file you should do the following:
     ///
-    ///```rust,no_run
+    /// ```rust,no_run
     /// use pencil::PathBound;
     ///
     ///
@@ -58,7 +58,7 @@ pub trait PathBound {
     ///     let mut file = app.open_resource("user.sql");
     ///     let content = file.read_to_string().unwrap();
     /// }
-    ///```
+    /// ```
     fn open_resource(&self, resource: &str) -> File;
 }
 
