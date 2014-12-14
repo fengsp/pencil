@@ -1,11 +1,11 @@
 extern crate pencil;
 
 use pencil::Pencil;
-use pencil::{Request, Params, PencilResult, PenValue};
+use pencil::{Request, Params, PencilResult, PenString};
 
 
 fn user(_: Request, params: Params) -> PencilResult {
-    PenValue(format!("user {}", params[0]))
+    Ok(PenString(format!("user {}", params[0])))
 }
 
 
