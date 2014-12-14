@@ -51,6 +51,18 @@ pub use self::HTTPError::{
 ///     return Err(PenHTTPError(NotFound))
 /// }
 /// ```
+///
+/// Pencil comes with a shortcut that can be used to return non-200 HTTP error easily:
+///
+/// ```rust,no_run
+/// use pencil::{Request, Params, PencilResult};
+/// use pencil::abort;
+///
+///
+/// fn view(_: Request, _: Params) -> PencilResult {
+///     return abort(404)
+/// }
+/// ```
 #[deriving(Clone)]
 pub enum HTTPError {
     BadRequest,
@@ -81,6 +93,38 @@ pub enum HTTPError {
 }
 
 impl HTTPError {
+    /// Create a new `HTTPError`.
+    pub fn new(code: int) -> HTTPError {
+        match code {
+            400 => BadRequest,
+            401 => Unauthorized,
+            403 => Forbidden,
+            404 => NotFound,
+            405 => MethodNotAllowed,
+            406 => NotAcceptable,
+            408 => RequestTimeout,
+            409 => Conflict,
+            410 => Gone,
+            411 => LengthRequired,
+            412 => PreconditionFailed,
+            413 => RequestEntityTooLarge,
+            414 => RequestURITooLarge,
+            415 => UnsupportedMediaType,
+            416 => RequestedRangeNotSatisfiable,
+            417 => ExpectationFailed,
+            418 => ImATeapot,
+            422 => UnprocessableEntity,
+            428 => PreconditionRequired,
+            429 => TooManyRequests,
+            431 => RequestHeaderFieldsTooLarge,
+            500 => InternalServerError,
+            501 => NotImplemented,
+            502 => BadGateway,
+            503 => ServiceUnavailable,
+            _ => InternalServerError,
+        }
+    }
+
     /// The status code.
     pub fn code(&self) -> int {
         match *self {

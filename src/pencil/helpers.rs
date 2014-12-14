@@ -9,7 +9,10 @@ use types::{
     PencilValue,
         PenString,
         PenResponse,
+    PenHTTPError,
+    PencilResult,
 };
+use errors::HTTPError;
 
 
 /// Sometimes it is necessary to set additional headers in a view.  Because
@@ -77,4 +80,11 @@ pub fn safe_join(directory: &str, filename: &str) -> Option<Path> {
         },
         None => None,
     }
+}
+
+
+/// One helper function that can be used to return HTTP Error inside a view function.
+pub fn abort(code: int) -> PencilResult {
+    let error = HTTPError::new(code);
+    return Err(PenHTTPError(error));
 }
