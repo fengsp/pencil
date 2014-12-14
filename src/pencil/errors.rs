@@ -122,7 +122,12 @@ impl HTTPError {
 
     /// Get the HTML body.
     pub fn get_body(&self) -> String {
-        format!("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\">\n<title>{} {}</title>\n<h1>{}</h1>\n<p>{}</p>\n", self.code().to_string(), self.name(), self.name(), self.description())
+        format!(
+"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\">
+<title>{} {}</title>
+<h1>{}</h1>
+<p>{}</p>
+", self.code().to_string(), self.name(), self.name(), self.description())
     }
 
     /// Get a response object.

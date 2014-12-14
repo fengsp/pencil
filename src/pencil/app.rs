@@ -31,7 +31,7 @@ use logging;
 use serving::run_server;
 use routing::{Map, Rule};
 use testing::PencilClient;
-use errors::{HTTPError, InternalServerError};
+use errors::{HTTPError, InternalServerError, NotFound};
 
 
 /// The pencil type.
@@ -154,7 +154,7 @@ impl Pencil {
                     None => Ok(PenString(String::from_str("No such handler"))),
                 }
             },
-            _ => Ok((PenString(String::from_str("404")))),
+            _ => Err((PenHTTPError(NotFound))),
         };
         return rv;
     }
