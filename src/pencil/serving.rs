@@ -35,7 +35,7 @@ impl Server for PencilServer {
 
         w.headers.content_type = Some(MediaType {
             type_ : String::from_str("text"),
-            subtype: String::from_str("plain"),
+            subtype: String::from_str("html"),
             parameters: vec!((String::from_str("charset"), String::from_str("UTF-8")))
         });
         w.headers.server = Some(String::from_str("Pencil"));
