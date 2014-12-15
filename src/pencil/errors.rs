@@ -69,7 +69,7 @@ pub enum HTTPError {
     Unauthorized,
     Forbidden,
     NotFound,
-    MethodNotAllowed,
+    MethodNotAllowed,  // Set "Allow" header key for valid_methods seperated by ", "
     NotAcceptable,
     RequestTimeout,
     Conflict,

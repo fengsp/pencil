@@ -34,7 +34,8 @@ use testing::PencilClient;
 use errors::{HTTPError, InternalServerError, NotFound};
 
 
-/// The pencil type.
+/// The pencil type.  It acts as the central application object.  Once it is created it
+/// will act as a central registry for the view functions, the URL rules and much more.
 #[deriving(Clone)]
 pub struct Pencil {
     pub root_path: String,
@@ -50,9 +51,20 @@ pub struct Pencil {
     pub error_handlers: HashMap<&'static str, PencilResult>,
 }
 
-/// The pencil object acts as the central application object.
 impl Pencil {
-    /// Create a new pencil object.
+    /// Create a new pencil object.  It is passed the root path of your application.
+    /// The root path is used to resolve resources from inside it, for more information
+    /// about resource loading, see method `open_resource`.
+    ///
+    /// Usually you create a pencil object in your main function like this:
+    ///
+    /// ```rust,no_run
+    /// use pencil::Pencil;
+    ///
+    /// fn main() {
+    ///     let mut app = Pencil::new("/web/myapp");
+    /// }
+    /// ```
     pub fn new(root_path: &str) -> Pencil {
         Pencil {
             root_path: root_path.to_string(),
