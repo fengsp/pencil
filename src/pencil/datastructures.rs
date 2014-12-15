@@ -98,7 +98,7 @@ impl Headers {
 
     /// Removes all headers for `key` and add a new one.  The newly added key either
     /// appears at the end of the list if there was no entry or replaces the old one.
-    /// TODO: _option_header_vkw
+    /// TODO: _option_header_vkw and validate_value
     pub fn set(&mut self, key: &str, value: &str) {
         let ikey = key.to_string().to_ascii_lower();
         let mut key_existed = false;
