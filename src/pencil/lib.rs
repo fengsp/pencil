@@ -48,8 +48,12 @@
 #![doc(html_logo_url = "https://raw.githubusercontent.com/fengsp/pencil/master/logo/pencil.png",
        html_favicon_url = "https://raw.githubusercontent.com/fengsp/pencil/master/logo/favicon.ico",
        html_root_url = "http://fengsp.github.io/pencil/")]
+
 #![experimental]
+
 #![deny(non_camel_case_types)]
+
+#![feature(macro_rules)]
 
 extern crate core;
 extern crate serialize;
