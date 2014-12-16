@@ -88,3 +88,19 @@ pub fn abort(code: int) -> PencilResult {
     let error = HTTPError::new(code);
     return Err(PenHTTPError(error));
 }
+
+
+/// Returns a response that redirects the client to the target location.
+pub fn redirect(location: &str, code: int) -> PencilResult {
+    let mut response = Response::new(format!(
+"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\">
+<title>Redirecting...</title>
+<h1>Redirecting...</h1>
+<p>You should be redirected automatically to target URL: 
+<a href=\"{}\">{}</a>.  If not click the link.
+", location, location));
+    response.status_code = code;
+    response.set_content_type("text/html");
+    response.headers.set("Location", location);
+    return Ok(PenResponse(response));
+}

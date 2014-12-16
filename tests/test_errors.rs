@@ -4,8 +4,7 @@
 
 extern crate pencil;
 
-use pencil::{PenHTTPError, PenUserError};
-use pencil::{NotFound, abort};
+use pencil::NotFound;
 
 
 #[test]
@@ -39,18 +38,6 @@ URL manually please check your spelling and try again.</p>
 fn test_http_error_to_response() {
     let error = NotFound;
     let response = error.to_response();
-    assert!(response.status_code() == 404);
+    assert!(response.status_code == 404);
     assert!(response.content_type() == Some(String::from_str("text/html")));
-}
-
-
-#[test]
-fn test_abort() {
-    let result = abort(404);
-    let pencil_error = result.err().unwrap();
-    let http_error = match pencil_error {
-        PenHTTPError(e) => Some(e),
-        PenUserError(_) => None,
-    };
-    assert!(http_error.unwrap().code() == 404);
 }

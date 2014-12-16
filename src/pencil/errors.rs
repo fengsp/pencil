@@ -177,7 +177,7 @@ impl HTTPError {
     /// Get a response object.
     pub fn to_response(&self) -> Response {
         let mut response = make_response(PenString(self.get_body()));
-        response.set_status_code(self.code() as u16);
+        response.status_code = self.code();
         response.set_content_type("text/html");
         return response;
     }

@@ -89,6 +89,7 @@ pub use helpers::{
     PathBound,
     safe_join,
     abort,
+    redirect,
 };
 pub use serving::{
     run_server,

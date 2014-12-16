@@ -2,7 +2,6 @@
 // Copyright (c) 2014 by Shipeng Feng.
 // Licensed under the BSD License, see LICENSE for more details.
 
-use http::status;
 pub use http::server::Request;
 
 use datastructures::Headers;
@@ -12,7 +11,7 @@ use datastructures::Headers;
 /// (headers, body, status code etc).
 #[deriving(Clone)]
 pub struct Response {
-    status: status::Status,
+    pub status_code: int,
     pub headers: Headers,
     pub body: String,
 }
@@ -21,7 +20,7 @@ impl Response {
     /// Create a `Response`.
     pub fn new(body: String) -> Response {
         let mut response = Response {
-            status: status::Ok,
+            status_code: 200,
             headers: Headers::new(None),
             body: body,
         };
@@ -29,25 +28,6 @@ impl Response {
         response.headers.set("Content-Type", "text/html; charset=utf-8");
         response.headers.set("Content-Length", content_length.as_slice());
         return response;
-    }
-
-    pub fn status_code(&self) -> u16 {
-        self.status.code()
-    }
-
-    pub fn set_status_code(&mut self, code: u16) {
-        match FromPrimitive::from_u64(code as u64) {
-            Some(status) => { self.status = status; },
-            None => { self.status = status::UnregisteredStatus(code as u16, String::from_str("UNKNOWN")); },
-        }
-    }
-
-    pub fn status(&self) -> status::Status {
-        self.status.clone()
-    }
-
-    pub fn set_status(&mut self, status: status::Status) {
-        self.status = status;
     }
 
     /// Sets a new string as response body.  The content length is set
