@@ -5,6 +5,7 @@
 pub use http::server::Request;
 
 use datastructures::Headers;
+use httputils::get_name_by_http_code;
 
 
 /// Response type.  It is just one container with a couple of parameters
@@ -28,6 +29,14 @@ impl Response {
         response.headers.set("Content-Type", "text/html; charset=utf-8");
         response.headers.set("Content-Length", content_length.as_slice());
         return response;
+    }
+
+    /// Get status name.
+    pub fn status_name(&self) -> &str {
+        match get_name_by_http_code(self.status_code) {
+            Some(name) => name,
+            None => "UNKNOWN",
+        }
     }
 
     /// Sets a new string as response body.  The content length is set

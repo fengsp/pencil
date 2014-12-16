@@ -124,6 +124,9 @@ pub use errors::{
         ServiceUnavailable,
 };
 pub use testing::PencilClient;
+pub use httputils::{
+    get_name_by_http_code,
+};
 
 mod app;
 mod types;

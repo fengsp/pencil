@@ -31,7 +31,7 @@ fn test_redirect() {
     };
     let response = response.unwrap();
     assert!(response.body.as_slice().contains("/füübär"));
-    let location = response.headers.get("Location").unwrap().clone();
+    let location = response.headers.get("Location").unwrap();
     assert!(location.as_slice().contains("/füübär"));
     assert!(response.status_code == 302);
 
@@ -42,7 +42,7 @@ fn test_redirect() {
         PenResponse(response) => Some(response),
     };
     let response = response.unwrap();
-    let location = response.headers.get("Location").unwrap().clone();
+    let location = response.headers.get("Location").unwrap();
     assert!(location.as_slice() == "http://example.com/");
     assert!(response.status_code == 301);
 }

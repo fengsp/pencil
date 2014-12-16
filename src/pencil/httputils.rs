@@ -4,6 +4,7 @@
 // Licensed under the BSD License, see LICENSE for more details.
 
 
+/// Get HTTP status name by status code.
 pub fn get_name_by_http_code(code: int) -> Option<&'static str> {
     match code {
         100 => Some("Continue"),
