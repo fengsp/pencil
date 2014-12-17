@@ -72,6 +72,8 @@ pub use types::{
     UserError,
     PencilResult,
     ViewFunc,
+    UserErrorHandler,
+    HTTPErrorHandler,
 };
 pub use datastructures::{
     Headers,

@@ -8,11 +8,11 @@ use std::ascii::AsciiExt;
 
 
 /// Headers iterator.
-pub type HeaderEntries<'a> = iter::Map<'static, &'a(String, String), (&'a String, &'a String), core::slice::Items<'a, (String, String)>>;
+pub type HeaderEntries<'a> = iter::Map<&'a(String, String), (&'a String, &'a String), core::slice::Items<'a, (String, String)>, for<'a> fn(&'a(String, String)) -> (&'a String, &'a String)>;
 /// Header keys iterator.
-pub type HeaderKeys<'a> = iter::Map<'static, (&'a String, &'a String), &'a String, HeaderEntries<'a>>;
+pub type HeaderKeys<'a> = iter::Map<(&'a String, &'a String), &'a String, HeaderEntries<'a>, fn((&'a String, &'a String)) -> &'a String>;
 /// Header values iterator.
-pub type HeaderValues<'a> = iter::Map<'static, (&'a String, &'a String), &'a String, HeaderEntries<'a>>;
+pub type HeaderValues<'a> = iter::Map<(&'a String, &'a String), &'a String, HeaderEntries<'a>, fn((&'a String, &'a String)) -> &'a String>;
 
 
 /// Headers type that stores some headers.  It has a HashMap like interface
@@ -58,19 +58,22 @@ impl Headers {
     /// An iterator visiting all key-value pairs in sorted order.
     /// Iterator element type is `(&'a String, &'a String)`.
     pub fn iter(&self) -> HeaderEntries {
-        self.list.iter().map(|kvpair| (kvpair.ref0(), kvpair.ref1()))
+        fn unpack<A, B>(kvpair: &(A, B)) -> (&A, &B) { (&kvpair.0, &kvpair.1) }
+        self.list.iter().map(unpack)
     }
 
     /// An iterator visiting all keys in sorted order.
     /// Iterator element type is `&'a String`.
     pub fn keys(&self) -> HeaderKeys {
-        self.iter().map(|(k, _v)| k)
+        fn first<A, B>((k, _): (A, B)) -> A { k }
+        self.iter().map(first)
     }
 
     /// An iterator visiting all values in sorted order.
     /// Iterator element type is `&'a String`.
     pub fn values(&self) -> HeaderValues {
-        self.iter().map(|(_k, v)| v)
+        fn second<A, B>((_, v): (A, B)) -> B { v }
+        self.iter().map(second)
     }
 
     /// Add a new header key-value pair to headers.

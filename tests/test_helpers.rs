@@ -6,7 +6,7 @@ extern crate pencil;
 
 use pencil::{PenHTTPError, PenUserError};
 use pencil::{PenString, PenResponse};
-use pencil::{abort, redirect};
+use pencil::{abort, redirect, safe_join};
 
 
 #[test]
@@ -45,4 +45,12 @@ fn test_redirect() {
     let location = response.headers.get("Location").unwrap();
     assert!(location.as_slice() == "http://example.com/");
     assert!(response.status_code == 301);
+}
+
+
+#[test]
+fn test_safe_join() {
+    let path = safe_join("foo", "bar/baz").unwrap();
+    assert!(path == Path::new("foo/bar/baz"));
+    assert!(safe_join("foo", "../bar/baz").is_none());
 }

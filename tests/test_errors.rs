@@ -39,5 +39,5 @@ fn test_http_error_to_response() {
     let error = NotFound;
     let response = error.to_response();
     assert!(response.status_code == 404);
-    assert!(response.content_type() == Some(String::from_str("text/html")));
+    assert!(response.content_type() == Some(String::from_str("text/html; charset=utf-8")));
 }

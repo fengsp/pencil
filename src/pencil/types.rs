@@ -24,6 +24,15 @@ pub struct UserError {
     pub detail: Option<String>,
 }
 
+impl UserError {
+    pub fn new(desc: &'static str, detail: Option<String>) -> UserError {
+        UserError {
+            desc: desc,
+            detail: detail,
+        }
+    }
+}
+
 impl error::Error for UserError {
     fn description(&self) -> &str {
         self.desc
@@ -93,3 +102,8 @@ pub type PencilResult = Result<PencilValue, PencilError>;
 
 /// View function type.
 pub type ViewFunc = fn(Request, Params) -> PencilResult;
+
+
+/// Error handler type.
+pub type HTTPErrorHandler = fn(HTTPError) -> PencilResult;
+pub type UserErrorHandler = fn(UserError) -> PencilResult;

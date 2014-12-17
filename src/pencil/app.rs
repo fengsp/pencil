@@ -17,8 +17,11 @@ use types::{
         PenHTTPError,
         PenUserError,
 
+    UserError,
     PencilResult,
     ViewFunc,
+    HTTPErrorHandler,
+    UserErrorHandler,
 };
 use wrappers::{
     Request,
@@ -48,7 +51,8 @@ pub struct Pencil {
     pub before_request_funcs: Vec<String>,
     pub after_request_funcs: Vec<String>,
     pub teardown_request_funcs: Vec<String>,
-    pub error_handlers: HashMap<&'static str, PencilResult>,
+    pub http_error_handlers: HashMap<int, HTTPErrorHandler>,
+    pub user_error_handlers: HashMap<&'static str, UserErrorHandler>,
 }
 
 impl Pencil {
@@ -76,7 +80,8 @@ impl Pencil {
             before_request_funcs: vec![],
             after_request_funcs: vec![String::from_str("after")],
             teardown_request_funcs: vec![],
-            error_handlers: HashMap::new(),
+            http_error_handlers: HashMap::new(),
+            user_error_handlers: HashMap::new(),
         }
     }
 
@@ -92,7 +97,7 @@ impl Pencil {
     }
 
     /// Connects a URL rule.
-    pub fn add_url_rule(&mut self, rule: &'static str, methods: &[&str], endpoint: &str, view_func: ViewFunc) {
+    fn add_url_rule(&mut self, rule: &'static str, methods: &[&str], endpoint: &str, view_func: ViewFunc) {
         let url_rule = Rule::new(rule, methods, endpoint);
         self.url_map.add(url_rule);
         self.view_functions.insert(endpoint.to_string(), view_func);
@@ -115,10 +120,117 @@ impl Pencil {
         self.teardown_request_funcs.push(f);
     }
 
-    /// Registers a function as one error handler.
-    pub fn register_error_handler(&mut self, error_desc: &'static str, f: PencilResult) {
-        // TODO: seperate http code and others
-        self.error_handlers.insert(error_desc, f);
+    /// Registers a function as one http error handler.
+    fn register_http_error_handler(&mut self, status_code: int, f: HTTPErrorHandler) {
+        self.http_error_handlers.insert(status_code, f);
+    }
+
+    /// Registers a function as one user error handler.
+    fn register_user_error_handler(&mut self, error_desc: &'static str, f: UserErrorHandler) {
+        self.user_error_handlers.insert(error_desc, f);
+    }
+
+    /// Registers a function as one http error handler.  Example:
+    ///
+    /// ```rust,no_run
+    /// use pencil::{Pencil, PencilResult, Response, PenResponse};
+    /// use pencil::HTTPError;
+    ///
+    ///
+    /// fn page_not_found(error: HTTPError) -> PencilResult {
+    ///     let mut response = Response::new(String::from_str("The page does not exist"));
+    ///     response.status_code = 404;
+    ///     return Ok(PenResponse(response));
+    /// }
+    ///
+    ///
+    /// fn main() {
+    ///     let mut app = Pencil::new("/web/demo");
+    ///     app.httperrorhandler(404, page_not_found);
+    /// }
+    /// ```
+    pub fn httperrorhandler(&mut self, status_code: int, f: HTTPErrorHandler) {
+        self.register_http_error_handler(status_code, f);
+    }
+
+    /// Registers a function as one user error handler.  There are two ways to handle
+    /// user errors currently, you can do it in your own view like this:
+    ///
+    /// ```rust,no_run
+    /// use pencil::{Request, Params};
+    /// use pencil::{PencilResult, PenString};
+    ///
+    ///
+    /// struct MyErr(int);
+    ///
+    ///
+    /// fn some_operation() -> Result<int, MyErr> {
+    ///     return Err(MyErr(10));
+    /// }
+    ///
+    ///
+    /// fn my_err_handler(_: MyErr) -> PencilResult {
+    ///     Ok(PenString(String::from_str("My err occurred!")))
+    /// }
+    ///
+    ///
+    /// fn hello(_: Request, _: Params) -> PencilResult {
+    ///     match some_operation() {
+    ///         Ok(_) => Ok(PenString(String::from_str("Hello!"))),
+    ///         Err(e) => my_err_handler(e),
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// The problem with this is that you have to do it in all of your views, it brings
+    /// a lot of redundance, so pencil provides another solution, currently I still
+    /// haven't got any better idea on how to store user error handlers, this feature is
+    /// really just experimental, if you have any good idea, please wake me up.  Here is
+    /// one simple example:
+    ///
+    /// ```rust,no_run
+    /// use std::error::FromError;
+    ///
+    /// use pencil::{Request, Params};
+    /// use pencil::{Pencil, PencilResult, PenString};
+    /// use pencil::{PencilError, PenUserError, UserError};
+    ///
+    ///
+    /// #[deriving(Copy)]
+    /// pub struct MyErr(int);
+    ///
+    /// impl FromError<MyErr> for PencilError {
+    ///     fn from_error(err: MyErr) -> PencilError {
+    ///         let user_error = UserError::new("MyErr", None);
+    ///         return PenUserError(user_error);
+    ///     }
+    /// }
+    ///
+    ///
+    /// fn my_err_handler(_: UserError) -> PencilResult {
+    ///     Ok(PenString(String::from_str("My err occurred!")))
+    /// }
+    ///
+    ///
+    /// fn some_operation() -> Result<String, MyErr> {
+    ///     return Err(MyErr(10));
+    /// }
+    ///
+    ///
+    /// fn hello(_: Request, _: Params) -> PencilResult {
+    ///     let rv = try!(some_operation());
+    ///     return Ok(PenString(rv));
+    /// }
+    ///
+    ///
+    /// fn main() {
+    ///     let mut app = Pencil::new("/web/demo");
+    ///     // Use error description as key to store handlers, really ugly...
+    ///     app.usererrorhandler("MyErr", my_err_handler);
+    /// }
+    /// ```
+    pub fn usererrorhandler(&mut self, error_desc: &'static str, f: UserErrorHandler) {
+        self.register_user_error_handler(error_desc, f);
     }
 
     /// Creates a test client for this application, you can use it
@@ -194,20 +306,25 @@ impl Pencil {
     }
 
     /// This method is called whenever an error occurs that should be handled.
-    fn handle_user_error(&self, e: PencilError) -> PencilResult {
+    fn handle_all_error(&self, e: PencilError) -> PencilResult {
         match e {
             PenHTTPError(e) => self.handle_http_error(e),
-            PenUserError(e) => match self.error_handlers.get(e.description()) {
-                Some(handler) => handler.clone(),
-                None => Err(PenUserError(e)),
-            }
+            PenUserError(e) => self.handle_user_error(e),
+        }
+    }
+
+    /// Handles an User error.
+    fn handle_user_error(&self, e: UserError) -> PencilResult {
+        match self.user_error_handlers.get(e.description()) {
+            Some(&handler) => handler(e),
+            None => Err(PenUserError(e)),
         }
     }
 
     /// Handles an HTTP error.
     fn handle_http_error(&self, e: HTTPError) -> PencilResult {
-        match self.error_handlers.get(e.description()) {
-            Some(handler) => handler.clone(),
+        match self.http_error_handlers.get(&e.code()) {
+            Some(&handler) => handler(e),
             None => Ok(PenResponse(e.to_response())),
         }
     }
@@ -216,9 +333,10 @@ impl Pencil {
     /// handled.
     fn handle_error(&self, e: PencilError) -> PencilValue {
         self.log_error(&e);
-        match self.error_handlers.get(e.description()) {
-            Some(handler) => {
-                match handler.clone() {
+        let internal_server_error = InternalServerError;
+        match self.http_error_handlers.get(&500) {
+            Some(&handler) => {
+                match handler(internal_server_error) {
                     Ok(value) => value,
                     Err(_) => {
                         let e = InternalServerError;
@@ -244,7 +362,7 @@ impl Pencil {
         self.preprocess_request();
         let rv = match self.dispatch_request(request) {
             Ok(value) => Ok(value),
-            Err(e) => self.handle_user_error(e),
+            Err(e) => self.handle_all_error(e),
         };
         match rv {
             Ok(value) => {

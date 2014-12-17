@@ -63,7 +63,7 @@ pub use self::HTTPError::{
 ///     return abort(404)
 /// }
 /// ```
-#[deriving(Clone)]
+#[deriving(Clone, Copy)]
 pub enum HTTPError {
     BadRequest,
     Unauthorized,
@@ -178,7 +178,7 @@ impl HTTPError {
     pub fn to_response(&self) -> Response {
         let mut response = make_response(PenString(self.get_body()));
         response.status_code = self.code();
-        response.set_content_type("text/html");
+        response.set_content_type("text/html; charset=utf-8");
         return response;
     }
 }
