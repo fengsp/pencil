@@ -8,7 +8,7 @@ use std::ascii::AsciiExt;
 
 
 /// Headers iterator.
-pub type HeaderEntries<'a> = iter::Map<&'a(String, String), (&'a String, &'a String), core::slice::Items<'a, (String, String)>, for<'a> fn(&'a(String, String)) -> (&'a String, &'a String)>;
+pub type HeaderEntries<'a> = iter::Map<&'a(String, String), (&'a String, &'a String), core::slice::Items<'a, (String, String)>, for<'b> fn(&'b(String, String)) -> (&'b String, &'b String)>;
 /// Header keys iterator.
 pub type HeaderKeys<'a> = iter::Map<(&'a String, &'a String), &'a String, HeaderEntries<'a>, fn((&'a String, &'a String)) -> &'a String>;
 /// Header values iterator.
