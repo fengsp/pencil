@@ -42,8 +42,6 @@ impl Server for PencilServer {
         });
         w.headers.server = Some(String::from_str("Pencil"));
         w.write(response.body.as_bytes()).unwrap();
-
-        self.app.do_teardown_request();
     }
 }
 

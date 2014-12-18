@@ -74,6 +74,9 @@ pub use types::{
     ViewFunc,
     UserErrorHandler,
     HTTPErrorHandler,
+    BeforeRequestFunc,
+    AfterRequestFunc,
+    TeardownRequestFunc,
 };
 pub use datastructures::{
     Headers,

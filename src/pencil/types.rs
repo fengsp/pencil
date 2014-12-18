@@ -104,6 +104,15 @@ pub type PencilResult = Result<PencilValue, PencilError>;
 pub type ViewFunc = fn(Request, Params) -> PencilResult;
 
 
-/// Error handler type.
+/// HTTP Error handler type.
 pub type HTTPErrorHandler = fn(HTTPError) -> PencilResult;
+/// User Error handler type.
 pub type UserErrorHandler = fn(UserError) -> PencilResult;
+
+
+/// Before request func type.
+pub type BeforeRequestFunc = fn(&Request) -> Option<PencilResult>;
+/// After request func type.
+pub type AfterRequestFunc = fn(&mut Response);
+/// Teardown request func type.
+pub type TeardownRequestFunc = fn(Option<&PencilError>);

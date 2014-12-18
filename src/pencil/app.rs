@@ -22,6 +22,9 @@ use types::{
     ViewFunc,
     HTTPErrorHandler,
     UserErrorHandler,
+    BeforeRequestFunc,
+    AfterRequestFunc,
+    TeardownRequestFunc,
 };
 use wrappers::{
     Request,
@@ -48,9 +51,9 @@ pub struct Pencil {
     pub url_map: Map,
     // A dictionary of all view functions registered.
     pub view_functions: HashMap<String, ViewFunc>,
-    pub before_request_funcs: Vec<String>,
-    pub after_request_funcs: Vec<String>,
-    pub teardown_request_funcs: Vec<String>,
+    pub before_request_funcs: Vec<BeforeRequestFunc>,
+    pub after_request_funcs: Vec<AfterRequestFunc>,
+    pub teardown_request_funcs: Vec<TeardownRequestFunc>,
     pub http_error_handlers: HashMap<int, HTTPErrorHandler>,
     pub user_error_handlers: HashMap<&'static str, UserErrorHandler>,
 }
@@ -78,7 +81,7 @@ impl Pencil {
             url_map: Map::new(),
             view_functions: HashMap::new(),
             before_request_funcs: vec![],
-            after_request_funcs: vec![String::from_str("after")],
+            after_request_funcs: vec![],
             teardown_request_funcs: vec![],
             http_error_handlers: HashMap::new(),
             user_error_handlers: HashMap::new(),
@@ -104,19 +107,19 @@ impl Pencil {
     }
 
     /// Registers a function to run before each request.
-    pub fn before_request(&mut self, f: String) {
+    pub fn before_request(&mut self, f: BeforeRequestFunc) {
         self.before_request_funcs.push(f);
     }
 
     /// Registers a function to run after each request.  Your function
     /// must take a response object and modify it.
-    pub fn after_request(&mut self, f: String) {
+    pub fn after_request(&mut self, f: AfterRequestFunc) {
         self.after_request_funcs.push(f);
     }
 
     /// Registers a function to run at the end of each request,
     /// regardless of whether there was an error or not.
-    pub fn teardown_request(&mut self, f: String) {
+    pub fn teardown_request(&mut self, f: TeardownRequestFunc) {
         self.teardown_request_funcs.push(f);
     }
 
@@ -247,10 +250,15 @@ impl Pencil {
 
     /// Called before the actual request dispatching, you can return value
     /// from here and stop the further request handling.
-    fn preprocess_request(&self) {
-        for x in self.before_request_funcs.iter() {
-            println!("{}", x);
+    fn preprocess_request(&self, request: &Request) -> Option<PencilResult> {
+        let mut result: Option<PencilResult>;
+        for &func in self.before_request_funcs.iter() {
+            result = func(request);
+            if result.is_some() {
+                return result;
+            }
         }
+        return None;
     }
 
     /// Does the request dispatching.  Matches the URL and returns the return
@@ -292,16 +300,16 @@ impl Pencil {
     /// Modify the response object before it's sent to the HTTP server.
     fn process_response(&self, response: &mut Response) {
         // TODO: reverse order
-        for x in self.after_request_funcs.iter() {
-            response.body.push_str(x.as_slice());
+        for &func in self.after_request_funcs.iter() {
+            func(response);
         }
     }
 
     /// Called after the actual request dispatching.
-    pub fn do_teardown_request(&self) {
+    fn do_teardown_request(&self, e: Option<&PencilError>) {
         // TODO: reverse order
-        for x in self.teardown_request_funcs.iter() {
-            println!("{}", x);
+        for &func in self.teardown_request_funcs.iter() {
+            func(e);
         }
     }
 
@@ -331,8 +339,8 @@ impl Pencil {
 
     /// Default error handing that kicks in when an error occurs that is not
     /// handled.
-    fn handle_error(&self, e: PencilError) -> PencilValue {
-        self.log_error(&e);
+    fn handle_error(&self, e: &PencilError) -> PencilValue {
+        self.log_error(e);
         let internal_server_error = InternalServerError;
         match self.http_error_handlers.get(&500) {
             Some(&handler) => {
@@ -359,8 +367,11 @@ impl Pencil {
     /// Dispatches the request and performs request pre and postprocessing
     /// as well as HTTP error handling.
     fn full_dispatch_request(&self, request: Request) -> Result<Response, PencilError> {
-        self.preprocess_request();
-        let rv = match self.dispatch_request(request) {
+        let result = match self.preprocess_request(&request) {
+            Some(result) => result,
+            None => self.dispatch_request(request),
+        };
+        let rv = match result {
             Ok(value) => Ok(value),
             Err(e) => self.handle_all_error(e),
         };
@@ -382,11 +393,17 @@ impl Pencil {
         // request.url_rule, request.view_args = url_adapter.match()
         // or
         // request.routing_error = e
-        let response = match self.full_dispatch_request(request) {
-            Ok(response) => response,
-            Err(e) => self.make_response(self.handle_error(e)),
+        match self.full_dispatch_request(request) {
+            Ok(response) => {
+                self.do_teardown_request(None);
+                return response;
+            },
+            Err(e) => {
+                let response = self.make_response(self.handle_error(&e));
+                self.do_teardown_request(Some(&e));
+                return response;
+            }
         };
-        return response;
     }
 
     /// Runs the application on a local development server.
