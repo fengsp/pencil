@@ -95,6 +95,7 @@ pub use helpers::{
     safe_join,
     abort,
     redirect,
+    escape,
 };
 pub use serving::{
     run_server,

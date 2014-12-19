@@ -6,7 +6,7 @@ extern crate pencil;
 
 use pencil::{PenHTTPError, PenUserError};
 use pencil::{PenString, PenResponse};
-use pencil::{abort, redirect, safe_join};
+use pencil::{abort, redirect, safe_join, escape};
 
 
 #[test]
@@ -53,4 +53,12 @@ fn test_safe_join() {
     let path = safe_join("foo", "bar/baz").unwrap();
     assert!(path == Path::new("foo/bar/baz"));
     assert!(safe_join("foo", "../bar/baz").is_none());
+}
+
+
+#[test]
+fn test_escape() {
+    assert!(escape(String::from_str("42")) == "42");
+    assert!(escape(String::from_str("<>")) == "&lt;&gt;");
+    assert!(escape(String::from_str("\"foo\"")) == "&quot;foo&quot;");
 }

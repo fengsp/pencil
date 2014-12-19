@@ -104,3 +104,10 @@ pub fn redirect(location: &str, code: int) -> PencilResult {
     response.headers.set("Location", location);
     return Ok(PenResponse(response));
 }
+
+
+/// Replace special characters "&", "<", ">" and (") to HTML-safe characters.
+pub fn escape(s: String) -> String {
+    return s.replace("&", "&amp;").replace("<", "&lt;")
+            .replace(">", "&gt;").replace("\"", "&quot;");
+}
