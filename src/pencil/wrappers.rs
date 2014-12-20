@@ -5,7 +5,7 @@
 pub use http::server::Request;
 
 use datastructures::Headers;
-use httputils::get_name_by_http_code;
+use httputils::{get_name_by_http_code, get_content_type};
 
 
 /// Response type.  It is just one container with a couple of parameters
@@ -55,7 +55,7 @@ impl Response {
 
     /// Set response content type.
     pub fn set_content_type(&mut self, value: &str) {
-        self.headers.set("Content-Type", value.to_string().as_slice());
+        self.headers.set("Content-Type", get_content_type(value, "utf-8").as_slice());
     }
 
     /// Returns the response content length if available.

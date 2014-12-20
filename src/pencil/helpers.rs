@@ -100,7 +100,7 @@ pub fn redirect(location: &str, code: int) -> PencilResult {
 <a href=\"{}\">{}</a>.  If not click the link.
 ", location, location));
     response.status_code = code;
-    response.set_content_type("text/html; charset=utf-8");
+    response.set_content_type("text/html");
     response.headers.set("Location", location);
     return Ok(PenResponse(response));
 }
