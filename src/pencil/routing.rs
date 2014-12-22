@@ -22,8 +22,15 @@ pub struct Rule {
 }
 
 impl Rule {
-    /// Create a new `Rule`.
-    pub fn new(rule: &'static str, methods: &[&str], endpoint: &str) -> Rule {
+    /// Create a new `Rule`.  Rule strings basically are just normal url
+    /// regular expressions.  Rule endpoint is a string that is used for
+    /// URL generation.  Rule methods is an array of http methods this rule
+    /// applies to, if `GET` is present in it and `HEAD` is not, `HEAD` is
+    /// added automatically.
+    pub fn new(string: &'static str, methods: &[&str], endpoint: &str) -> Rule {
+        if !string.starts_with("/") {
+            panic!("urls must start with a leading slash");
+        }
         let mut upper_methods: HashSet<String> = HashSet::new();
         for &method in methods.iter() {
             let upper_method = method.to_string().to_ascii_upper();
@@ -33,16 +40,16 @@ impl Rule {
             upper_methods.insert(String::from_str("HEAD"));
         }
         Rule {
-            rule: rule,
+            rule: string,
             endpoint: endpoint.to_string(),
             methods: upper_methods,
-            regex: Rule::compile(rule),
+            regex: Rule::compile(string),
         }
     }
 
     /// Compiles the regular expression.
-    fn compile(rule: &str) -> Regex {
-        Regex::new(rule).unwrap()
+    fn compile(string: &str) -> Regex {
+        Regex::new(string).unwrap()
     }
 
     /// Check if the rule matches a given path.
