@@ -100,7 +100,7 @@ pub use helpers::{
 pub use serving::{
     run_server,
 };
-pub use routing::Params;
+pub use routing::{Map, Rule, MapAdapter, Params};
 pub use errors::{
     HTTPError,
         BadRequest,

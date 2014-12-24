@@ -15,7 +15,7 @@ pub type Params = Vec<String>;
 /// A Rule represents one URL pattern.
 #[deriving(Clone)]
 pub struct Rule {
-    pub rule: &'static str,
+    pub rule: String,
     pub methods: HashSet<String>,
     pub endpoint: String,
     pub regex: Regex,
@@ -31,6 +31,10 @@ impl Rule {
         if !string.starts_with("/") {
             panic!("urls must start with a leading slash");
         }
+        let mut full_string = String::from_str(r"^");
+        full_string = full_string + string;
+        full_string = full_string + r"$";
+
         let mut upper_methods: HashSet<String> = HashSet::new();
         for &method in methods.iter() {
             let upper_method = method.to_string().to_ascii_upper();
@@ -40,10 +44,10 @@ impl Rule {
             upper_methods.insert(String::from_str("HEAD"));
         }
         Rule {
-            rule: string,
             endpoint: endpoint.to_string(),
             methods: upper_methods,
-            regex: Rule::compile(string),
+            regex: Rule::compile(full_string.as_slice()),
+            rule: full_string,
         }
     }
 
@@ -127,5 +131,24 @@ impl<'m> MapAdapter<'m> {
             return Err(MethodNotAllowed)
         }
         return Err(NotFound)
+    }
+}
+
+#[test]
+fn test_basic_routing() {
+    let mut map = Map::new();
+    map.add(Rule::new(r"/", &["GET"], "index"));
+    map.add(Rule::new(r"/foo", &["GET"], "foo"));
+    map.add(Rule::new(r"/bar/", &["GET"], "bar"));
+    let adapter = map.bind(String::from_str("/bar/"), String::from_str("GET"));
+    match adapter.captures() {
+        Ok((rule, params)) => {
+            assert!(rule.rule.as_slice() == r"^/bar/$");
+            assert!(rule.methods.contains("GET"));
+            assert!(!rule.methods.contains("POST"));
+            assert!(rule.endpoint == String::from_str("bar"));
+            assert!(params.len() == 0);
+        },
+        _ => { panic!("Basic routing failed!"); }
     }
 }
