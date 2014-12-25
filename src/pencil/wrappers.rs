@@ -1,11 +1,49 @@
 // This module implements simple request and response objects.
 // Copyright (c) 2014 by Shipeng Feng.
 // Licensed under the BSD License, see LICENSE for more details.
+use std::collections::HashMap; 
 
-pub use http::server::Request;
+use http;
+use http::server::request::RequestUri::AbsolutePath;
+use url::Url;
 
 use datastructures::Headers;
 use httputils::{get_name_by_http_code, get_content_type};
+
+
+/// Request type.
+pub struct Request {
+    pub request: http::server::Request,
+}
+
+impl Request {
+    /// Create a `Request`.
+    pub fn new(request: http::server::Request) -> Request {
+        Request {
+            request: request,
+        }
+    }
+
+    /// The parsed URL parameters.
+    pub fn args(&self) -> HashMap<String, String> {
+        let mut args = HashMap::new();
+        match self.request.request_uri {
+            AbsolutePath(ref url) => {
+                let url = Url::parse(url.as_slice()).unwrap();
+                match url.query_pairs() {
+                    Some(pairs) => {
+                        for &(ref k, ref v) in pairs.iter() {
+                            args.insert(k.clone(), v.clone());
+                        }
+                    },
+                    None => (),
+                }
+            },
+            _ => (),
+        }
+        return args;
+    }
+}
 
 
 /// Response type.  It is just one container with a couple of parameters

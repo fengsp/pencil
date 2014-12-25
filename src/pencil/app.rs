@@ -264,7 +264,7 @@ impl Pencil {
     /// Does the request dispatching.  Matches the URL and returns the return
     /// value of the view.
     fn dispatch_request(&self, request: Request) -> PencilResult {
-        let request_url = match request.request_uri {
+        let request_url = match request.request.request_uri {
             AbsolutePath(ref url) => {
                 println!("{}", url);
                 url.clone()

@@ -59,6 +59,7 @@ extern crate core;
 extern crate serialize;
 extern crate regex;
 extern crate http;
+extern crate url;
 
 /* public api */
 pub use app::Pencil;

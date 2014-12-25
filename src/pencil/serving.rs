@@ -6,10 +6,11 @@ use std::io::net::ip::{SocketAddr, Ipv4Addr};
 
 use http;
 use http::status;
-use http::server::{Server, Request, ResponseWriter};
+use http::server::{Server, ResponseWriter};
 use http::headers::content_type::MediaType;
 
 use app::Pencil;
+use wrappers::Request;
 
 
 /// The pencil server.
@@ -30,9 +31,9 @@ impl Server for PencilServer {
         http::server::Config { bind_address: SocketAddr { ip: Ipv4Addr(127, 0, 0, 1), port: 8000 } }
     }
 
-    fn handle_request(&self, r: Request, w: &mut ResponseWriter) {
-        // let request = r;
-        let response = self.app.handle_request(r);
+    fn handle_request(&self, r: http::server::Request, w: &mut ResponseWriter) {
+        let request = Request::new(r);
+        let response = self.app.handle_request(request);
 
         get_status_from_code(200);
         w.headers.content_type = Some(MediaType {
