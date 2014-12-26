@@ -1,13 +1,12 @@
 // This module implements simple request and response objects.
 // Copyright (c) 2014 by Shipeng Feng.
 // Licensed under the BSD License, see LICENSE for more details.
-use std::collections::HashMap; 
 
 use http;
 use http::server::request::RequestUri::AbsolutePath;
 use url::Url;
 
-use datastructures::Headers;
+use datastructures::{Headers, MultiDict};
 use httputils::{get_name_by_http_code, get_content_type};
 
 
@@ -25,15 +24,15 @@ impl Request {
     }
 
     /// The parsed URL parameters.
-    pub fn args(&self) -> HashMap<String, String> {
-        let mut args = HashMap::new();
+    pub fn args(&self) -> MultiDict {
+        let mut args = MultiDict::new();
         match self.request.request_uri {
             AbsolutePath(ref url) => {
                 let url = Url::parse(url.as_slice()).unwrap();
                 match url.query_pairs() {
                     Some(pairs) => {
                         for &(ref k, ref v) in pairs.iter() {
-                            args.insert(k.clone(), v.clone());
+                            args.add(k.as_slice(), v.as_slice());
                         }
                     },
                     None => (),

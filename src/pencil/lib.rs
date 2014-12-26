@@ -81,6 +81,7 @@ pub use types::{
 };
 pub use datastructures::{
     Headers,
+    MultiDict,
 };
 pub use wrappers::{
     Request,
