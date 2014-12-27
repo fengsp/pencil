@@ -5,7 +5,7 @@
 use http;
 use http::server::request::RequestUri::AbsolutePath;
 use http::headers::request::HeaderCollection;
-use url::Url;
+use url;
 use url::form_urlencoded::parse as form_urlencoded_parse;
 
 use datastructures::{Headers, MultiDict};
@@ -15,25 +15,37 @@ use httputils::{get_name_by_http_code, get_content_type};
 /// Request type.
 pub struct Request {
     pub request: http::server::Request,
+    url: Option<url::Url>,
+    args: Option<MultiDict>,
     form: Option<MultiDict>,
 }
 
 impl Request {
     /// Create a `Request`.
     pub fn new(request: http::server::Request) -> Request {
+        let url = match request.request_uri {
+            AbsolutePath(ref url) => {
+                match url::Url::parse(url.as_slice()) {
+                    Ok(url) => Some(url),
+                    Err(_) => None,
+                }
+            },
+            _ => None,
+        };
         Request {
             request: request,
+            url: url,
+            args: None,
             form: None,
         }
     }
 
     /// The parsed URL parameters.
-    pub fn args(&self) -> MultiDict {
-        let mut args = MultiDict::new();
-        match self.request.request_uri {
-            AbsolutePath(ref url) => {
-                let url = Url::parse(url.as_slice()).unwrap();
-                match url.query_pairs() {
+    pub fn args(&mut self) -> &MultiDict {
+        if self.args.is_none() {
+            let mut args = MultiDict::new();
+            if self.url.is_some() {
+                match self.url.as_ref().unwrap().query_pairs() {
                     Some(pairs) => {
                         for &(ref k, ref v) in pairs.iter() {
                             args.add(k.as_slice(), v.as_slice());
@@ -41,10 +53,10 @@ impl Request {
                     },
                     None => (),
                 }
-            },
-            _ => (),
+            }
+            self.args = Some(args);
         }
-        return args;
+        return self.args.as_ref().unwrap();
     }
 
     /// This method is used internally to retrieve submitted data.
