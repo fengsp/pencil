@@ -5,6 +5,7 @@
 use http;
 use http::server::request::RequestUri::AbsolutePath;
 use url::Url;
+use url::form_urlencoded::parse as form_urlencoded_parse;
 
 use datastructures::{Headers, MultiDict};
 use httputils::{get_name_by_http_code, get_content_type};
@@ -13,6 +14,7 @@ use httputils::{get_name_by_http_code, get_content_type};
 /// Request type.
 pub struct Request {
     pub request: http::server::Request,
+    form: Option<MultiDict>,
 }
 
 impl Request {
@@ -20,6 +22,7 @@ impl Request {
     pub fn new(request: http::server::Request) -> Request {
         Request {
             request: request,
+            form: None,
         }
     }
 
@@ -41,6 +44,38 @@ impl Request {
             _ => (),
         }
         return args;
+    }
+
+    /// This method is used internally to retrieve submitted data.
+    fn load_form_data(&mut self) {
+        if self.form.is_some() {
+            return
+        }
+        let form = match self.request.headers.content_type {
+            Some(ref content_type) => {
+                if content_type.type_ == String::from_str("application") &&
+                    (content_type.subtype == String::from_str("x-www-form-urlencoded") ||
+                     content_type.subtype == String::from_str("x-url-encoded")) {
+                    let mut form = MultiDict::new();
+                    for &(ref k, ref v) in form_urlencoded_parse(self.request.body.as_slice()).iter() {
+                        form.add(k.as_slice(), v.as_slice());
+                    }
+                    form
+                } else {
+                    MultiDict::new()
+                }
+            },
+            None => {
+                MultiDict::new()
+            }
+        };
+        self.form = Some(form);
+    }
+
+    /// The form parameters.
+    pub fn form(&mut self) -> &MultiDict {
+        self.load_form_data();
+        self.form.as_ref().unwrap()
     }
 }
 

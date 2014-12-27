@@ -21,10 +21,10 @@ use errors::HTTPError;
 /// get a response object which you can use to attach headers:
 ///
 /// ```rust,no_run
-/// use pencil::{Request, Params, PencilResult, PenString, PenResponse, make_response};
+/// use pencil::{Request, ViewArgs, PencilResult, PenString, PenResponse, make_response};
 ///
 ///
-/// fn index(_: Request, _: Params) -> PencilResult {
+/// fn index(_: Request, _: ViewArgs) -> PencilResult {
 ///     let mut response = make_response(PenString(String::from_str("Hello!")));
 ///     response.headers.set("X-TEST", "value");
 ///     return Ok(PenResponse(response));

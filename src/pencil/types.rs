@@ -6,7 +6,6 @@ use std::error;
 
 use wrappers::{Request, Response};
 use errors::HTTPError;
-use routing::Params;
 
 pub use self::PencilValue::{
     PenString, PenResponse
@@ -100,8 +99,10 @@ pub enum PencilValue {
 pub type PencilResult = Result<PencilValue, PencilError>;
 
 
+/// View arguments type.
+pub type ViewArgs = Vec<String>;
 /// View function type.
-pub type ViewFunc = fn(Request, Params) -> PencilResult;
+pub type ViewFunc = fn(Request, ViewArgs) -> PencilResult;
 
 
 /// HTTP Error handler type.

@@ -7,9 +7,7 @@ use regex::Regex;
 use std::ascii::AsciiExt;
 
 use errors::{HTTPError, MethodNotAllowed, NotFound};
-
-
-pub type Params = Vec<String>;
+use types::ViewArgs;
 
 
 /// A Rule represents one URL pattern.
@@ -57,16 +55,16 @@ impl Rule {
     }
 
     /// Check if the rule matches a given path.
-    pub fn captures(&self, path: String) -> Option<Params> {
+    pub fn captures(&self, path: String) -> Option<ViewArgs> {
         match self.regex.captures(path.as_slice()) {
             Some(caps) => {
-                let mut params: Vec<String> = vec![];
+                let mut view_args: Vec<String> = vec![];
                 let mut iter = caps.iter();
                 iter.next();
                 for c in iter {
-                    params.push(c.to_string());
+                    view_args.push(c.to_string());
                 }
-                Some(params)
+                Some(view_args)
             },
             None => None,
         }
@@ -111,12 +109,12 @@ impl<'m> MapAdapter<'m> {
         }
     }
 
-    pub fn captures(&self) -> Result<(Rule, Params), HTTPError> {
+    pub fn captures(&self) -> Result<(Rule, ViewArgs), HTTPError> {
         let mut have_match_for = HashSet::new();
         for rule in self.map.rules.iter() {
-            let rv: Params;
+            let rv: ViewArgs;
             match rule.captures(self.path.clone()) {
-                Some(params) => { rv = params; },
+                Some(view_args) => { rv = view_args; },
                 None => { continue; },
             }
             if !rule.methods.contains(&self.method) {
@@ -142,12 +140,12 @@ fn test_basic_routing() {
     map.add(Rule::new(r"/bar/", &["GET"], "bar"));
     let adapter = map.bind(String::from_str("/bar/"), String::from_str("GET"));
     match adapter.captures() {
-        Ok((rule, params)) => {
+        Ok((rule, view_args)) => {
             assert!(rule.rule.as_slice() == r"^/bar/$");
             assert!(rule.methods.contains("GET"));
             assert!(!rule.methods.contains("POST"));
             assert!(rule.endpoint == String::from_str("bar"));
-            assert!(params.len() == 0);
+            assert!(view_args.len() == 0);
         },
         _ => { panic!("Basic routing failed!"); }
     }

@@ -43,11 +43,11 @@ pub use self::HTTPError::{
 /// non-200 response.  Here is one usage example:
 ///
 /// ```rust,no_run
-/// use pencil::{Request, Params, PencilResult};
+/// use pencil::{Request, ViewArgs, PencilResult};
 /// use pencil::{NotFound, PenHTTPError};
 ///
 ///
-/// fn view(_: Request, _: Params) -> PencilResult {
+/// fn view(_: Request, _: ViewArgs) -> PencilResult {
 ///     return Err(PenHTTPError(NotFound))
 /// }
 /// ```
@@ -55,11 +55,11 @@ pub use self::HTTPError::{
 /// Pencil comes with a shortcut that can be used to return non-200 HTTP error easily:
 ///
 /// ```rust,no_run
-/// use pencil::{Request, Params, PencilResult};
+/// use pencil::{Request, ViewArgs, PencilResult};
 /// use pencil::abort;
 ///
 ///
-/// fn view(_: Request, _: Params) -> PencilResult {
+/// fn view(_: Request, _: ViewArgs) -> PencilResult {
 ///     return abort(404)
 /// }
 /// ```

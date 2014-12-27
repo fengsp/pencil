@@ -160,7 +160,7 @@ impl Pencil {
     /// user errors currently, you can do it in your own view like this:
     ///
     /// ```rust,no_run
-    /// use pencil::{Request, Params};
+    /// use pencil::{Request, ViewArgs};
     /// use pencil::{PencilResult, PenString};
     ///
     ///
@@ -177,7 +177,7 @@ impl Pencil {
     /// }
     ///
     ///
-    /// fn hello(_: Request, _: Params) -> PencilResult {
+    /// fn hello(_: Request, _: ViewArgs) -> PencilResult {
     ///     match some_operation() {
     ///         Ok(_) => Ok(PenString(String::from_str("Hello!"))),
     ///         Err(e) => my_err_handler(e),
@@ -194,7 +194,7 @@ impl Pencil {
     /// ```rust,no_run
     /// use std::error::FromError;
     ///
-    /// use pencil::{Request, Params};
+    /// use pencil::{Request, ViewArgs};
     /// use pencil::{Pencil, PencilResult, PenString};
     /// use pencil::{PencilError, PenUserError, UserError};
     ///
@@ -220,7 +220,7 @@ impl Pencil {
     /// }
     ///
     ///
-    /// fn hello(_: Request, _: Params) -> PencilResult {
+    /// fn hello(_: Request, _: ViewArgs) -> PencilResult {
     ///     let rv = try!(some_operation());
     ///     return Ok(PenString(rv));
     /// }
@@ -277,12 +277,12 @@ impl Pencil {
         let url_adapter = self.url_map.bind(request_url, String::from_str("GET"));
         let rv = match url_adapter.captures() {
             Ok(caps) => {
-                let (rule, params) = caps;
-                for p in params.iter() {
+                let (rule, view_args) = caps;
+                for p in view_args.iter() {
                     println!("{}", p);
                 }
                 match self.view_functions.get(&rule.endpoint) {
-                    Some(&view_func) => view_func(request, params),
+                    Some(&view_func) => view_func(request, view_args),
                     None => Ok(PenString(String::from_str("No such handler"))),
                 }
             },
