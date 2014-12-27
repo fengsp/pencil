@@ -385,9 +385,7 @@ impl Pencil {
         }
     }
 
-    /// The actual application.  Middlewares can be applied here.
-    /// You can do this:
-    ///     application.app = MyMiddleware(application.app)
+    /// The actual application handler.
     pub fn handle_request(&self, request: Request) -> Response {
         // let url_adapter = self.create_url_adapter(request);
         // request.url_rule, request.view_args = url_adapter.match()
