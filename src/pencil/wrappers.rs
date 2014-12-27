@@ -4,6 +4,7 @@
 
 use http;
 use http::server::request::RequestUri::AbsolutePath;
+use http::headers::request::HeaderCollection;
 use url::Url;
 use url::form_urlencoded::parse as form_urlencoded_parse;
 
@@ -76,6 +77,11 @@ impl Request {
     pub fn form(&mut self) -> &MultiDict {
         self.load_form_data();
         self.form.as_ref().unwrap()
+    }
+
+    /// The headers.
+    pub fn headers(&self) -> &HeaderCollection {
+        &self.request.headers
     }
 }
 
