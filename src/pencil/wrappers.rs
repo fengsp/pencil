@@ -28,9 +28,16 @@ impl Request {
     pub fn new(request: http::server::Request) -> Request {
         let url = match request.request_uri {
             AbsolutePath(ref url) => {
-                match url::Url::parse(url.as_slice()) {
-                    Ok(url) => Some(url),
-                    Err(_) => None,
+                match request.headers.host {
+                    Some(ref host) => {
+                        let full_url = String::from_str("http://") + host.http_value().as_slice() +
+                            "/" + url.as_slice().trim_left_chars('/');
+                        match url::Url::parse(full_url.as_slice()) {
+                            Ok(url) => Some(url),
+                            Err(_) => None,
+                        }
+                    },
+                    None => None
                 }
             },
             _ => None,
@@ -110,10 +117,12 @@ impl Request {
 
     /// Requested path including the query string.
     pub fn full_path(&self) -> Option<String> {
-        if self.url.is_some() {
-            return Some(self.url.as_ref().unwrap().serialize());
-        } else {
-            return None;
+        let path = self.path();
+        let query_string = self.query_string();
+        if path.is_some() && query_string.is_some() {
+            return Some(path.unwrap() + "?" + query_string.unwrap().as_slice());
+        } else  {
+            return path;
         }
     }
 
