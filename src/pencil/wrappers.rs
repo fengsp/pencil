@@ -2,9 +2,12 @@
 // Copyright (c) 2014 by Shipeng Feng.
 // Licensed under the BSD License, see LICENSE for more details.
 
+use std::io::net::ip::SocketAddr;
+
 use http;
 use http::server::request::RequestUri::AbsolutePath;
 use http::headers::request::HeaderCollection;
+use http::headers::HeaderConvertible;
 use url;
 use url::form_urlencoded::parse as form_urlencoded_parse;
 
@@ -94,6 +97,94 @@ impl Request {
     /// The headers.
     pub fn headers(&self) -> &HeaderCollection {
         &self.request.headers
+    }
+
+    /// Requested path.
+    pub fn path(&self) -> Option<String> {
+        if self.url.is_some() {
+            return self.url.as_ref().unwrap().serialize_path();
+        } else {
+            return None;
+        }
+    }
+
+    /// Requested path including the query string.
+    pub fn full_path(&self) -> Option<String> {
+        if self.url.is_some() {
+            return Some(self.url.as_ref().unwrap().serialize());
+        } else {
+            return None;
+        }
+    }
+
+    /// The host including the port if available.
+    pub fn host(&self) -> Option<String> {
+        match self.request.headers.host {
+            Some(ref host) => Some(host.http_value()),
+            None => None,
+        }
+    }
+
+    /// The URL parameters as raw String.
+    pub fn query_string(&self) -> Option<String> {
+        if self.url.is_some() {
+            return self.url.as_ref().unwrap().query.clone();
+        } else {
+            return None;
+        }
+    }
+
+    /// The requested method.
+    pub fn method(&self) -> String {
+        self.request.method.http_value()
+    }
+
+    /// The remote address of the client.
+    pub fn remote_addr(&self) -> Option<SocketAddr> {
+        self.request.remote_addr.clone()
+    }
+
+    /// URL scheme (http or https), currently I do not know how to get
+    /// this, the result will always be http.
+    pub fn scheme(&self) -> String {
+        String::from_str("http")
+    }
+
+    /// Just the host with scheme.
+    pub fn host_url(&self) -> Option<String> {
+        match self.host() {
+            Some(host) => {
+                Some(self.scheme() + "://" + host.as_slice() + "/")
+            },
+            None => None,
+        }
+    }
+
+    /// The current url.
+    pub fn url(&self) -> Option<String> {
+        let host_url = self.host_url();
+        let full_path = self.full_path();
+        if host_url.is_some() && full_path.is_some() {
+            Some(host_url.unwrap() + full_path.unwrap().as_slice().trim_left_chars('/'))
+        } else {
+            None
+        }
+    }
+
+    /// The current url without the query string.
+    pub fn base_url(&self) -> Option<String> {
+        let host_url = self.host_url();
+        let path = self.path();
+        if host_url.is_some() && path.is_some() {
+            Some(host_url.unwrap() + path.unwrap().as_slice().trim_left_chars('/'))
+        } else {
+            None
+        }
+    }
+
+    /// Whether the request is secure (https).
+    pub fn is_secure(&self) -> bool {
+        self.scheme() == "https".to_string()
     }
 }
 

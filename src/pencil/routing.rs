@@ -29,9 +29,7 @@ impl Rule {
         if !string.starts_with("/") {
             panic!("urls must start with a leading slash");
         }
-        let mut full_string = String::from_str(r"^");
-        full_string = full_string + string;
-        full_string = full_string + r"$";
+        let full_string = String::from_str(r"^") + string + r"$";
 
         let mut upper_methods: HashSet<String> = HashSet::new();
         for &method in methods.iter() {
