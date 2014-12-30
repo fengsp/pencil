@@ -7,7 +7,6 @@ use std::io::net::ip::{SocketAddr, Ipv4Addr};
 use http;
 use http::status;
 use http::server::{Server, ResponseWriter};
-use http::headers::content_type::MediaType;
 
 use app::Pencil;
 use wrappers::Request;
@@ -33,16 +32,9 @@ impl Server for PencilServer {
 
     fn handle_request(&self, r: http::server::Request, w: &mut ResponseWriter) {
         let request = Request::new(r);
+        let request_method = request.method();
         let response = self.app.handle_request(request);
-
-        get_status_from_code(200);
-        w.headers.content_type = Some(MediaType {
-            type_ : String::from_str("text"),
-            subtype: String::from_str("html"),
-            parameters: vec!((String::from_str("charset"), String::from_str("UTF-8")))
-        });
-        w.headers.server = Some(String::from_str("Pencil"));
-        w.write(response.body.as_bytes()).unwrap();
+        response.write(request_method, w);
     }
 }
 
@@ -54,7 +46,7 @@ pub fn run_server(application: Pencil) {
 }
 
 
-fn get_status_from_code(code: int) -> status::Status {
+pub fn get_status_from_code(code: int) -> status::Status {
     match FromPrimitive::from_u64(code as u64) {
             Some(status) => { status },
             None => { status::UnregisteredStatus(code as u16, String::from_str("UNKNOWN")) },

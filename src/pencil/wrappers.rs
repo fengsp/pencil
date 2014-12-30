@@ -6,13 +6,16 @@ use std::io::net::ip::SocketAddr;
 
 use http;
 use http::server::request::RequestUri::AbsolutePath;
+use http::server::ResponseWriter;
 use http::headers::request::HeaderCollection;
 use http::headers::HeaderConvertible;
+use http::headers::content_type::MediaType;
 use url;
 use url::form_urlencoded::parse as form_urlencoded_parse;
 
 use datastructures::{Headers, MultiDict};
 use httputils::{get_name_by_http_code, get_content_type};
+use serving::get_status_from_code;
 
 
 /// Request type.
@@ -260,5 +263,43 @@ impl Response {
     /// Set content length.
     pub fn set_content_length(&mut self, value: uint) {
         self.headers.set("Content-Length", value.to_string().as_slice());
+    }
+
+    /// Sets a cookie(TODO).
+    pub fn set_cookie(&mut self) {
+    }
+
+    /// Delete a cookie(TODO).
+    pub fn delete_cookie(&mut self) {
+    }
+
+    /// Return `true` if the response is streamed(currently we do not support
+    /// streaming yet, always return `false`).
+    pub fn is_streamed(&self) -> bool {
+        false
+    }
+
+    /// Write the response out.  Mostly you shouldn't use this directly.
+    pub fn write(&self, request_method: String, w: &mut ResponseWriter) {
+        // write status.
+        let status_code = self.status_code;
+        w.status = get_status_from_code(status_code);
+
+        // write headers.
+        w.headers.content_type = Some(MediaType {
+            type_ : String::from_str("text"),
+            subtype: String::from_str("html"),
+            parameters: vec!((String::from_str("charset"), String::from_str("UTF-8")))
+        });
+        w.headers.server = Some(String::from_str("Pencil"));
+
+        // write data.
+        if request_method == String::from_str("HEAD") ||
+           (100 <= status_code && status_code < 200) ||
+           status_code == 204 || status_code == 304 {
+            w.write(b"").unwrap();
+        } else {
+            w.write(self.body.as_bytes()).unwrap();
+        }
     }
 }
