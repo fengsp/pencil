@@ -99,6 +99,8 @@ pub use helpers::{
     abort,
     redirect,
     escape,
+    send_file,
+    send_from_directory,
 };
 pub use serving::{
     run_server,

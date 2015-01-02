@@ -3,16 +3,21 @@
 // Licensed under the BSD License, see LICENSE for more details.
 
 use std::io::File;
+use std::io::fs::PathExtensions;
 
-use wrappers::Response;
+use wrappers::{Request, Response};
 use types::{
     PencilValue,
         PenString,
         PenResponse,
     PenHTTPError,
     PencilResult,
+    ViewArgs,
 };
-use errors::HTTPError;
+use errors::{
+    HTTPError,
+        NotFound,
+};
 
 
 /// Sometimes it is necessary to set additional headers in a view.  Because
@@ -110,4 +115,72 @@ pub fn redirect(location: &str, code: int) -> PencilResult {
 pub fn escape(s: String) -> String {
     return s.replace("&", "&amp;").replace("<", "&lt;")
             .replace(">", "&gt;").replace("\"", "&quot;");
+}
+
+
+/// Sends the contents of a file to the client.  Please never pass filenames to this
+/// function from user sources without checking them first.  Set `as_attachment` to
+/// `true` if you want to send this file with a `Content-Disposition: attachment`
+/// header.  This will return `NotFound` if filepath is not one file.
+pub fn send_file(filepath: &str, mimetype: &str, as_attachment: bool) -> PencilResult {
+    let filepath = Path::new(filepath);
+    if !filepath.is_file() {
+        return Err(PenHTTPError(NotFound));
+    }
+    let mut file = match File::open(&filepath) {
+        Ok(file) => file,
+        Err(e) => panic!("couldn't open {}: {}", filepath.display(), e.desc),
+    };
+    let mut response = match file.read_to_string() {
+        Ok(data) => {
+            Response::new(data)
+        },
+        Err(e) => panic!("couldn't read {}: {}", filepath.display(), e.desc),
+    };
+    response.set_content_type(mimetype);
+    if as_attachment {
+        match filepath.filename_str() {
+            Some(filename) => {
+                response.headers.set("Content-Disposition",
+                    format!("attachment; filename={}", filename).as_slice());
+            },
+            None => {
+                panic!("filename unavailable, required for sending as attachment.");
+            }
+        }
+    }
+    return Ok(PenResponse(response));
+}
+
+
+/// Send a file from a given directory with `send_file`.  This is a secure way to
+/// quickly expose static files from an folder.
+pub fn send_from_directory(directory: &str, filename: &str, mimetype: &str,
+                           as_attachment: bool) -> PencilResult {
+    match safe_join(directory, filename) {
+        Some(filepath) => {
+            match filepath.as_str() {
+                Some(filepath) => {
+                    return send_file(filepath, mimetype, as_attachment);
+                },
+                None => {
+                    return Err(PenHTTPError(NotFound));
+                }
+            }
+        },
+        None => {
+            return Err(PenHTTPError(NotFound));
+        }
+    }
+}
+
+
+/// View function used internally to send static files from the static folder
+/// to the browser.
+#[allow(dead_code)]
+fn send_static_file(_: Request, _: ViewArgs) -> PencilResult {
+    let static_folder = "/tmp/static";
+    let filename = "css/style.css";
+    let mimetype = "text/css";
+    return send_from_directory(static_folder, filename, mimetype, false);
 }
