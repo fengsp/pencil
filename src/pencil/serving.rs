@@ -31,7 +31,7 @@ impl Server for PencilServer {
     }
 
     fn handle_request(&self, r: http::server::Request, w: &mut ResponseWriter) {
-        let request = Request::new(r);
+        let request = Request::new(&self.app, r);
         let request_method = request.method();
         let response = self.app.handle_request(request);
         response.write(request_method, w);

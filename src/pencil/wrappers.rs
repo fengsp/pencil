@@ -13,22 +13,30 @@ use http::headers::content_type::MediaType;
 use url;
 use url::form_urlencoded::parse as form_urlencoded_parse;
 
+use app::Pencil;
 use datastructures::{Headers, MultiDict};
 use httputils::{get_name_by_http_code, get_content_type};
 use serving::get_status_from_code;
+use routing::Rule;
+use types::ViewArgs;
+use errors::{HTTPError, NotFound};
 
 
 /// Request type.
-pub struct Request {
+pub struct Request<'r> {
+    pub app: &'r Pencil,
     pub request: http::server::Request,
     url: Option<url::Url>,
+    pub url_rule: Option<Rule>,
+    pub view_args: Option<ViewArgs>,
+    pub routing_exception: Option<HTTPError>,
     args: Option<MultiDict>,
     form: Option<MultiDict>,
 }
 
-impl Request {
+impl<'r> Request<'r> {
     /// Create a `Request`.
-    pub fn new(request: http::server::Request) -> Request {
+    pub fn new(app: &Pencil, request: http::server::Request) -> Request {
         let url = match request.request_uri {
             AbsolutePath(ref url) => {
                 match request.headers.host {
@@ -46,10 +54,44 @@ impl Request {
             _ => None,
         };
         Request {
+            app: app,
             request: request,
             url: url,
+            url_rule: None,
+            view_args: None,
+            routing_exception: None,
             args: None,
             form: None,
+        }
+    }
+
+    /// Match the request, set the `url_rule` and `view_args` field.
+    pub fn match_request(&mut self) {
+        match self.path() {
+            Some(path) => {
+                let url_adapter = self.app.url_map.bind(path, self.method());
+                match url_adapter.captures() {
+                    Ok(caps) => {
+                        let (rule, view_args) = caps;
+                        self.url_rule = Some(rule);
+                        self.view_args = Some(view_args);
+                    },
+                    Err(e) => {
+                        self.routing_exception = Some(e);
+                    },
+                }
+            },
+            None => {
+                self.routing_exception = Some(NotFound);
+            }
+        }
+    }
+
+    /// The endpoint that matched the request.
+    pub fn endpoint(&self) -> Option<String> {
+        match self.url_rule {
+            Some(ref rule) => Some(rule.endpoint.clone()),
+            None => None,
         }
     }
 
