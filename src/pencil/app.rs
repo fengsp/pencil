@@ -6,11 +6,8 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::io::File;
 
-use http::server::request::RequestUri::AbsolutePath;
-
 use types::{
     PencilValue,
-        PenString,
         PenResponse,
 
     PencilError,
@@ -37,7 +34,7 @@ use logging;
 use serving::run_server;
 use routing::{Map, Rule};
 use testing::PencilClient;
-use errors::{HTTPError, InternalServerError};
+use errors::{HTTPError, NotFound, InternalServerError};
 
 
 /// The pencil type.  It acts as the central application object.  Once it is created it
@@ -160,7 +157,7 @@ impl Pencil {
     /// user errors currently, you can do it in your own view like this:
     ///
     /// ```rust,no_run
-    /// use pencil::{Request, ViewArgs};
+    /// use pencil::Request;
     /// use pencil::{PencilResult, PenString};
     ///
     ///
@@ -177,7 +174,7 @@ impl Pencil {
     /// }
     ///
     ///
-    /// fn hello(_: Request, _: ViewArgs) -> PencilResult {
+    /// fn hello(_: Request) -> PencilResult {
     ///     match some_operation() {
     ///         Ok(_) => Ok(PenString(String::from_str("Hello!"))),
     ///         Err(e) => my_err_handler(e),
@@ -194,7 +191,7 @@ impl Pencil {
     /// ```rust,no_run
     /// use std::error::FromError;
     ///
-    /// use pencil::{Request, ViewArgs};
+    /// use pencil::Request;
     /// use pencil::{Pencil, PencilResult, PenString};
     /// use pencil::{PencilError, PenUserError, UserError};
     ///
@@ -220,7 +217,7 @@ impl Pencil {
     /// }
     ///
     ///
-    /// fn hello(_: Request, _: ViewArgs) -> PencilResult {
+    /// fn hello(_: Request) -> PencilResult {
     ///     let rv = try!(some_operation());
     ///     return Ok(PenString(rv));
     /// }
@@ -264,31 +261,17 @@ impl Pencil {
     /// Does the request dispatching.  Matches the URL and returns the return
     /// value of the view.
     fn dispatch_request(&self, request: Request) -> PencilResult {
-        let request_url = match request.request.request_uri {
-            AbsolutePath(ref url) => {
-                println!("{}", url);
-                url.clone()
+        if request.routing_error.is_some() {
+            return Err(PenHTTPError(request.routing_error.unwrap()));
+        }
+        match self.view_functions.get(&request.endpoint().unwrap()) {
+            Some(&view_func) => {
+                return view_func(request);
             },
-            _ => {
-                println!("{}", "WTF!");
-                "wtf".to_string()
-            },
-        };
-        let url_adapter = self.url_map.bind(request_url, String::from_str("GET"));
-        let rv = match url_adapter.captures() {
-            Ok(caps) => {
-                let (rule, view_args) = caps;
-                for p in view_args.iter() {
-                    println!("{}", p);
-                }
-                match self.view_functions.get(&rule.endpoint) {
-                    Some(&view_func) => view_func(request, view_args),
-                    None => Ok(PenString(String::from_str("No such handler"))),
-                }
-            },
-            Err(e) => Err((PenHTTPError(e))),
-        };
-        return rv;
+            None => {
+                return Err(PenHTTPError(NotFound));
+            }
+        }
     }
 
     /// Converts the return value from a view function to a real

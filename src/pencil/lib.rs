@@ -25,10 +25,10 @@
 //! extern crate pencil;
 //!
 //! use pencil::Pencil;
-//! use pencil::{Request, ViewArgs, PencilResult, PenString};
+//! use pencil::{Request, PencilResult, PenString};
 //!
 //!
-//! fn hello(_: Request, _: ViewArgs) -> PencilResult {
+//! fn hello(_: Request) -> PencilResult {
 //!     Ok(PenString(String::from_str("Hello World!")))
 //! }
 //!
@@ -72,7 +72,6 @@ pub use types::{
         PenUserError,
     UserError,
     PencilResult,
-    ViewArgs,
     ViewFunc,
     UserErrorHandler,
     HTTPErrorHandler,

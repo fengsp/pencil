@@ -102,7 +102,7 @@ pub type PencilResult = Result<PencilValue, PencilError>;
 /// View arguments type.
 pub type ViewArgs = Vec<String>;
 /// View function type.
-pub type ViewFunc = fn(Request, ViewArgs) -> PencilResult;
+pub type ViewFunc = fn(Request) -> PencilResult;
 
 
 /// HTTP Error handler type.

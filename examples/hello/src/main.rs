@@ -1,11 +1,11 @@
 extern crate pencil;
 
 use pencil::Pencil;
-use pencil::{Request, ViewArgs, PencilResult, PenString};
+use pencil::{Request, PencilResult, PenString};
 
 
-fn user(_: Request, view_args: ViewArgs) -> PencilResult {
-    Ok(PenString(format!("user {}", view_args[0])))
+fn user(r: Request) -> PencilResult {
+    Ok(PenString(format!("user {}", r.view_args[0])))
 }
 
 

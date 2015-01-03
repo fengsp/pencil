@@ -12,7 +12,6 @@ use types::{
         PenResponse,
     PenHTTPError,
     PencilResult,
-    ViewArgs,
 };
 use errors::{
     HTTPError,
@@ -26,10 +25,10 @@ use errors::{
 /// get a response object which you can use to attach headers:
 ///
 /// ```rust,no_run
-/// use pencil::{Request, ViewArgs, PencilResult, PenString, PenResponse, make_response};
+/// use pencil::{Request, PencilResult, PenString, PenResponse, make_response};
 ///
 ///
-/// fn index(_: Request, _: ViewArgs) -> PencilResult {
+/// fn index(_: Request) -> PencilResult {
 ///     let mut response = make_response(PenString(String::from_str("Hello!")));
 ///     response.headers.set("X-TEST", "value");
 ///     return Ok(PenResponse(response));
@@ -178,7 +177,7 @@ pub fn send_from_directory(directory: &str, filename: &str, mimetype: &str,
 /// View function used internally to send static files from the static folder
 /// to the browser.
 #[allow(dead_code)]
-fn send_static_file(_: Request, _: ViewArgs) -> PencilResult {
+fn send_static_file(_: Request) -> PencilResult {
     let static_folder = "/tmp/static";
     let filename = "css/style.css";
     let mimetype = "text/css";

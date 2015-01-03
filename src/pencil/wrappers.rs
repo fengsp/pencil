@@ -28,8 +28,8 @@ pub struct Request<'r> {
     pub request: http::server::Request,
     url: Option<url::Url>,
     pub url_rule: Option<Rule>,
-    pub view_args: Option<ViewArgs>,
-    pub routing_exception: Option<HTTPError>,
+    pub view_args: ViewArgs,
+    pub routing_error: Option<HTTPError>,
     args: Option<MultiDict>,
     form: Option<MultiDict>,
 }
@@ -58,8 +58,8 @@ impl<'r> Request<'r> {
             request: request,
             url: url,
             url_rule: None,
-            view_args: None,
-            routing_exception: None,
+            view_args: vec![],
+            routing_error: None,
             args: None,
             form: None,
         }
@@ -74,15 +74,15 @@ impl<'r> Request<'r> {
                     Ok(caps) => {
                         let (rule, view_args) = caps;
                         self.url_rule = Some(rule);
-                        self.view_args = Some(view_args);
+                        self.view_args = view_args;
                     },
                     Err(e) => {
-                        self.routing_exception = Some(e);
+                        self.routing_error = Some(e);
                     },
                 }
             },
             None => {
-                self.routing_exception = Some(NotFound);
+                self.routing_error = Some(NotFound);
             }
         }
     }
