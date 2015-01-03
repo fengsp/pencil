@@ -369,11 +369,8 @@ impl Pencil {
     }
 
     /// The actual application handler.
-    pub fn handle_request(&self, request: Request) -> Response {
-        // let url_adapter = self.create_url_adapter(request);
-        // request.url_rule, request.view_args = url_adapter.match()
-        // or
-        // request.routing_error = e
+    pub fn handle_request(&self, mut request: Request) -> Response {
+        request.match_request();
         match self.full_dispatch_request(request) {
             Ok(response) => {
                 self.do_teardown_request(None);
