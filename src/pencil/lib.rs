@@ -72,6 +72,7 @@ pub use types::{
         PenUserError,
     UserError,
     PencilResult,
+    ViewArgs,
     ViewFunc,
     UserErrorHandler,
     HTTPErrorHandler,
