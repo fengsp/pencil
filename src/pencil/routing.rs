@@ -25,7 +25,8 @@ impl Rule {
     /// URL generation.  Rule methods is an array of http methods this rule
     /// applies to, if `GET` is present in it and `HEAD` is not, `HEAD` is
     /// added automatically.
-    pub fn new(string: &'static str, methods: &[&str], endpoint: &str) -> Rule {
+    pub fn new(string: String, methods: &[&str], endpoint: &str) -> Rule {
+        let string = string.as_slice();
         if !string.starts_with("/") {
             panic!("urls must start with a leading slash");
         }
@@ -133,9 +134,9 @@ impl<'m> MapAdapter<'m> {
 #[test]
 fn test_basic_routing() {
     let mut map = Map::new();
-    map.add(Rule::new(r"/", &["GET"], "index"));
-    map.add(Rule::new(r"/foo", &["GET"], "foo"));
-    map.add(Rule::new(r"/bar/", &["GET"], "bar"));
+    map.add(Rule::new(r"/".to_string(), &["GET"], "index"));
+    map.add(Rule::new(r"/foo".to_string(), &["GET"], "foo"));
+    map.add(Rule::new(r"/bar/".to_string(), &["GET"], "bar"));
     let adapter = map.bind(String::from_str("/bar/"), String::from_str("GET"));
     match adapter.captures() {
         Ok((rule, view_args)) => {

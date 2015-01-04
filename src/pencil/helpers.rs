@@ -176,10 +176,11 @@ pub fn send_from_directory(directory: &str, filename: &str, mimetype: &str,
 
 /// View function used internally to send static files from the static folder
 /// to the browser.
-#[allow(dead_code)]
-fn send_static_file(_: Request) -> PencilResult {
-    let static_folder = "/tmp/static";
-    let filename = "css/style.css";
-    let mimetype = "text/css";
-    return send_from_directory(static_folder, filename, mimetype, false);
+pub fn send_static_file(request: Request) -> PencilResult {
+    let mut static_folder = Path::new(request.app.root_path.as_slice());
+    static_folder.push(request.app.static_folder.as_slice());
+    let static_folder_str = static_folder.as_str().unwrap();
+    let filename = request.view_args[0].as_slice();
+    let mimetype = "text/plain";
+    return send_from_directory(static_folder_str, filename, mimetype, false);
 }
