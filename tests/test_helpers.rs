@@ -3,6 +3,9 @@
 // Licensed under the BSD License, see LICENSE for more details.
 
 extern crate pencil;
+extern crate url;
+
+use std::path::BytesContainer;
 
 use pencil::{PenHTTPError, PenUserError};
 use pencil::{PenString, PenResponse};
@@ -23,7 +26,7 @@ fn test_abort() {
 
 #[test]
 fn test_redirect() {
-    let result = redirect("/füübär", 302);
+    let result = redirect("http://localhost/füübär", 302);
     let pencil_value = result.ok().unwrap();
     let response = match pencil_value {
         PenString(_) => None,
@@ -31,7 +34,8 @@ fn test_redirect() {
     };
     let response = response.unwrap();
     assert!(response.body.as_slice().contains("/füübär"));
-    let location = response.headers.extensions.get(&"Location".to_string()).unwrap();
+    let location_url = response.headers.location.as_ref().clone().unwrap();
+    let location = url::percent_encoding::lossy_utf8_percent_decode(location_url.serialize().container_as_bytes());
     assert!(location.as_slice().contains("/füübär"));
     assert!(response.status_code == 302);
 
@@ -42,8 +46,8 @@ fn test_redirect() {
         PenResponse(response) => Some(response),
     };
     let response = response.unwrap();
-    let location = response.headers.extensions.get(&"Location".to_string()).unwrap();
-    assert!(location.as_slice() == "http://example.com/");
+    let location = response.headers.location.as_ref().clone().unwrap();
+    assert!(location.serialize().as_slice() == "http://example.com/");
     assert!(response.status_code == 301);
 }
 
