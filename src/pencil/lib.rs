@@ -35,7 +35,7 @@
 //!
 //! fn main() {
 //!     let mut app = Pencil::new("/web/hello");
-//!     app.route(r"/", &["GET"], "hello", hello);
+//!     app.route("/", &["GET"], "hello", hello);
 //!     app.run();
 //! }
 //! ```
