@@ -16,6 +16,6 @@ use types::{PencilResult, PenResponse};
 pub fn jsonify<'a, T: Encodable<Encoder<'a>, IoError>>(object: &T) -> PencilResult {
     let encoded = json::encode(object);
     let mut response = Response::new(encoded);
-    response.set_content_type("application/json");
+    response.set_content_type("application", "json");
     return Ok(PenResponse(response));
 }

@@ -3,7 +3,9 @@
 // Licensed under the BSD License, see LICENSE for more details.
 
 extern crate pencil;
+extern crate http;
 
+use http::headers::HeaderConvertible;
 use pencil::NotFound;
 
 
@@ -39,5 +41,6 @@ fn test_http_error_to_response() {
     let error = NotFound;
     let response = error.to_response();
     assert!(response.status_code == 404);
-    assert!(response.content_type() == Some(String::from_str("text/html; charset=utf-8")));
+    assert!(response.content_type().unwrap().http_value() ==
+            String::from_str("text/html;charset=utf-8"));
 }

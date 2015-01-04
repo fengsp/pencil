@@ -30,7 +30,7 @@ use errors::{
 ///
 /// fn index(_: Request) -> PencilResult {
 ///     let mut response = make_response(PenString(String::from_str("Hello!")));
-///     response.headers.set("X-TEST", "value");
+///     response.set_content_type("text", "css");
 ///     return Ok(PenResponse(response));
 /// }
 /// ```
@@ -104,8 +104,8 @@ pub fn redirect(location: &str, code: int) -> PencilResult {
 <a href=\"{}\">{}</a>.  If not click the link.
 ", location, location));
     response.status_code = code;
-    response.set_content_type("text/html");
-    response.headers.set("Location", location);
+    response.set_content_type("text", "html");
+    response.headers.extensions.insert("Location".to_string(), location.to_string());
     return Ok(PenResponse(response));
 }
 
@@ -136,12 +136,13 @@ pub fn send_file(filepath: &str, mimetype: &str, as_attachment: bool) -> PencilR
         },
         Err(e) => panic!("couldn't read {}: {}", filepath.display(), e.desc),
     };
-    response.set_content_type(mimetype);
+    let types: Vec<&str> = mimetype.split_str("/").collect();
+    response.set_content_type(types[0], types[1]);
     if as_attachment {
         match filepath.filename_str() {
             Some(filename) => {
-                response.headers.set("Content-Disposition",
-                    format!("attachment; filename={}", filename).as_slice());
+                response.headers.extensions.insert(String::from_str("Content-Disposition"),
+                    format!("attachment; filename={}", filename));
             },
             None => {
                 panic!("filename unavailable, required for sending as attachment.");

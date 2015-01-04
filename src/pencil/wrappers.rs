@@ -14,7 +14,7 @@ use url;
 use url::form_urlencoded::parse as form_urlencoded_parse;
 
 use app::Pencil;
-use datastructures::{Headers, MultiDict};
+use datastructures::MultiDict;
 use httputils::{get_name_by_http_code, get_content_type};
 use serving::get_status_from_code;
 use routing::Rule;
@@ -248,7 +248,7 @@ impl<'r> Request<'r> {
 #[deriving(Clone)]
 pub struct Response {
     pub status_code: int,
-    pub headers: Headers,
+    pub headers: HeaderCollection,
     pub body: String,
 }
 
@@ -257,12 +257,15 @@ impl Response {
     pub fn new(body: String) -> Response {
         let mut response = Response {
             status_code: 200,
-            headers: Headers::new(None),
+            headers: HeaderCollection::new(),
             body: body,
         };
-        let content_length = response.body.len().to_string();
-        response.headers.set("Content-Type", "text/html; charset=utf-8");
-        response.headers.set("Content-Length", content_length.as_slice());
+        response.headers.content_type = Some(MediaType {
+            type_ : String::from_str("text"),
+            subtype: String::from_str("html"),
+            parameters: vec!((String::from_str("charset"), String::from_str("UTF-8")))
+        });
+        response.headers.content_length = Some(response.body.len());
         return response;
     }
 
@@ -278,33 +281,28 @@ impl Response {
     /// automatically.
     pub fn set_data(&mut self, value: String) {
         self.body = value;
-        let content_length = self.body.len().to_string();
-        self.headers.set("Content-Length", content_length.as_slice());
+        let content_length = self.body.len();
+        self.set_content_length(content_length);
     }
 
     /// Returns the response content type if available.
-    pub fn content_type(&self) -> Option<String> {
-        let rv = self.headers.get("Content-Type");
-        rv.map(|content_type| content_type.clone())
+    pub fn content_type(&self) -> Option<MediaType> {
+        self.headers.content_type.clone()
     }
 
     /// Set response content type.
-    pub fn set_content_type(&mut self, value: &str) {
-        self.headers.set("Content-Type", get_content_type(value, "utf-8").as_slice());
+    pub fn set_content_type(&mut self, type_: &str, subtype: &str) {
+        self.headers.content_type = Some(get_content_type(type_, subtype, "utf-8"));
     }
 
     /// Returns the response content length if available.
     pub fn content_length(&self) -> Option<uint> {
-        let rv = self.headers.get("Content-Length");
-        match rv {
-            Some(content_length) => from_str(content_length.as_slice()),
-            None => None,
-        }
+        self.headers.content_length.clone()
     }
 
     /// Set content length.
     pub fn set_content_length(&mut self, value: uint) {
-        self.headers.set("Content-Length", value.to_string().as_slice());
+        self.headers.content_length = Some(value);
     }
 
     /// Sets a cookie(TODO).
