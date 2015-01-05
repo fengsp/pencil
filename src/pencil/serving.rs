@@ -2,6 +2,7 @@
 // Copyright (c) 2014 by Shipeng Feng.
 // Licensed under the BSD License, see LICENSE for more details.
 
+use core::num::FromPrimitive;
 use std::io::net::ip::{SocketAddr, Ipv4Addr};
 
 use http;
@@ -13,7 +14,7 @@ use wrappers::Request;
 
 
 /// The pencil server.
-#[deriving(Clone)]
+#[derive(Clone)]
 struct PencilServer {
     app: Pencil,
 }

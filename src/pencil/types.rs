@@ -17,7 +17,7 @@ pub use self::PencilError::{
 
 
 /// The Pencil User Error type.
-#[deriving(Clone)]
+#[derive(Clone)]
 pub struct UserError {
     pub desc: &'static str,
     pub detail: Option<String>,
@@ -44,7 +44,7 @@ impl error::Error for UserError {
 
 
 /// The Pencil Error type.
-#[deriving(Clone)]
+#[derive(Clone)]
 pub enum PencilError {
     PenHTTPError(HTTPError),
     PenUserError(UserError),
@@ -88,7 +88,7 @@ impl error::Error for PencilError {
 
 
 /// Pencil view function return value type.
-#[deriving(Clone)]
+#[derive(Clone)]
 pub enum PencilValue {
     PenString(String),
     PenResponse(Response),

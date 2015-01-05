@@ -11,7 +11,7 @@ use types::ViewArgs;
 
 
 /// A Rule represents one URL pattern.
-#[deriving(Clone)]
+#[derive(Clone)]
 pub struct Rule {
     pub rule: String,
     pub methods: HashSet<String>,
@@ -34,7 +34,7 @@ impl Rule {
 
         let mut upper_methods: HashSet<String> = HashSet::new();
         for &method in methods.iter() {
-            let upper_method = method.to_string().to_ascii_upper();
+            let upper_method = method.to_string().to_ascii_uppercase();
             upper_methods.insert(upper_method);
         }
         if upper_methods.contains(&String::from_str("GET")) {
@@ -72,7 +72,7 @@ impl Rule {
 
 
 /// The map stores all the URL rules.
-#[deriving(Clone)]
+#[derive(Clone)]
 pub struct Map {
     rules: Vec<Rule>,
 }

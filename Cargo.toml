@@ -11,3 +11,7 @@ path = "src/pencil/lib.rs"
 [dependencies.http]
 
 git = "https://github.com/chris-morgan/rust-http.git"
+
+[dependencies]
+regex = "*"
+rustc-serialize = "*"

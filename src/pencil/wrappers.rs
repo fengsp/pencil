@@ -245,7 +245,7 @@ impl<'r> Request<'r> {
 
 /// Response type.  It is just one container with a couple of parameters
 /// (headers, body, status code etc).
-#[deriving(Clone)]
+#[derive(Clone)]
 pub struct Response {
     pub status_code: int,
     pub headers: HeaderCollection,

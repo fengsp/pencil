@@ -4,7 +4,8 @@
 
 use std::os;
 use std::io::File;
-use std::collections::TreeMap;
+use core::str::FromStr;
+use std::collections::BTreeMap;
 use serialize::json::{Object, Json};
 
 
@@ -29,7 +30,7 @@ use serialize::json::{Object, Json};
 /// ```bash
 /// export YOURAPPLICATION_SETTINGS="/path/to/config/file"
 /// ```
-#[deriving(Clone)]
+#[derive(Clone)]
 pub struct Config {
     config: Object,
 }
@@ -37,7 +38,7 @@ pub struct Config {
 impl Config {
     /// Create a `Config` object.
     pub fn new() -> Config {
-        let json_object: Object = TreeMap::new();
+        let json_object: Object = BTreeMap::new();
         Config {
             config: json_object,
         }
@@ -67,7 +68,7 @@ impl Config {
         let path = Path::new(filepath);
         let mut file = File::open(&path).unwrap();
         let content = file.read_to_string().unwrap();
-        let object: Json = from_str(content.as_slice()).unwrap();
+        let object: Json = Json::from_str(content.as_slice()).unwrap();
         match object {
             Json::Object(object) => { self.from_object(object); },
             _ => { panic!("The configuration file is not an JSON object."); }

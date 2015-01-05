@@ -63,7 +63,7 @@ pub use self::HTTPError::{
 ///     return abort(404)
 /// }
 /// ```
-#[deriving(Clone, Copy)]
+#[derive(Clone, Copy)]
 pub enum HTTPError {
     BadRequest,
     Unauthorized,

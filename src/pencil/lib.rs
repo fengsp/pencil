@@ -56,7 +56,7 @@
 #![feature(macro_rules)]
 
 extern crate core;
-extern crate serialize;
+extern crate "rustc-serialize" as serialize;
 extern crate regex;
 extern crate http;
 extern crate url;

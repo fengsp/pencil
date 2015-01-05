@@ -10,16 +10,16 @@ use std::collections::hash_map;
 
 
 /// Headers iterator.
-pub type HeaderEntries<'a> = iter::Map<&'a(String, String), (&'a String, &'a String), core::slice::Items<'a, (String, String)>, for<'b> fn(&'b(String, String)) -> (&'b String, &'b String)>;
+pub type HeaderIter<'a> = iter::Map<&'a(String, String), (&'a String, &'a String), core::slice::Iter<'a, (String, String)>, for<'b> fn(&'b(String, String)) -> (&'b String, &'b String)>;
 /// Header keys iterator.
-pub type HeaderKeys<'a> = iter::Map<(&'a String, &'a String), &'a String, HeaderEntries<'a>, fn((&'a String, &'a String)) -> &'a String>;
+pub type HeaderKeys<'a> = iter::Map<(&'a String, &'a String), &'a String, HeaderIter<'a>, fn((&'a String, &'a String)) -> &'a String>;
 /// Header values iterator.
-pub type HeaderValues<'a> = iter::Map<(&'a String, &'a String), &'a String, HeaderEntries<'a>, fn((&'a String, &'a String)) -> &'a String>;
+pub type HeaderValues<'a> = iter::Map<(&'a String, &'a String), &'a String, HeaderIter<'a>, fn((&'a String, &'a String)) -> &'a String>;
 
 
 /// Headers type that stores some headers.  It has a HashMap like interface
 /// but is ordered and can store the same keys multiple times.
-#[deriving(Clone)]
+#[derive(Clone)]
 pub struct Headers {
     list: Vec<(String, String)>,
 }
@@ -35,9 +35,9 @@ impl Headers {
 
     /// Return a reference to the value corresponding to the header key.
     pub fn get(&self, key: &str) -> Option<&String> {
-        let ikey = key.to_string().to_ascii_lower();
+        let ikey = key.to_string().to_ascii_lowercase();
         for &(ref k, ref v) in self.list.iter() {
-            if k.to_ascii_lower() == ikey {
+            if k.to_ascii_lowercase() == ikey {
                 return Some(v)
             }
         }
@@ -47,10 +47,10 @@ impl Headers {
     /// Return a list of all the references to the values for a given key.
     /// If that key is not in the headers, the return value will be an empty vector.
     pub fn get_all(&self, key: &str) -> Vec<&String> {
-        let ikey = key.to_string().to_ascii_lower();
+        let ikey = key.to_string().to_ascii_lowercase();
         let mut result = Vec::new();
         for &(ref k, ref v) in self.list.iter() {
-            if k.to_ascii_lower() == ikey {
+            if k.to_ascii_lowercase() == ikey {
                 result.push(v);
             }
         }
@@ -59,22 +59,25 @@ impl Headers {
 
     /// An iterator visiting all key-value pairs in sorted order.
     /// Iterator element type is `(&'a String, &'a String)`.
-    pub fn iter(&self) -> HeaderEntries {
+    pub fn iter(&self) -> HeaderIter {
         fn unpack<A, B>(kvpair: &(A, B)) -> (&A, &B) { (&kvpair.0, &kvpair.1) }
+        let unpack: for<'b> fn(&'b(String, String)) -> (&'b String, &'b String) = unpack;
         self.list.iter().map(unpack)
     }
 
     /// An iterator visiting all keys in sorted order.
     /// Iterator element type is `&'a String`.
-    pub fn keys(&self) -> HeaderKeys {
+    pub fn keys<'a>(&'a self) -> HeaderKeys<'a> {
         fn first<A, B>((k, _): (A, B)) -> A { k }
+        let first: fn((&'a String, &'a String)) -> &'a String = first;
         self.iter().map(first)
     }
 
     /// An iterator visiting all values in sorted order.
     /// Iterator element type is `&'a String`.
-    pub fn values(&self) -> HeaderValues {
+    pub fn values<'a>(&'a self) -> HeaderValues<'a> {
         fn second<A, B>((_, v): (A, B)) -> B { v }
+        let second: fn((&'a String, &'a String)) -> &'a String = second;
         self.iter().map(second)
     }
 
@@ -87,11 +90,11 @@ impl Headers {
     /// Removes a key from the headers, returning the first value at the key
     /// if the key was previously in the headers.
     pub fn remove(&mut self, key: &str) -> Option<String> {
-        let ikey = key.to_string().to_ascii_lower();
+        let ikey = key.to_string().to_ascii_lowercase();
         let mut rv: Option<String> = None;
         let mut newlist = Vec::new();
         for &(ref k, ref v) in self.list.iter() {
-            if k.to_ascii_lower() != ikey {
+            if k.to_ascii_lowercase() != ikey {
                 newlist.push((k.clone(), v.clone()));
             } else if rv != None {
                 rv = Some(v.clone());
@@ -105,11 +108,11 @@ impl Headers {
     /// appears at the end of the list if there was no entry or replaces the old one.
     /// TODO: _option_header_vkw and validate_value
     pub fn set(&mut self, key: &str, value: &str) {
-        let ikey = key.to_string().to_ascii_lower();
+        let ikey = key.to_string().to_ascii_lowercase();
         let mut key_existed = false;
         let mut newlist = Vec::new();
         for &(ref k, ref v) in self.list.iter() {
-            if k.to_ascii_lower() != ikey {
+            if k.to_ascii_lowercase() != ikey {
                 newlist.push((k.clone(), v.clone()));
             } else if !key_existed {
                 newlist.push((key.to_string(), value.to_string()));
@@ -137,17 +140,17 @@ impl Headers {
 /// MultiDict keys iterator.
 pub type MultiDictKeys<'a> = hash_map::Keys<'a, String, Vec<String>>;
 /// MultiDict list entries iterator.
-pub type MultiDictListEntries<'a> = hash_map::Entries<'a, String, Vec<String>>;
+pub type MultiDictListIter<'a> = hash_map::Iter<'a, String, Vec<String>>;
 /// MultiDict list values iterator.
 pub type MultiDictListValues<'a> = hash_map::Values<'a, String, Vec<String>>;
 /// MultiDict entries iterator.
-pub type MultiDictEntries<'a> = iter::Map<(&'a String, &'a Vec<String>), (&'a String, &'a String), MultiDictListEntries<'a>, for<'b, 'c> fn((&'b String, &'c Vec<String>)) -> (&'b String, &'c String)>;
+pub type MultiDictIter<'a> = iter::Map<(&'a String, &'a Vec<String>), (&'a String, &'a String), MultiDictListIter<'a>, for<'b, 'c> fn((&'b String, &'c Vec<String>)) -> (&'b String, &'c String)>;
 /// MultiDict values iterator.
 pub type MultiDictValues<'a> = iter::Map<&'a Vec<String>, &'a String, MultiDictListValues<'a>, for<'b> fn(&'b Vec<String>) -> &'b String>;
 
 
 /// This is used to deal with multiple values for the same key.
-#[deriving(Clone)]
+#[derive(Clone)]
 pub struct MultiDict {
     map: HashMap<String, Vec<String>>,
 }
@@ -191,13 +194,14 @@ impl MultiDict {
     }
     
     /// An iterator of `(key, value)` pairs.
-    pub fn iter(&self) -> MultiDictEntries {
+    pub fn iter(&self) -> MultiDictIter {
         fn first<'a, 'b, A>(kvpair: (&'a A, &'b Vec<A>)) -> (&'a A, &'b A) { (kvpair.0, &kvpair.1[0]) }
+        let first: for<'b, 'c> fn((&'b String, &'c Vec<String>)) -> (&'b String, &'c String) = first;
         self.listiter().map(first)
     }
 
     /// An iterator of `(key, values)` pairs.
-    pub fn listiter(&self) -> MultiDictListEntries {
+    pub fn listiter(&self) -> MultiDictListIter {
         self.map.iter()
     }
 
@@ -209,6 +213,7 @@ impl MultiDict {
     /// An iterator of the first value on every key's value list.
     pub fn values(&self) -> MultiDictValues {
         fn first<'a, A>(list: &'a Vec<A>) -> &'a A { &list[0] }
+        let first: for<'b> fn(&    'b Vec<String>) -> &'b String = first;
         self.listvalues().map(first)
     }
 

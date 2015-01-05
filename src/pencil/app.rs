@@ -39,7 +39,7 @@ use errors::{HTTPError, NotFound, InternalServerError};
 
 /// The pencil type.  It acts as the central application object.  Once it is created it
 /// will act as a central registry for the view functions, the URL rules and much more.
-#[deriving(Clone)]
+#[derive(Clone)]
 pub struct Pencil {
     pub root_path: String,
     pub static_folder: String,
@@ -203,7 +203,7 @@ impl Pencil {
     /// use pencil::{PencilError, PenUserError, UserError};
     ///
     ///
-    /// #[deriving(Copy)]
+    /// #[derive(Copy)]
     /// pub struct MyErr(int);
     ///
     /// impl FromError<MyErr> for PencilError {
