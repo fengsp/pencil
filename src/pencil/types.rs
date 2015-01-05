@@ -104,6 +104,12 @@ pub type ViewArgs = Vec<String>;
 /// View function type.
 pub type ViewFunc = fn(Request) -> PencilResult;
 
+impl Clone for ViewFunc {
+    fn clone(&self) -> ViewFunc {
+        *self
+    }
+}
+
 
 /// HTTP Error handler type.
 pub type HTTPErrorHandler = fn(HTTPError) -> PencilResult;
@@ -113,7 +119,29 @@ pub type UserErrorHandler = fn(UserError) -> PencilResult;
 
 /// Before request func type.
 pub type BeforeRequestFunc = fn(&Request) -> Option<PencilResult>;
+
+impl Clone for BeforeRequestFunc {
+    fn clone(&self) -> BeforeRequestFunc {
+        *self
+    }
+}
+
+
 /// After request func type.
 pub type AfterRequestFunc = fn(&mut Response);
+
+impl Clone for AfterRequestFunc {
+    fn clone(&self) -> AfterRequestFunc {
+        *self
+    }
+}
+
+
 /// Teardown request func type.
 pub type TeardownRequestFunc = fn(Option<&PencilError>);
+
+impl Clone for TeardownRequestFunc {
+    fn clone(&self) -> TeardownRequestFunc {
+        *self
+    }
+}

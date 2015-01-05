@@ -4,7 +4,6 @@
 
 use std::os;
 use std::io::File;
-use core::str::FromStr;
 use std::collections::BTreeMap;
 use serialize::json::{Object, Json};
 
