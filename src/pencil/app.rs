@@ -92,12 +92,12 @@ impl Pencil {
 
     /// A shortcut that is used to register a view function for a given
     /// URL rule.
-    pub fn route(&mut self, rule: &'static str, methods: &[&str], endpoint: &str, view_func: ViewFunc) {
-        self.add_url_rule(rule.to_string(), methods, endpoint, view_func);
+    pub fn route(&mut self, rule: &str, methods: &[&str], endpoint: &str, view_func: ViewFunc) {
+        self.add_url_rule(rule, methods, endpoint, view_func);
     }
 
     /// Connects a URL rule.
-    fn add_url_rule(&mut self, rule: String, methods: &[&str], endpoint: &str, view_func: ViewFunc) {
+    fn add_url_rule(&mut self, rule: &str, methods: &[&str], endpoint: &str, view_func: ViewFunc) {
         let url_rule = Rule::new(rule, methods, endpoint);
         self.url_map.add(url_rule);
         self.view_functions.insert(endpoint.to_string(), view_func);
@@ -107,7 +107,7 @@ impl Pencil {
     pub fn enable_static_file_handle(&mut self) {
         let mut rule = self.static_url_path.clone();
         rule = rule + "/([^/].*?)";
-        self.add_url_rule(rule, &["GET"], "static", send_static_file);
+        self.add_url_rule(rule.as_slice(), &["GET"], "static", send_static_file);
     }
 
     /// Registers a function to run before each request.

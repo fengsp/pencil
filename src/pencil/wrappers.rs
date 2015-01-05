@@ -3,11 +3,13 @@
 // Licensed under the BSD License, see LICENSE for more details.
 
 use std::io::net::ip::SocketAddr;
+use std::path::BytesContainer;
 
 use http;
 use http::server::request::RequestUri::AbsolutePath;
 use http::server::ResponseWriter;
-use http::headers::request::HeaderCollection;
+use http::headers::request::HeaderCollection as RequestHeaders;
+use http::headers::response::HeaderCollection as ResponseHeaders;
 use http::headers::HeaderConvertible;
 use http::headers::content_type::MediaType;
 use url;
@@ -147,14 +149,22 @@ impl<'r> Request<'r> {
     }
 
     /// The headers.
-    pub fn headers(&self) -> &HeaderCollection {
+    pub fn headers(&self) -> &RequestHeaders {
         &self.request.headers
     }
 
     /// Requested path.
     pub fn path(&self) -> Option<String> {
         if self.url.is_some() {
-            return self.url.as_ref().unwrap().serialize_path();
+            match self.url.as_ref().unwrap().serialize_path() {
+                Some(path) => {
+                    return Some(url::percent_encoding::
+                                lossy_utf8_percent_decode(path.container_as_bytes()));
+                },
+                None => {
+                    return None;
+                }
+            }
         } else {
             return None;
         }
@@ -248,7 +258,7 @@ impl<'r> Request<'r> {
 #[derive(Clone)]
 pub struct Response {
     pub status_code: int,
-    pub headers: HeaderCollection,
+    pub headers: ResponseHeaders,
     pub body: String,
 }
 
@@ -257,7 +267,7 @@ impl Response {
     pub fn new(body: String) -> Response {
         let mut response = Response {
             status_code: 200,
-            headers: HeaderCollection::new(),
+            headers: ResponseHeaders::new(),
             body: body,
         };
         response.headers.content_type = Some(MediaType {
@@ -326,12 +336,9 @@ impl Response {
         w.status = get_status_from_code(status_code);
 
         // write headers.
-        w.headers.content_type = Some(MediaType {
-            type_ : String::from_str("text"),
-            subtype: String::from_str("html"),
-            parameters: vec!((String::from_str("charset"), String::from_str("UTF-8")))
-        });
-        w.headers.server = Some(String::from_str("Pencil"));
+        for header in self.headers.iter() {
+            w.headers.insert(header);
+        }
 
         // write data.
         if request_method == String::from_str("HEAD") ||

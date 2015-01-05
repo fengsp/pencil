@@ -5,6 +5,8 @@
 use std::io::File;
 use std::io::fs::PathExtensions;
 
+use url;
+
 use wrappers::{Request, Response};
 use types::{
     PencilValue,
@@ -105,7 +107,7 @@ pub fn redirect(location: &str, code: int) -> PencilResult {
 ", location, location));
     response.status_code = code;
     response.set_content_type("text", "html");
-    response.headers.extensions.insert("Location".to_string(), location.to_string());
+    response.headers.location = Some(url::Url::parse(location).unwrap());
     return Ok(PenResponse(response));
 }
 
