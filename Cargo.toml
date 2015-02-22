@@ -8,10 +8,7 @@ authors = ["Shipeng Feng <fsp261@gmail.com>"]
 name = "pencil"
 path = "src/pencil/lib.rs"
 
-[dependencies.http]
-
-git = "https://github.com/chris-morgan/rust-http.git"
-
 [dependencies]
+hyper = "*"
 regex = "*"
 rustc-serialize = "*"
