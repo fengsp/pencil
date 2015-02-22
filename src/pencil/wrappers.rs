@@ -44,7 +44,7 @@ impl<'r> Request<'r> {
                 match request.headers.host {
                     Some(ref host) => {
                         let full_url = String::from_str("http://") + host.http_value().as_slice() +
-                            "/" + url.as_slice().trim_left_chars('/');
+                            "/" + url.as_slice().trim_left_matches('/');
                         match url::Url::parse(full_url.as_slice()) {
                             Ok(url) => Some(url),
                             Err(_) => None,
@@ -229,7 +229,7 @@ impl<'r> Request<'r> {
         let host_url = self.host_url();
         let full_path = self.full_path();
         if host_url.is_some() && full_path.is_some() {
-            Some(host_url.unwrap() + full_path.unwrap().as_slice().trim_left_chars('/'))
+            Some(host_url.unwrap() + full_path.unwrap().as_slice().trim_left_matches('/'))
         } else {
             None
         }
@@ -240,7 +240,7 @@ impl<'r> Request<'r> {
         let host_url = self.host_url();
         let path = self.path();
         if host_url.is_some() && path.is_some() {
-            Some(host_url.unwrap() + path.unwrap().as_slice().trim_left_chars('/'))
+            Some(host_url.unwrap() + path.unwrap().as_slice().trim_left_matches('/'))
         } else {
             None
         }

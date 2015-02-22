@@ -3,10 +3,10 @@
 // Licensed under the BSD License, see LICENSE for more details.
 
 extern crate pencil;
-extern crate serialize;
+extern crate "rustc-serialize" as serialize;
 
 use std::os;
-use std::collections::TreeMap;
+use std::collections::BTreeMap;
 use serialize::json;
 use serialize::json::ToJson;
 
@@ -34,7 +34,7 @@ fn test_config_basic_set() {
 #[test]
 fn test_config_from_object() {
     let mut app = Pencil::new("/test");
-    let mut object: json::Object = TreeMap::new();
+    let mut object: json::Object = BTreeMap::new();
     object.insert("TEST_KEY".to_string(), "foo".to_string().to_json());
     object.insert("SECRET_KEY".to_string(), "mysecret".to_string().to_json());
     app.config.from_object(object);
