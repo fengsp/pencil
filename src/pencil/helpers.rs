@@ -2,10 +2,13 @@
 // Copyright (c) 2014 by Shipeng Feng.
 // Licensed under the BSD License, see LICENSE for more details.
 
-use std::io::File;
-use std::io::fs::PathExtensions;
+use std::error::Error;
+use std::fs::File;
+use std::io::Read;
+use std::old_io::fs::PathExtensions;
 
 use url;
+use hyper::header::Location;
 
 use wrappers::{Request, Response};
 use types::{
@@ -90,14 +93,14 @@ pub fn safe_join(directory: &str, filename: &str) -> Option<Path> {
 
 
 /// One helper function that can be used to return HTTP Error inside a view function.
-pub fn abort(code: int) -> PencilResult {
+pub fn abort(code: isize) -> PencilResult {
     let error = HTTPError::new(code);
     return Err(PenHTTPError(error));
 }
 
 
 /// Returns a response that redirects the client to the target location.
-pub fn redirect(location: &str, code: int) -> PencilResult {
+pub fn redirect(location: &str, code: isize) -> PencilResult {
     let mut response = Response::new(format!(
 "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\">
 <title>Redirecting...</title>
@@ -106,8 +109,8 @@ pub fn redirect(location: &str, code: int) -> PencilResult {
 <a href=\"{}\">{}</a>.  If not click the link.
 ", location, location));
     response.status_code = code;
-    response.set_content_type("text", "html");
-    response.headers.location = Some(url::Url::parse(location).unwrap());
+    response.set_content_type("text/html");
+    response.headers.set(Location(location.to_string()));
     return Ok(PenResponse(response));
 }
 
@@ -130,21 +133,21 @@ pub fn send_file(filepath: &str, mimetype: &str, as_attachment: bool) -> PencilR
     }
     let mut file = match File::open(&filepath) {
         Ok(file) => file,
-        Err(e) => panic!("couldn't open {}: {}", filepath.display(), e.desc),
+        Err(e) => panic!("couldn't open {}: {}", filepath.display(), e.description()),
     };
-    let mut response = match file.read_to_string() {
-        Ok(data) => {
+    let mut data = String::new();
+    let mut response = match file.read_to_string(&mut data) {
+        Ok(_) => {
             Response::new(data)
         },
-        Err(e) => panic!("couldn't read {}: {}", filepath.display(), e.desc),
+        Err(e) => panic!("couldn't read {}: {}", filepath.display(), e.description()),
     };
-    let types: Vec<&str> = mimetype.split_str("/").collect();
-    response.set_content_type(types[0], types[1]);
+    response.set_content_type(mimetype);
     if as_attachment {
         match filepath.filename_str() {
             Some(filename) => {
-                response.headers.extensions.insert(String::from_str("Content-Disposition"),
-                    format!("attachment; filename={}", filename));
+                let content_disposition = format!("attachment; filename={}", filename);
+                response.headers.set_raw("Content-Disposition", vec![content_disposition.as_bytes().to_vec()]);
             },
             None => {
                 panic!("filename unavailable, required for sending as attachment.");

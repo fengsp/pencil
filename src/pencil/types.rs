@@ -3,6 +3,8 @@
 // Licensed under the BSD License, see LICENSE for more details.
 
 use std::error;
+use std::error::Error;
+use std::fmt;
 
 use wrappers::{Request, Response};
 use errors::HTTPError;
@@ -20,25 +22,25 @@ pub use self::PencilError::{
 #[derive(Clone)]
 pub struct UserError {
     pub desc: &'static str,
-    pub detail: Option<String>,
 }
 
 impl UserError {
-    pub fn new(desc: &'static str, detail: Option<String>) -> UserError {
+    pub fn new(desc: &'static str) -> UserError {
         UserError {
             desc: desc,
-            detail: detail,
         }
+    }
+}
+
+impl fmt::Display for UserError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str(self.desc)
     }
 }
 
 impl error::Error for UserError {
     fn description(&self) -> &str {
         self.desc
-    }
-
-    fn detail(&self) -> Option<String> {
-        self.detail.clone()
     }
 }
 
@@ -62,6 +64,15 @@ impl error::FromError<UserError> for PencilError {
     }
 }
 
+impl fmt::Display for PencilError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            PenHTTPError(ref err) => f.write_str(err.description()),
+            PenUserError(ref err) => f.write_str(err.description()),
+        }
+    }
+}
+
 impl error::Error for PencilError {
 
     fn description(&self) -> &str {
@@ -71,17 +82,10 @@ impl error::Error for PencilError {
         }
     }
 
-    fn detail(&self) -> Option<String> {
-        match *self {
-            PenHTTPError(ref err) => err.detail(),
-            PenUserError(ref err) => err.detail(),
-        }
-    }
-
     fn cause(&self) -> Option<&error::Error> {
         match self {
             &PenHTTPError(ref err) => Some(&*err as &error::Error),
-            &PenUserError(_) => None,
+            &PenUserError(ref err) => None,
         }
     }
 }

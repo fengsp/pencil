@@ -4,7 +4,12 @@
 
 use std::collections::HashMap;
 use std::error::Error;
-use std::io::File;
+use std::fs::File;
+
+use hyper;
+use hyper::server::Request as HTTPRequest;
+use hyper::server::Response as HTTPResponse;
+use hyper::net::Fresh;
 
 use types::{
     PencilValue,
@@ -51,7 +56,7 @@ pub struct Pencil {
     pub before_request_funcs: Vec<BeforeRequestFunc>,
     pub after_request_funcs: Vec<AfterRequestFunc>,
     pub teardown_request_funcs: Vec<TeardownRequestFunc>,
-    pub http_error_handlers: HashMap<int, HTTPErrorHandler>,
+    pub http_error_handlers: HashMap<isize, HTTPErrorHandler>,
     pub user_error_handlers: HashMap<&'static str, UserErrorHandler>,
 }
 
@@ -128,7 +133,7 @@ impl Pencil {
     }
 
     /// Registers a function as one http error handler.
-    fn register_http_error_handler(&mut self, status_code: int, f: HTTPErrorHandler) {
+    fn register_http_error_handler(&mut self, status_code: isize, f: HTTPErrorHandler) {
         self.http_error_handlers.insert(status_code, f);
     }
 
@@ -156,7 +161,7 @@ impl Pencil {
     ///     app.httperrorhandler(404, page_not_found);
     /// }
     /// ```
-    pub fn httperrorhandler(&mut self, status_code: int, f: HTTPErrorHandler) {
+    pub fn httperrorhandler(&mut self, status_code: isize, f: HTTPErrorHandler) {
         self.register_http_error_handler(status_code, f);
     }
 
@@ -168,10 +173,10 @@ impl Pencil {
     /// use pencil::{PencilResult, PenString};
     ///
     ///
-    /// struct MyErr(int);
+    /// struct MyErr(isize);
     ///
     ///
-    /// fn some_operation() -> Result<int, MyErr> {
+    /// fn some_operation() -> Result<isize, MyErr> {
     ///     return Err(MyErr(10));
     /// }
     ///
@@ -204,7 +209,7 @@ impl Pencil {
     ///
     ///
     /// #[derive(Copy)]
-    /// pub struct MyErr(int);
+    /// pub struct MyErr(isize);
     ///
     /// impl FromError<MyErr> for PencilError {
     ///     fn from_error(err: MyErr) -> PencilError {
@@ -351,7 +356,7 @@ impl Pencil {
 
     /// Logs an error.
     fn log_error(&self, e: &PencilError) {
-        println!("{}", e.description());
+        error!("Error: {}", e.description());
     }
 
     /// Dispatches the request and performs request pre and postprocessing
@@ -394,6 +399,15 @@ impl Pencil {
     /// Runs the application on a local development server.
     pub fn run(self) {
         run_server(self);
+    }
+}
+
+impl hyper::server::Handler for Pencil {
+    fn handle<'a>(&'a self, mut req: HTTPRequest<'a>, mut res: HTTPResponse<Fresh>) {
+        let request = Request::new(self, req);
+        let request_method = request.method();
+        let response = self.handle_request(request);
+        response.write(request_method, res);
     }
 }
 

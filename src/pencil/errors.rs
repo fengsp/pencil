@@ -3,6 +3,7 @@
 // Licensed under the BSD License, see LICENSE for more details.
 
 use std::error::Error;
+use std::fmt;
 
 use httputils::get_name_by_http_code;
 
@@ -94,7 +95,7 @@ pub enum HTTPError {
 
 impl HTTPError {
     /// Create a new `HTTPError`.
-    pub fn new(code: int) -> HTTPError {
+    pub fn new(code: isize) -> HTTPError {
         match code {
             400 => BadRequest,
             401 => Unauthorized,
@@ -126,7 +127,7 @@ impl HTTPError {
     }
 
     /// The status code.
-    pub fn code(&self) -> int {
+    pub fn code(&self) -> isize {
         match *self {
             BadRequest => 400,
             Unauthorized => 401,
@@ -164,27 +165,8 @@ impl HTTPError {
         }
     }
 
-    /// Get the HTML body.
-    pub fn get_body(&self) -> String {
-        format!(
-"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\">
-<title>{} {}</title>
-<h1>{}</h1>
-<p>{}</p>
-", self.code().to_string(), self.name(), self.name(), self.description())
-    }
-
-    /// Get a response object.
-    pub fn to_response(&self) -> Response {
-        let mut response = make_response(PenString(self.get_body()));
-        response.status_code = self.code();
-        response.set_content_type("text", "html");
-        return response;
-    }
-}
-
-impl Error for HTTPError {
-    fn description(&self) -> &str {
+    /// Get description.
+    fn get_description(&self) -> &str {
         match *self {
             BadRequest => "The browser (or proxy) sent a request that this server \
                            could not understand.",
@@ -236,5 +218,35 @@ impl Error for HTTPError {
                                    due to maintenance downtime or capacity problems.  Please \
                                    try again later.",
         }
+    }
+
+    /// Get the HTML body.
+    pub fn get_body(&self) -> String {
+        format!(
+"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\">
+<title>{} {}</title>
+<h1>{}</h1>
+<p>{}</p>
+", self.code().to_string(), self.name(), self.name(), self.get_description())
+    }
+
+    /// Get a response object.
+    pub fn to_response(&self) -> Response {
+        let mut response = make_response(PenString(self.get_body()));
+        response.status_code = self.code();
+        response.set_content_type("text/html");
+        return response;
+    }
+}
+
+impl fmt::Display for HTTPError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str(self.get_description())
+    }
+}
+
+impl Error for HTTPError {
+    fn description(&self) -> &str {
+        self.get_description()
     }
 }

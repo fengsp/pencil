@@ -2,32 +2,41 @@
 // Copyright (c) 2014 by Shipeng Feng.
 // Licensed under the BSD License, see LICENSE for more details.
 
-use std::io::net::ip::SocketAddr;
-use std::path::BytesContainer;
+use std::old_io::Reader;
+use std::old_path::BytesContainer;
 
-use http;
-use http::server::request::RequestUri::AbsolutePath;
-use http::server::ResponseWriter;
-use http::headers::request::HeaderCollection as RequestHeaders;
-use http::headers::response::HeaderCollection as ResponseHeaders;
-use http::headers::HeaderConvertible;
-use http::headers::content_type::MediaType;
+use hyper;
+use hyper::uri::RequestUri::AbsolutePath;
+use hyper::header::{Headers, ContentLength, ContentType};
+use hyper::mime::{Mime, TopLevel, SubLevel};
+use hyper::method::Method;
+use hyper::SocketAddr;
 use url;
 use url::form_urlencoded::parse as form_urlencoded_parse;
 
 use app::Pencil;
 use datastructures::MultiDict;
-use httputils::{get_name_by_http_code, get_content_type};
-use serving::get_status_from_code;
+use httputils::{get_name_by_http_code, get_content_type, get_host_value};
+use httputils::get_status_from_code;
 use routing::Rule;
 use types::ViewArgs;
 use errors::{HTTPError, NotFound};
 
 
+macro_rules! try_return(
+    ($e:expr) => {{
+        match $e {
+            Ok(v) => v,
+            Err(e) => { error!("Error: {}", e); return; }
+        }
+    }}
+);
+
+
 /// Request type.
 pub struct Request<'r> {
     pub app: &'r Pencil,
-    pub request: http::server::Request,
+    pub request: hyper::server::request::Request<'r>,
     url: Option<url::Url>,
     pub url_rule: Option<Rule>,
     pub view_args: ViewArgs,
@@ -38,19 +47,20 @@ pub struct Request<'r> {
 
 impl<'r> Request<'r> {
     /// Create a `Request`.
-    pub fn new(app: &Pencil, request: http::server::Request) -> Request {
-        let url = match request.request_uri {
+    pub fn new(app: &'r Pencil, request: hyper::server::request::Request<'r>) -> Request<'r> {
+        let url = match request.uri {
             AbsolutePath(ref url) => {
-                match request.headers.host {
-                    Some(ref host) => {
-                        let full_url = String::from_str("http://") + host.http_value().as_slice() +
+                let host: Option<&hyper::header::Host> = request.headers.get();
+                match host {
+                    Some(host) => {
+                        let full_url = String::from_str("http://") + get_host_value(host).as_slice() +
                             "/" + url.as_slice().trim_left_matches('/');
                         match url::Url::parse(full_url.as_slice()) {
                             Ok(url) => Some(url),
                             Err(_) => None,
                         }
                     },
-                    None => None
+                    None => None,
                 }
             },
             _ => None,
@@ -116,18 +126,23 @@ impl<'r> Request<'r> {
         return self.args.as_ref().unwrap();
     }
 
+    /// Get content type.
+    fn content_type(&self) -> Option<ContentType> {
+        let content_type: Option<&ContentType> = self.request.headers.get();
+        content_type.map(|c| c.clone())
+    }
+
     /// This method is used internally to retrieve submitted data.
     fn load_form_data(&mut self) {
         if self.form.is_some() {
             return
         }
-        let form = match self.request.headers.content_type {
-            Some(ref content_type) => {
-                if content_type.type_ == String::from_str("application") &&
-                    (content_type.subtype == String::from_str("x-www-form-urlencoded") ||
-                     content_type.subtype == String::from_str("x-url-encoded")) {
+        let form = match self.content_type() {
+            Some(ContentType(Mime(toplevel, sublevel, _))) => {
+                if toplevel == TopLevel::Application && sublevel == SubLevel::WwwFormUrlEncoded {
+                    let body = self.request.read_to_end().unwrap();
                     let mut form = MultiDict::new();
-                    for &(ref k, ref v) in form_urlencoded_parse(self.request.body.as_slice()).iter() {
+                    for &(ref k, ref v) in form_urlencoded_parse(body.as_slice()).iter() {
                         form.add(k.as_slice(), v.as_slice());
                     }
                     form
@@ -149,7 +164,7 @@ impl<'r> Request<'r> {
     }
 
     /// The headers.
-    pub fn headers(&self) -> &RequestHeaders {
+    pub fn headers(&self) -> &Headers {
         &self.request.headers
     }
 
@@ -183,10 +198,8 @@ impl<'r> Request<'r> {
 
     /// The host including the port if available.
     pub fn host(&self) -> Option<String> {
-        match self.request.headers.host {
-            Some(ref host) => Some(host.http_value()),
-            None => None,
-        }
+        let host: Option<&hyper::header::Host> = self.request.headers.get();
+        host.map(|host| get_host_value(host))
     }
 
     /// The URL parameters as raw String.
@@ -200,11 +213,22 @@ impl<'r> Request<'r> {
 
     /// The requested method.
     pub fn method(&self) -> String {
-        self.request.method.http_value()
+        match self.request.method {
+            Method::Options => "OPTIONS".to_string(),
+            Method::Get => "GET".to_string(),
+            Method::Post => "POST".to_string(),
+            Method::Put => "PUT".to_string(),
+            Method::Delete => "DELETE".to_string(),
+            Method::Head => "HEAD".to_string(),
+            Method::Trace => "TRACE".to_string(),
+            Method::Connect => "CONNECT".to_string(),
+            Method::Patch => "PATCH".to_string(),
+            Method::Extension(ref method) => method.clone(),
+        }
     }
 
     /// The remote address of the client.
-    pub fn remote_addr(&self) -> Option<SocketAddr> {
+    pub fn remote_addr(&self) -> SocketAddr {
         self.request.remote_addr.clone()
     }
 
@@ -257,8 +281,8 @@ impl<'r> Request<'r> {
 /// (headers, body, status code etc).
 #[derive(Clone)]
 pub struct Response {
-    pub status_code: int,
-    pub headers: ResponseHeaders,
+    pub status_code: isize,
+    pub headers: Headers,
     pub body: String,
 }
 
@@ -267,15 +291,14 @@ impl Response {
     pub fn new(body: String) -> Response {
         let mut response = Response {
             status_code: 200,
-            headers: ResponseHeaders::new(),
+            headers: Headers::new(),
             body: body,
         };
-        response.headers.content_type = Some(MediaType {
-            type_ : String::from_str("text"),
-            subtype: String::from_str("html"),
-            parameters: vec!((String::from_str("charset"), String::from_str("UTF-8")))
-        });
-        response.headers.content_length = Some(response.body.len());
+        let mime: Mime = "text/html; charset=UTF-8".parse().unwrap();
+        let content_type = ContentType(mime);
+        let content_length = ContentLength(response.body.len() as u64);
+        response.headers.set(content_type);
+        response.headers.set(content_length);
         return response;
     }
 
@@ -296,23 +319,31 @@ impl Response {
     }
 
     /// Returns the response content type if available.
-    pub fn content_type(&self) -> Option<MediaType> {
-        self.headers.content_type.clone()
+    pub fn content_type(&self) -> Option<&ContentType> {
+        self.headers.get()
     }
 
     /// Set response content type.
-    pub fn set_content_type(&mut self, type_: &str, subtype: &str) {
-        self.headers.content_type = Some(get_content_type(type_, subtype, "utf-8"));
+    pub fn set_content_type(&mut self, mimetype: &str) {
+        let mimetype = get_content_type(mimetype, "UTF-8");
+        let mime: Mime = mimetype.as_slice().parse().unwrap();
+        let content_type = ContentType(mime);
+        self.headers.set(content_type);
     }
 
     /// Returns the response content length if available.
-    pub fn content_length(&self) -> Option<uint> {
-        self.headers.content_length.clone()
+    pub fn content_length(&self) -> Option<usize> {
+        let content_length: Option<&ContentLength> = self.headers.get();
+        match content_length {
+            Some(&ContentLength(length)) => Some(length as usize),
+            None => None,
+        }
     }
 
     /// Set content length.
-    pub fn set_content_length(&mut self, value: uint) {
-        self.headers.content_length = Some(value);
+    pub fn set_content_length(&mut self, value: usize) {
+        let content_length = ContentLength(value as u64);
+        self.headers.set(content_length);
     }
 
     /// Sets a cookie(TODO).
@@ -330,23 +361,24 @@ impl Response {
     }
 
     /// Write the response out.  Mostly you shouldn't use this directly.
-    pub fn write(&self, request_method: String, w: &mut ResponseWriter) {
+    pub fn write(self, request_method: String, mut res: hyper::server::Response) {
         // write status.
         let status_code = self.status_code;
-        w.status = get_status_from_code(status_code);
+        *res.status_mut() = get_status_from_code(status_code);
 
         // write headers.
-        for header in self.headers.iter() {
-            w.headers.insert(header);
-        }
+        *res.headers_mut() = self.headers;
 
         // write data.
         if request_method == String::from_str("HEAD") ||
            (100 <= status_code && status_code < 200) ||
            status_code == 204 || status_code == 304 {
-            w.write(b"").unwrap();
+            res.headers_mut().set(ContentLength(0));
+            try_return!(res.start().and_then(|w| w.end()));
         } else {
-            w.write(self.body.as_bytes()).unwrap();
+            let mut res = try_return!(res.start());
+            try_return!(res.write_all(self.body.as_bytes()));
+            try_return!(res.end());
         }
     }
 }

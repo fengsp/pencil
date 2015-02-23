@@ -43,22 +43,20 @@
 #![allow(unused_attributes)]
 #![crate_name = "pencil"]
 #![crate_type = "lib"]
-#![license = "BSD"]
-#![comment = "A microframework for Rust."]
 #![doc(html_logo_url = "https://raw.githubusercontent.com/fengsp/pencil/master/logo/pencil.png",
        html_favicon_url = "https://raw.githubusercontent.com/fengsp/pencil/master/logo/favicon.ico",
        html_root_url = "http://fengsp.github.io/pencil/")]
-
-#![experimental]
 
 #![deny(non_camel_case_types)]
 
 #![feature(macro_rules)]
 
+#[macro_use] extern crate log;
 extern crate core;
+
+extern crate hyper;
 extern crate "rustc-serialize" as serialize;
 extern crate regex;
-extern crate http;
 extern crate url;
 
 /* public api */
@@ -81,7 +79,6 @@ pub use types::{
     TeardownRequestFunc,
 };
 pub use datastructures::{
-    Headers,
     MultiDict,
 };
 pub use wrappers::{

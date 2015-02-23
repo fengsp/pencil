@@ -3,7 +3,8 @@
 // Licensed under the BSD License, see LICENSE for more details.
 
 use std::os;
-use std::io::File;
+use std::io::Read;
+use std::fs::File;
 use std::collections::BTreeMap;
 use serialize::json::{Object, Json};
 
@@ -66,7 +67,8 @@ impl Config {
     pub fn from_jsonfile(&mut self, filepath: &str) {
         let path = Path::new(filepath);
         let mut file = File::open(&path).unwrap();
-        let content = file.read_to_string().unwrap();
+        let mut content = String::new();
+        file.read_to_string(&mut content).unwrap();
         let object: Json = Json::from_str(content.as_slice()).unwrap();
         match object {
             Json::Object(object) => { self.from_object(object); },

@@ -3,11 +3,14 @@
 // Copyright (c) 2014 by Shipeng Feng.
 // Licensed under the BSD License, see LICENSE for more details.
 
-use http::headers::content_type::MediaType;
+use core::num::FromPrimitive;
+
+use hyper::header::Host;
+use hyper::status::StatusCode;
 
 
 /// Get HTTP status name by status code.
-pub fn get_name_by_http_code(code: int) -> Option<&'static str> {
+pub fn get_name_by_http_code(code: isize) -> Option<&'static str> {
     match code {
         100 => Some("Continue"),
         101 => Some("Switching Protocols"),
@@ -69,15 +72,31 @@ pub fn get_name_by_http_code(code: int) -> Option<&'static str> {
 
 
 /// Return the full content type with charset for a mimetype.
-pub fn get_content_type(type_: &str, subtype: &str, charset: &str) -> MediaType {
-    let mut content_type = MediaType {
-        type_ : String::from_str(type_),
-        subtype: String::from_str(subtype),
-        parameters: vec!()
-    };
-    if type_ == "text" || (type_ == "application" && subtype == "xml") ||
-       (type_ == "application" && subtype.ends_with("+xml")) {
-        content_type.parameters = vec!((String::from_str("charset"), charset.to_string()));
+pub fn get_content_type(mimetype: &str, charset: &str) -> String {
+    if mimetype.starts_with("text/") | (mimetype == "application/xml") |
+       (mimetype.starts_with("application/") & mimetype.ends_with("+xml")) {
+        if !mimetype.contains("charset") {
+            let mut content_type = mimetype.to_string();
+            content_type = content_type + "; charset=" + charset;
+            return content_type;
+        }
     }
-    return content_type;
+    return mimetype.to_string();
+}
+
+
+/// Return the http value of host.
+pub fn get_host_value(host: &Host) -> String {
+    match host.port {
+        None | Some(80) | Some(443) => format!("{}", host.hostname),
+        Some(port) => format!("{}:{}", host.hostname, port),
+    }
+}
+
+
+pub fn get_status_from_code(code: isize) -> StatusCode {
+    match FromPrimitive::from_u64(code as u64) {
+            Some(status) => { status },
+            None => { StatusCode::Unregistered(code as u16) },
+    }
 }
