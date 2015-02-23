@@ -2,7 +2,6 @@
 // Copyright (c) 2014 by Shipeng Feng.
 // Licensed under the BSD License, see LICENSE for more details.
 
-use std::error::Error;
 use serialize::json;
 use serialize::Encodable;
 
@@ -19,7 +18,7 @@ pub fn jsonify<T: Encodable>(object: &T) -> PencilResult {
             response.set_content_type("application/json");
             return Ok(PenResponse(response));
         },
-        Err(e) => {
+        Err(_) => {
             let error = UserError::new("Json encoder error!");
             return Err(PenUserError(error));
         },

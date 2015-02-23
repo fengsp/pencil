@@ -40,6 +40,8 @@
 //! }
 //! ```
 
+#![feature(core, io, collections, old_io, fs, old_path, env)]
+
 #![allow(unused_attributes)]
 #![crate_name = "pencil"]
 #![crate_type = "lib"]
@@ -49,11 +51,9 @@
 
 #![deny(non_camel_case_types)]
 
-#![feature(macro_rules)]
-
-#[macro_use] extern crate log;
+#[macro_use]
+extern crate log;
 extern crate core;
-
 extern crate hyper;
 extern crate "rustc-serialize" as serialize;
 extern crate regex;

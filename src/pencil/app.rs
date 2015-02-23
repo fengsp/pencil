@@ -403,7 +403,7 @@ impl Pencil {
 }
 
 impl hyper::server::Handler for Pencil {
-    fn handle<'a>(&'a self, mut req: HTTPRequest<'a>, mut res: HTTPResponse<Fresh>) {
+    fn handle<'a>(&'a self, req: HTTPRequest<'a>, res: HTTPResponse<Fresh>) {
         let request = Request::new(self, req);
         let request_method = request.method();
         let response = self.handle_request(request);

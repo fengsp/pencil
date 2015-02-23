@@ -7,7 +7,6 @@ use std::fs::File;
 use std::io::Read;
 use std::old_io::fs::PathExtensions;
 
-use url;
 use hyper::header::Location;
 
 use wrappers::{Request, Response};

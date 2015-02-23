@@ -2,7 +2,7 @@
 // Copyright (c) 2014 by Shipeng Feng.
 // Licensed under the BSD License, see LICENSE for more details.
 
-use std::os;
+use std::env;
 use serialize::json::Json;
 
 use app::Pencil;
@@ -15,7 +15,7 @@ pub fn set_log_level(app: &Pencil) {
             match value {
                 &Json::Boolean(value) => {
                     if value {
-                        os::setenv("RUST_LOG", "debug");
+                        env::set_var("RUST_LOG", "debug");
                     }
                 },
                 _ => ()

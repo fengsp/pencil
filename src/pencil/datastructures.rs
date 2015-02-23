@@ -3,7 +3,6 @@
 // Licensed under the BSD License, see LICENSE for more details.
 
 use std::iter;
-use std::ascii::AsciiExt;
 use std::collections::HashMap;
 use std::collections::hash_map;
 

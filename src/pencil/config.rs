@@ -2,7 +2,7 @@
 // Copyright (c) 2014 by Shipeng Feng.
 // Licensed under the BSD License, see LICENSE for more details.
 
-use std::os;
+use std::env;
 use std::io::Read;
 use std::fs::File;
 use std::collections::BTreeMap;
@@ -57,9 +57,9 @@ impl Config {
     /// Loads a configuration from an environment variable pointing to
     /// a JSON configuration file.
     pub fn from_envvar(&mut self, variable_name: &str) {
-        match os::getenv(variable_name) {
-            Some(value) => self.from_jsonfile(value.as_slice()),
-            None => panic!("The environment variable {} is not set.", variable_name),
+        match env::var(variable_name) {
+            Ok(value) => self.from_jsonfile(value.as_slice()),
+            Err(_) => panic!("The environment variable {} is not set.", variable_name),
         }
     }
 
