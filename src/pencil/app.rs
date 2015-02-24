@@ -213,7 +213,7 @@ impl Pencil {
     ///
     /// impl FromError<MyErr> for PencilError {
     ///     fn from_error(err: MyErr) -> PencilError {
-    ///         let user_error = UserError::new("MyErr", None);
+    ///         let user_error = UserError::new("MyErr");
     ///         return PenUserError(user_error);
     ///     }
     /// }

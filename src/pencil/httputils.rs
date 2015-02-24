@@ -94,6 +94,7 @@ pub fn get_host_value(host: &Host) -> String {
 }
 
 
+/// Return the status code used by hyper response.
 pub fn get_status_from_code(code: isize) -> StatusCode {
     match FromPrimitive::from_u64(code as u64) {
             Some(status) => { status },
