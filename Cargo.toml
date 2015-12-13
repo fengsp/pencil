@@ -11,8 +11,8 @@ documentation = "http://fengsp.github.io/pencil/"
 description = "A microframework for Rust."
 
 [dependencies]
-hyper = "*"
-regex = "*"
-rustc-serialize = "*"
-url = "*"
-log = "*"
+hyper = "0.7.0"
+regex = "0.1.43"
+rustc-serialize = "0.3.16"
+url = "0.5.0"
+log = "0.3.4"
