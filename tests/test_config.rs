@@ -3,9 +3,9 @@
 // Licensed under the BSD License, see LICENSE for more details.
 
 extern crate pencil;
-extern crate "rustc-serialize" as serialize;
+extern crate rustc_serialize as serialize;
 
-use std::os;
+use std::env;
 use std::collections::BTreeMap;
 use serialize::json;
 use serialize::json::ToJson;
@@ -53,24 +53,8 @@ fn test_config_from_file() {
 #[test]
 fn test_config_from_envvar() {
     let mut app = Pencil::new("/test");
-    os::setenv("PENCIL_TEST_APP_SETTINGS", "./tests/test_config.json");
+    env::set_var("PENCIL_TEST_APP_SETTINGS", "./tests/test_config.json");
     app.config.from_envvar("PENCIL_TEST_APP_SETTINGS");
     config_test(app);
-    os::unsetenv("PENCIL_TEST_APP_SETTINGS");
-}
-
-
-#[test]
-#[should_fail]
-fn test_config_from_envvar_missing() {
-    let mut app = Pencil::new("/test");
-    app.config.from_envvar("MISSING_PENCIL_TEST_APP_SETTINGS");
-}
-
-
-#[test]
-#[should_fail]
-fn test_config_from_file_missing() {
-    let mut app = Pencil::new("/test");
-    app.config.from_jsonfile("./tests/missing_test_config.cfg");
+    env::remove_var("PENCIL_TEST_APP_SETTINGS");
 }

@@ -4,8 +4,11 @@
 
 extern crate pencil;
 extern crate url;
+extern crate hyper;
 
-use std::path::BytesContainer;
+use std::path::PathBuf;
+
+use hyper::header::Location;
 
 use pencil::{PenHTTPError, PenUserError};
 use pencil::{PenString, PenResponse};
@@ -33,10 +36,10 @@ fn test_redirect() {
         PenResponse(response) => Some(response),
     };
     let response = response.unwrap();
-    assert!(response.body.as_slice().contains("/füübär"));
-    let location_url = response.headers.location.as_ref().clone().unwrap();
-    let location = url::percent_encoding::lossy_utf8_percent_decode(location_url.serialize().container_as_bytes());
-    assert!(location.as_slice().contains("/füübär"));
+    assert!(response.body.contains("/füübär"));
+    let location: Option<&Location> = response.headers.get();
+    let location_str = url::percent_encoding::lossy_utf8_percent_decode(location.unwrap().as_bytes());
+    assert!(location_str.contains("/füübär"));
     assert!(response.status_code == 302);
 
     let result = redirect("http://example.com/", 301);
@@ -46,8 +49,8 @@ fn test_redirect() {
         PenResponse(response) => Some(response),
     };
     let response = response.unwrap();
-    let location = response.headers.location.as_ref().clone().unwrap();
-    assert!(location.serialize().as_slice() == "http://example.com/");
+    let location: Option<&Location> = response.headers.get();
+    assert!(*location.unwrap() == Location("http://example.com/".to_owned()));
     assert!(response.status_code == 301);
 }
 
@@ -55,14 +58,14 @@ fn test_redirect() {
 #[test]
 fn test_safe_join() {
     let path = safe_join("foo", "bar/baz").unwrap();
-    assert!(path == Path::new("foo/bar/baz"));
+    assert!(path == PathBuf::from("foo/bar/baz"));
     assert!(safe_join("foo", "../bar/baz").is_none());
 }
 
 
 #[test]
 fn test_escape() {
-    assert!(escape(String::from_str("42")) == "42");
-    assert!(escape(String::from_str("<>")) == "&lt;&gt;");
-    assert!(escape(String::from_str("\"foo\"")) == "&quot;foo&quot;");
+    assert!(escape(String::from("42")) == "42");
+    assert!(escape(String::from("<>")) == "&lt;&gt;");
+    assert!(escape(String::from("\"foo\"")) == "&quot;foo&quot;");
 }

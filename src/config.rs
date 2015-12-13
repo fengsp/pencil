@@ -5,6 +5,7 @@
 use std::env;
 use std::io::Read;
 use std::fs::File;
+use std::path::Path;
 use std::collections::BTreeMap;
 use serialize::json::{Object, Json};
 
@@ -58,7 +59,7 @@ impl Config {
     /// a JSON configuration file.
     pub fn from_envvar(&mut self, variable_name: &str) {
         match env::var(variable_name) {
-            Ok(value) => self.from_jsonfile(value.as_slice()),
+            Ok(value) => self.from_jsonfile(&value),
             Err(_) => panic!("The environment variable {} is not set.", variable_name),
         }
     }
@@ -69,7 +70,7 @@ impl Config {
         let mut file = File::open(&path).unwrap();
         let mut content = String::new();
         file.read_to_string(&mut content).unwrap();
-        let object: Json = Json::from_str(content.as_slice()).unwrap();
+        let object: Json = Json::from_str(&content).unwrap();
         match object {
             Json::Object(object) => { self.from_object(object); },
             _ => { panic!("The configuration file is not an JSON object."); }
@@ -79,7 +80,7 @@ impl Config {
     /// Updates the values from the given `Object`.
     pub fn from_object(&mut self, object: Object) {
         for (key, value) in object.iter() {
-            self.set(key.as_slice(), value.clone());
+            self.set(&key, value.clone());
         }
     }
 }

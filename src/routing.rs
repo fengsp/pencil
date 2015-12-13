@@ -29,20 +29,20 @@ impl Rule {
         if !string.starts_with("/") {
             panic!("urls must start with a leading slash");
         }
-        let full_string = String::from_str(r"^") + string + r"$";
+        let full_string = String::from(r"^") + string + r"$";
 
         let mut upper_methods: HashSet<String> = HashSet::new();
         for &method in methods.iter() {
             let upper_method = method.to_string().to_ascii_uppercase();
             upper_methods.insert(upper_method);
         }
-        if upper_methods.contains(&String::from_str("GET")) {
-            upper_methods.insert(String::from_str("HEAD"));
+        if upper_methods.contains(&String::from("GET")) {
+            upper_methods.insert(String::from("HEAD"));
         }
         Rule {
             endpoint: endpoint.to_string(),
             methods: upper_methods,
-            regex: Rule::compile(full_string.as_slice()),
+            regex: Rule::compile(&full_string),
             rule: full_string,
         }
     }
@@ -54,13 +54,13 @@ impl Rule {
 
     /// Check if the rule matches a given path.
     pub fn captures(&self, path: String) -> Option<ViewArgs> {
-        match self.regex.captures(path.as_slice()) {
+        match self.regex.captures(&path) {
             Some(caps) => {
                 let mut view_args: Vec<String> = vec![];
                 let mut iter = caps.iter();
                 iter.next();
                 for c in iter {
-                    view_args.push(c.to_string());
+                    view_args.push(c.unwrap().to_string());
                 }
                 Some(view_args)
             },
@@ -136,13 +136,13 @@ fn test_basic_routing() {
     map.add(Rule::new(r"/", &["GET"], "index"));
     map.add(Rule::new(r"/foo", &["GET"], "foo"));
     map.add(Rule::new(r"/bar/", &["GET"], "bar"));
-    let adapter = map.bind(String::from_str("/bar/"), String::from_str("GET"));
+    let adapter = map.bind(String::from("/bar/"), String::from("GET"));
     match adapter.captures() {
         Ok((rule, view_args)) => {
-            assert!(rule.rule.as_slice() == r"^/bar/$");
+            assert!(&rule.rule == r"^/bar/$");
             assert!(rule.methods.contains("GET"));
             assert!(!rule.methods.contains("POST"));
-            assert!(rule.endpoint == String::from_str("bar"));
+            assert!(rule.endpoint == String::from("bar"));
             assert!(view_args.len() == 0);
         },
         _ => { panic!("Basic routing failed!"); }

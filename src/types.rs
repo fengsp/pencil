@@ -3,6 +3,7 @@
 // Licensed under the BSD License, see LICENSE for more details.
 
 use std::error;
+use std::convert;
 use std::error::Error;
 use std::fmt;
 
@@ -19,7 +20,7 @@ pub use self::PencilError::{
 
 
 /// The Pencil User Error type.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct UserError {
     pub desc: &'static str,
 }
@@ -46,20 +47,20 @@ impl error::Error for UserError {
 
 
 /// The Pencil Error type.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum PencilError {
     PenHTTPError(HTTPError),
     PenUserError(UserError),
 }
 
-impl error::FromError<HTTPError> for PencilError {
-    fn from_error(err: HTTPError) -> PencilError {
+impl convert::From<HTTPError> for PencilError {
+    fn from(err: HTTPError) -> PencilError {
         PenHTTPError(err)
     }
 }
 
-impl error::FromError<UserError> for PencilError {
-    fn from_error(err: UserError) -> PencilError {
+impl convert::From<UserError> for PencilError {
+    fn from(err: UserError) -> PencilError {
         PenUserError(err)
     }
 }
@@ -108,12 +109,6 @@ pub type ViewArgs = Vec<String>;
 /// View function type.
 pub type ViewFunc = fn(Request) -> PencilResult;
 
-impl Clone for ViewFunc {
-    fn clone(&self) -> ViewFunc {
-        *self
-    }
-}
-
 
 /// HTTP Error handler type.
 pub type HTTPErrorHandler = fn(HTTPError) -> PencilResult;
@@ -124,28 +119,10 @@ pub type UserErrorHandler = fn(UserError) -> PencilResult;
 /// Before request func type.
 pub type BeforeRequestFunc = fn(&Request) -> Option<PencilResult>;
 
-impl Clone for BeforeRequestFunc {
-    fn clone(&self) -> BeforeRequestFunc {
-        *self
-    }
-}
-
 
 /// After request func type.
 pub type AfterRequestFunc = fn(&mut Response);
 
-impl Clone for AfterRequestFunc {
-    fn clone(&self) -> AfterRequestFunc {
-        *self
-    }
-}
-
 
 /// Teardown request func type.
 pub type TeardownRequestFunc = fn(Option<&PencilError>);
-
-impl Clone for TeardownRequestFunc {
-    fn clone(&self) -> TeardownRequestFunc {
-        *self
-    }
-}

@@ -29,7 +29,7 @@
 //!
 //!
 //! fn hello(_: Request) -> PencilResult {
-//!     Ok(PenString(String::from_str("Hello World!")))
+//!     Ok(PenString(String::from("Hello World!")))
 //! }
 //!
 //!
@@ -39,8 +39,6 @@
 //!     app.run();
 //! }
 //! ```
-
-#![feature(core, io, collections, old_io, fs, old_path, env)]
 
 #![allow(unused_attributes)]
 #![crate_name = "pencil"]
@@ -53,9 +51,8 @@
 
 #[macro_use]
 extern crate log;
-extern crate core;
 extern crate hyper;
-extern crate "rustc-serialize" as serialize;
+extern crate rustc_serialize as serialize;
 extern crate regex;
 extern crate url;
 

@@ -2,15 +2,14 @@
 // Copyright (c) 2014 by Shipeng Feng.
 // Licensed under the BSD License, see LICENSE for more details.
 
-use std::old_io::Reader;
-use std::old_path::BytesContainer;
+use std::net::SocketAddr;
+use std::io::{Read, Write};
 
 use hyper;
 use hyper::uri::RequestUri::AbsolutePath;
 use hyper::header::{Headers, ContentLength, ContentType};
 use hyper::mime::{Mime, TopLevel, SubLevel};
 use hyper::method::Method;
-use hyper::SocketAddr;
 use url;
 use url::form_urlencoded::parse as form_urlencoded_parse;
 
@@ -34,9 +33,9 @@ macro_rules! try_return(
 
 
 /// Request type.
-pub struct Request<'r> {
+pub struct Request<'r, 'a, 'b: 'a> {
     pub app: &'r Pencil,
-    pub request: hyper::server::request::Request<'r>,
+    pub request: hyper::server::request::Request<'a, 'b>,
     url: Option<url::Url>,
     pub url_rule: Option<Rule>,
     pub view_args: ViewArgs,
@@ -45,17 +44,17 @@ pub struct Request<'r> {
     form: Option<MultiDict>,
 }
 
-impl<'r> Request<'r> {
+impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
     /// Create a `Request`.
-    pub fn new(app: &'r Pencil, request: hyper::server::request::Request<'r>) -> Request<'r> {
+    pub fn new(app: &'r Pencil, request: hyper::server::request::Request<'a, 'b>) -> Request<'r, 'a, 'b> {
         let url = match request.uri {
             AbsolutePath(ref url) => {
                 let host: Option<&hyper::header::Host> = request.headers.get();
                 match host {
                     Some(host) => {
-                        let full_url = String::from_str("http://") + get_host_value(host).as_slice() +
-                            "/" + url.as_slice().trim_left_matches('/');
-                        match url::Url::parse(full_url.as_slice()) {
+                        let full_url = String::from("http://") + &get_host_value(host) +
+                            "/" + &url.trim_left_matches('/');
+                        match url::Url::parse(&full_url) {
                             Ok(url) => Some(url),
                             Err(_) => None,
                         }
@@ -115,7 +114,7 @@ impl<'r> Request<'r> {
                 match self.url.as_ref().unwrap().query_pairs() {
                     Some(pairs) => {
                         for &(ref k, ref v) in pairs.iter() {
-                            args.add(k.as_slice(), v.as_slice());
+                            args.add(&k, &v);
                         }
                     },
                     None => (),
@@ -140,10 +139,11 @@ impl<'r> Request<'r> {
         let form = match self.content_type() {
             Some(ContentType(Mime(toplevel, sublevel, _))) => {
                 if toplevel == TopLevel::Application && sublevel == SubLevel::WwwFormUrlEncoded {
-                    let body = self.request.read_to_end().unwrap();
+                    let mut body: Vec<u8> = Vec::new();
+                    self.request.read_to_end(&mut body).unwrap();
                     let mut form = MultiDict::new();
-                    for &(ref k, ref v) in form_urlencoded_parse(body.as_slice()).iter() {
-                        form.add(k.as_slice(), v.as_slice());
+                    for &(ref k, ref v) in form_urlencoded_parse(&body).iter() {
+                        form.add(&k, &v);
                     }
                     form
                 } else {
@@ -174,7 +174,7 @@ impl<'r> Request<'r> {
             match self.url.as_ref().unwrap().serialize_path() {
                 Some(path) => {
                     return Some(url::percent_encoding::
-                                lossy_utf8_percent_decode(path.container_as_bytes()));
+                                lossy_utf8_percent_decode(path.as_bytes()));
                 },
                 None => {
                     return None;
@@ -190,7 +190,7 @@ impl<'r> Request<'r> {
         let path = self.path();
         let query_string = self.query_string();
         if path.is_some() && query_string.is_some() {
-            return Some(path.unwrap() + "?" + query_string.unwrap().as_slice());
+            return Some(path.unwrap() + "?" + &query_string.unwrap());
         } else  {
             return path;
         }
@@ -235,14 +235,14 @@ impl<'r> Request<'r> {
     /// URL scheme (http or https), currently I do not know how to get
     /// this, the result will always be http.
     pub fn scheme(&self) -> String {
-        String::from_str("http")
+        String::from("http")
     }
 
     /// Just the host with scheme.
     pub fn host_url(&self) -> Option<String> {
         match self.host() {
             Some(host) => {
-                Some(self.scheme() + "://" + host.as_slice() + "/")
+                Some(self.scheme() + "://" + &host + "/")
             },
             None => None,
         }
@@ -253,7 +253,7 @@ impl<'r> Request<'r> {
         let host_url = self.host_url();
         let full_path = self.full_path();
         if host_url.is_some() && full_path.is_some() {
-            Some(host_url.unwrap() + full_path.unwrap().as_slice().trim_left_matches('/'))
+            Some(host_url.unwrap() + &(full_path.unwrap()).trim_left_matches('/'))
         } else {
             None
         }
@@ -264,7 +264,7 @@ impl<'r> Request<'r> {
         let host_url = self.host_url();
         let path = self.path();
         if host_url.is_some() && path.is_some() {
-            Some(host_url.unwrap() + path.unwrap().as_slice().trim_left_matches('/'))
+            Some(host_url.unwrap() + &path.unwrap().trim_left_matches('/'))
         } else {
             None
         }
@@ -326,7 +326,7 @@ impl Response {
     /// Set response content type.
     pub fn set_content_type(&mut self, mimetype: &str) {
         let mimetype = get_content_type(mimetype, "UTF-8");
-        let mime: Mime = mimetype.as_slice().parse().unwrap();
+        let mime: Mime = (&mimetype).parse().unwrap();
         let content_type = ContentType(mime);
         self.headers.set(content_type);
     }
@@ -370,7 +370,7 @@ impl Response {
         *res.headers_mut() = self.headers;
 
         // write data.
-        if request_method == String::from_str("HEAD") ||
+        if request_method == String::from("HEAD") ||
            (100 <= status_code && status_code < 200) ||
            status_code == 204 || status_code == 304 {
             res.headers_mut().set(ContentLength(0));

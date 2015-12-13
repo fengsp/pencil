@@ -3,10 +3,10 @@
 // Licensed under the BSD License, see LICENSE for more details.
 
 extern crate pencil;
-extern crate http;
+extern crate hyper;
 
-use http::headers::HeaderConvertible;
 use pencil::NotFound;
+use hyper::header::ContentType;
 
 
 #[test]
@@ -26,7 +26,7 @@ fn test_http_error_name() {
 #[test]
 fn test_http_error_get_body() {
     let error = NotFound;
-    assert!(error.get_body() == String::from_str(
+    assert!(error.get_body() == String::from(
 "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\">
 <title>404 Not Found</title>
 <h1>Not Found</h1>
@@ -41,6 +41,6 @@ fn test_http_error_to_response() {
     let error = NotFound;
     let response = error.to_response();
     assert!(response.status_code == 404);
-    assert!(response.content_type().unwrap().http_value() ==
-            String::from_str("text/html;charset=utf-8"));
+    assert!(*response.content_type().unwrap() ==
+            ContentType::html());
 }

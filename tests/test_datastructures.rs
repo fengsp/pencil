@@ -4,62 +4,30 @@
 
 extern crate pencil;
 
-use pencil::Headers;
+use pencil::MultiDict;
 
 
 #[test]
-fn test_headers_basic_interface() {
-    let mut headers = Headers::new(None);
-    headers.add("Content-Type", "text/plain");
-    headers.add("X-Foo", "bar");
-    assert!(headers.get("X-foo") != None);
-    assert!(headers.get("Content-type") != None);
+fn test_multi_dict_basic_interface() {
+    let mut multi_dict = MultiDict::new();
+    multi_dict.add("Content-Type", "text/plain");
+    multi_dict.add("X-Foo", "bar");
+    assert!(multi_dict.get("X-Foo") != None);
+    assert!(multi_dict.get("Content-Type") != None);
 
-    headers.set("Content-Type", "foo/bar");
-    assert!(headers.get("Content-Type").unwrap().as_slice() == "foo/bar");
-    assert!(headers.get_all("Content-Type").len() == 1);
+    multi_dict.set("Content-Type", "foo/bar");
+    assert!(multi_dict.get("Content-Type").unwrap() == "foo/bar");
 
-    headers.add("X-Foo", "bar2");
-    let mut values = vec![];
-    for &value in headers.get_all("X-Foo").iter() {
-        values.push(value.as_slice());
-    }
-    assert!(values == vec!["bar", "bar2"]);
+    multi_dict.add("X-Foo", "bar2");
 
     let mut all_keys = vec![];
-    let expected_keys = vec!["Content-Type", "X-Foo", "X-Foo"];
-    for key in headers.keys() {
-        all_keys.push(key.as_slice());
+    for key in multi_dict.keys() {
+        all_keys.push(key);
     }
-    assert!(all_keys == expected_keys);
+    assert!(all_keys.len() == 2);
     let mut all_values = vec![];
-    let expected_values = vec!["foo/bar", "bar", "bar2"];
-    for value in headers.values() {
-        all_values.push(value.as_slice());
+    for value in multi_dict.values() {
+        all_values.push(value);
     }
-    assert!(all_values == expected_values);
-
-    all_keys.clear();
-    all_values.clear();
-    for (key, value) in headers.iter() {
-        all_keys.push(key.as_slice());
-        all_values.push(value.as_slice());
-    }
-    assert!(all_keys == expected_keys);
-    assert!(all_values == expected_values);
-}
-
-
-#[test]
-fn test_headers_delete_interface() {
-    let mut headers = Headers::new(None);
-    headers.add("Content-Type", "text/plain");
-    headers.add("X-Foo", "bar");
-
-    headers.remove("X-Foo");
-    assert!(headers.len() == 1);
-    assert!(headers.get_all("Content-Type").len() == 1);
- 
-    headers.clear();
-    assert!(headers.len() == 0);
+    assert!(all_values.len() == 2);
 }

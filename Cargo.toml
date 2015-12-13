@@ -1,12 +1,14 @@
 [package]
-
 name = "pencil"
 version = "0.0.1"
 authors = ["Shipeng Feng <fsp261@gmail.com>"]
-
-[lib]
-name = "pencil"
-path = "src/pencil/lib.rs"
+keywords = ["web", "framework"]
+license = "BSD-3-Clause"
+readme = "README.md"
+repository = "https://github.com/fengsp/pencil"
+homepage = "https://github.com/fengsp/pencil"
+documentation = "http://fengsp.github.io/pencil/"
+description = "A microframework for Rust."
 
 [dependencies]
 hyper = "*"

@@ -5,11 +5,11 @@
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
+use std::path::PathBuf;
 
 use hyper;
 use hyper::server::Request as HTTPRequest;
 use hyper::server::Response as HTTPResponse;
-use hyper::net::Fresh;
 
 use types::{
     PencilValue,
@@ -44,7 +44,6 @@ use errors::{HTTPError, NotFound, InternalServerError};
 
 /// The pencil type.  It acts as the central application object.  Once it is created it
 /// will act as a central registry for the view functions, the URL rules and much more.
-#[derive(Clone)]
 pub struct Pencil {
     pub root_path: String,
     pub static_folder: String,
@@ -77,8 +76,8 @@ impl Pencil {
     pub fn new(root_path: &str) -> Pencil {
         Pencil {
             root_path: root_path.to_string(),
-            static_folder: String::from_str("static"),
-            static_url_path: String::from_str("/static"),
+            static_folder: String::from("static"),
+            static_url_path: String::from("/static"),
             config: config::Config::new(),
             url_map: Map::new(),
             view_functions: HashMap::new(),
@@ -112,7 +111,7 @@ impl Pencil {
     pub fn enable_static_file_handle(&mut self) {
         let mut rule = self.static_url_path.clone();
         rule = rule + "/([^/].*?)";
-        self.add_url_rule(rule.as_slice(), &["GET"], "static", send_static_file);
+        self.add_url_rule(&rule, &["GET"], "static", send_static_file);
     }
 
     /// Registers a function to run before each request.
@@ -150,7 +149,7 @@ impl Pencil {
     ///
     ///
     /// fn page_not_found(error: HTTPError) -> PencilResult {
-    ///     let mut response = Response::new(String::from_str("The page does not exist"));
+    ///     let mut response = Response::new(String::from("The page does not exist"));
     ///     response.status_code = 404;
     ///     return Ok(PenResponse(response));
     /// }
@@ -173,6 +172,7 @@ impl Pencil {
     /// use pencil::{PencilResult, PenString};
     ///
     ///
+    /// #[derive(Clone, Copy)]
     /// struct MyErr(isize);
     ///
     ///
@@ -182,13 +182,13 @@ impl Pencil {
     ///
     ///
     /// fn my_err_handler(_: MyErr) -> PencilResult {
-    ///     Ok(PenString(String::from_str("My err occurred!")))
+    ///     Ok(PenString(String::from("My err occurred!")))
     /// }
     ///
     ///
     /// fn hello(_: Request) -> PencilResult {
     ///     match some_operation() {
-    ///         Ok(_) => Ok(PenString(String::from_str("Hello!"))),
+    ///         Ok(_) => Ok(PenString(String::from("Hello!"))),
     ///         Err(e) => my_err_handler(e),
     ///     }
     /// }
@@ -201,18 +201,18 @@ impl Pencil {
     /// one simple example:
     ///
     /// ```rust,no_run
-    /// use std::error::FromError;
+    /// use std::convert;
     ///
     /// use pencil::Request;
     /// use pencil::{Pencil, PencilResult, PenString};
     /// use pencil::{PencilError, PenUserError, UserError};
     ///
     ///
-    /// #[derive(Copy)]
+    /// #[derive(Clone, Copy)]
     /// pub struct MyErr(isize);
     ///
-    /// impl FromError<MyErr> for PencilError {
-    ///     fn from_error(err: MyErr) -> PencilError {
+    /// impl convert::From<MyErr> for PencilError {
+    ///     fn from(err: MyErr) -> PencilError {
     ///         let user_error = UserError::new("MyErr");
     ///         return PenUserError(user_error);
     ///     }
@@ -220,7 +220,7 @@ impl Pencil {
     ///
     ///
     /// fn my_err_handler(_: UserError) -> PencilResult {
-    ///     Ok(PenString(String::from_str("My err occurred!")))
+    ///     Ok(PenString(String::from("My err occurred!")))
     /// }
     ///
     ///
@@ -403,7 +403,7 @@ impl Pencil {
 }
 
 impl hyper::server::Handler for Pencil {
-    fn handle<'a>(&'a self, req: HTTPRequest<'a>, res: HTTPResponse<Fresh>) {
+    fn handle(&self, req: HTTPRequest, res: HTTPResponse) {
         let request = Request::new(self, req);
         let request_method = request.method();
         let response = self.handle_request(request);
@@ -413,8 +413,8 @@ impl hyper::server::Handler for Pencil {
 
 impl PathBound for Pencil {
     fn open_resource(&self, resource: &str) -> File {
-        let mut path = Path::new(self.root_path.as_slice());
-        path.push(resource);
-        return File::open(&path).unwrap();
+        let mut pathbuf = PathBuf::from(&self.root_path);
+        pathbuf.push(resource);
+        return File::open(&pathbuf.as_path()).unwrap();
     }
 }
