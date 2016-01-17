@@ -55,13 +55,13 @@ pub struct Pencil {
     pub template_folder: String,
     pub config: config::Config,
     pub url_map: Map,
-    /// A dictionary of all view functions registered.
-    pub view_functions: HashMap<String, ViewFunc>,
-    pub before_request_funcs: Vec<BeforeRequestFunc>,
-    pub after_request_funcs: Vec<AfterRequestFunc>,
-    pub teardown_request_funcs: Vec<TeardownRequestFunc>,
-    pub http_error_handlers: HashMap<isize, HTTPErrorHandler>,
-    pub user_error_handlers: HashMap<&'static str, UserErrorHandler>,
+    // A dictionary of all view functions registered.
+    view_functions: HashMap<String, ViewFunc>,
+    before_request_funcs: Vec<BeforeRequestFunc>,
+    after_request_funcs: Vec<AfterRequestFunc>,
+    teardown_request_funcs: Vec<TeardownRequestFunc>,
+    http_error_handlers: HashMap<isize, HTTPErrorHandler>,
+    user_error_handlers: HashMap<&'static str, UserErrorHandler>,
 }
 
 impl Pencil {
