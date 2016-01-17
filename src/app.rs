@@ -43,12 +43,19 @@ use errors::{HTTPError, NotFound, InternalServerError};
 /// The pencil type.  It acts as the central application object.  Once it is created it
 /// will act as a central registry for the view functions, the URL rules and much more.
 pub struct Pencil {
+    /// The path where your application locates.
     pub root_path: String,
+    /// The folder with static files that should be served at `static_url_path`.
+    /// Defaults to the `"static"` folder in the root path of the application.
     pub static_folder: String,
+    /// The url path for the static files on the web, defaults to be `"/static"`.
     pub static_url_path: String,
+    /// The folder that contains the templates that should be used for the application.
+    /// Defaults to `''templates''` folder in the root path of the application.
+    pub template_folder: String,
     pub config: config::Config,
     pub url_map: Map,
-    // A dictionary of all view functions registered.
+    /// A dictionary of all view functions registered.
     pub view_functions: HashMap<String, ViewFunc>,
     pub before_request_funcs: Vec<BeforeRequestFunc>,
     pub after_request_funcs: Vec<AfterRequestFunc>,
@@ -76,6 +83,7 @@ impl Pencil {
             root_path: root_path.to_string(),
             static_folder: String::from("static"),
             static_url_path: String::from("/static"),
+            template_folder: String::from("templates"),
             config: config::Config::new(),
             url_map: Map::new(),
             view_functions: HashMap::new(),
