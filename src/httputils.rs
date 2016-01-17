@@ -1,7 +1,5 @@
 // This module implements a bunch of utilities that help Pencil
 // to deal with HTTP data.
-// Copyright (c) 2014 by Shipeng Feng.
-// Licensed under the BSD License, see LICENSE for more details.
 
 use hyper::header::Host;
 use hyper::status::StatusCode;

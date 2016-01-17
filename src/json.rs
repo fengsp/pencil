@@ -1,6 +1,4 @@
 // This module implements helpers for the JSON support in Pencil.
-// Copyright (c) 2014 by Shipeng Feng.
-// Licensed under the BSD License, see LICENSE for more details.
 
 use serialize::json;
 use serialize::Encodable;

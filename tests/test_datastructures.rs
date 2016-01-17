@@ -1,6 +1,4 @@
 // Test data structures.
-// Copyright (c) 2014 by Shipeng Feng.
-// Licensed under the BSD License, see LICENSE for more details.
 
 extern crate pencil;
 

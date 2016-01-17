@@ -1,6 +1,4 @@
 // This module implements test support helpers.
-// Copyright (c) 2014 by Shipeng Feng.
-// Licensed under the BSD License, see LICENSE for more details.
 
 use app::Pencil;
 use wrappers::{Request, Response};

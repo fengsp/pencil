@@ -1,6 +1,4 @@
 // This module implements the central application object.
-// Copyright (c) 2014 by Shipeng Feng.
-// Licensed under the BSD License, see LICENSE for more details.
 
 use std::collections::HashMap;
 use std::error::Error;

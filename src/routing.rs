@@ -1,6 +1,4 @@
 // This module implements the dispatcher.
-// Copyright (c) 2014 by Shipeng Feng.
-// Licensed under the BSD License, see LICENSE for more details.
 
 use std::collections::HashSet;
 use regex::Regex;

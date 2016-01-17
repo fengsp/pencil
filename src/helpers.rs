@@ -1,6 +1,4 @@
 // This module implements various helpers.
-// Copyright (c) 2014 by Shipeng Feng.
-// Licensed under the BSD License, see LICENSE for more details.
 
 use std::error::Error;
 use std::fs::File;

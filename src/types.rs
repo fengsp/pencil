@@ -1,6 +1,4 @@
 // This module implements a number of types.
-// Copyright (c) 2014 by Shipeng Feng.
-// Licensed under the BSD License, see LICENSE for more details.
 
 use std::error;
 use std::convert;

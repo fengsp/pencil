@@ -1,6 +1,4 @@
 // A microframework for Rust.
-// Copyright (c) 2014 by Shipeng Feng.
-// Licensed under the BSD License, see LICENSE for more details.
 
 //! Pencil is a microframework for Rust inspired by [Flask](http://flask.pocoo.org/).
 //!

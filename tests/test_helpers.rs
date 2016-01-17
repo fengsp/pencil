@@ -1,6 +1,4 @@
 // Test helpers.
-// Copyright (c) 2014 by Shipeng Feng.
-// Licensed under the BSD License, see LICENSE for more details.
 
 extern crate pencil;
 extern crate url;

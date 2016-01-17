@@ -1,6 +1,4 @@
 // This module implements configuration related stuff.
-// Copyright (c) 2014 by Shipeng Feng.
-// Licensed under the BSD License, see LICENSE for more details.
 
 use std::env;
 use std::io::Read;

@@ -1,6 +1,4 @@
 // This module implements the http server support for our application.
-// Copyright (c) 2014 by Shipeng Feng.
-// Licensed under the BSD License, see LICENSE for more details.
 
 use hyper::server::Server;
 
