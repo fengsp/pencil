@@ -45,6 +45,8 @@ use errors::{HTTPError, NotFound, InternalServerError};
 pub struct Pencil {
     /// The path where your application locates.
     pub root_path: String,
+    /// The name of the application.  By default it's guessed from the root path.
+    pub name: String,
     /// The folder with static files that should be served at `static_url_path`.
     /// Defaults to the `"static"` folder in the root path of the application.
     pub static_folder: String,
@@ -81,6 +83,7 @@ impl Pencil {
     pub fn new(root_path: &str) -> Pencil {
         Pencil {
             root_path: root_path.to_string(),
+            name: root_path.to_string(),
             static_folder: String::from("static"),
             static_url_path: String::from("/static"),
             template_folder: String::from("templates"),
