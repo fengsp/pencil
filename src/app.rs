@@ -1,5 +1,6 @@
 // This module implements the central application object.
 
+use std::fmt;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
@@ -425,5 +426,17 @@ impl PathBound for Pencil {
         let mut pathbuf = PathBuf::from(&self.root_path);
         pathbuf.push(resource);
         return File::open(&pathbuf.as_path()).unwrap();
+    }
+}
+
+impl fmt::Display for Pencil {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "<Pencil application {}>", self.name)
+    }
+}
+
+impl fmt::Debug for Pencil {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "<Pencil application {}>", self.name)
     }
 }
