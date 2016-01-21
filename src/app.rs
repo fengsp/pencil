@@ -142,12 +142,14 @@ impl Pencil {
     }
 
     /// Registers a function as one http error handler.
-    fn register_http_error_handler(&mut self, status_code: isize, f: HTTPErrorHandler) {
+    /// Same to `httperrorhandler`.
+    pub fn register_http_error_handler(&mut self, status_code: isize, f: HTTPErrorHandler) {
         self.http_error_handlers.insert(status_code, f);
     }
 
     /// Registers a function as one user error handler.
-    fn register_user_error_handler(&mut self, error_desc: &'static str, f: UserErrorHandler) {
+    /// Same to `usererrorhandler`.
+    pub fn register_user_error_handler(&mut self, error_desc: &'static str, f: UserErrorHandler) {
         self.user_error_handlers.insert(error_desc, f);
     }
 
