@@ -1,11 +1,13 @@
 // This module implements the central application object.
 
+use std::sync::RwLock;
 use std::fmt;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
 use std::path::PathBuf;
 
+use handlebars::Handlebars;
 use hyper;
 use hyper::server::Request as HTTPRequest;
 use hyper::server::Response as HTTPResponse;
@@ -56,7 +58,10 @@ pub struct Pencil {
     /// The folder that contains the templates that should be used for the application.
     /// Defaults to `''templates''` folder in the root path of the application.
     pub template_folder: String,
+    /// The configuration for this application.
     pub config: config::Config,
+    /// The Handlebars registry used to load templates and register helpers.
+    pub handlebars_registry: RwLock<Box<Handlebars>>,
     pub url_map: Map,
     // A dictionary of all view functions registered.
     view_functions: HashMap<String, ViewFunc>,
@@ -89,6 +94,7 @@ impl Pencil {
             static_url_path: String::from("/static"),
             template_folder: String::from("templates"),
             config: config::Config::new(),
+            handlebars_registry: RwLock::new(Box::new(Handlebars::new())),
             url_map: Map::new(),
             view_functions: HashMap::new(),
             before_request_funcs: vec![],

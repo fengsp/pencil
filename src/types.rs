@@ -20,26 +20,26 @@ pub use self::PencilError::{
 /// The Pencil User Error type.
 #[derive(Clone, Debug)]
 pub struct UserError {
-    pub desc: &'static str,
+    pub desc: String,
 }
 
 impl UserError {
-    pub fn new(desc: &'static str) -> UserError {
+    pub fn new<T>(desc: T) -> UserError where T: AsRef<str> {
         UserError {
-            desc: desc,
+            desc: desc.as_ref().to_owned(),
         }
     }
 }
 
 impl fmt::Display for UserError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.write_str(self.desc)
+        f.write_str(&self.desc)
     }
 }
 
 impl error::Error for UserError {
     fn description(&self) -> &str {
-        self.desc
+        &self.desc
     }
 }
 

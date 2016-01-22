@@ -53,6 +53,7 @@ extern crate hyper;
 extern crate rustc_serialize as serialize;
 extern crate regex;
 extern crate url;
+extern crate handlebars;
 
 /* public api */
 pub use app::Pencil;
@@ -140,3 +141,4 @@ mod errors;
 mod routing;
 mod testing;
 mod httputils;
+mod templating;
