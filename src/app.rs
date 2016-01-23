@@ -7,6 +7,7 @@ use std::error::Error;
 use std::fs::File;
 use std::path::PathBuf;
 
+use serialize::json::ToJson;
 use handlebars::Handlebars;
 use hyper;
 use hyper::server::Request as HTTPRequest;
@@ -41,6 +42,7 @@ use serving::run_server;
 use routing::{Map, Rule};
 use testing::PencilClient;
 use errors::{HTTPError, NotFound, InternalServerError};
+use templating::{render_template, render_template_string};
 
 
 /// The pencil type.  It acts as the central application object.  Once it is created it
@@ -396,6 +398,21 @@ impl Pencil {
             },
             Err(e) => Err(e),
         }
+    }
+
+    /// Renders a template from the template folder with the given context.
+    /// The template name is the name of the template to be rendered.
+    /// The context is the variables that should be available in the template.
+    pub fn render_template<T: ToJson>(&mut self, template_name: &str, context: &T) -> PencilResult {
+        render_template(self, template_name, context)
+    }
+
+    /// Renders a template from the given template source string
+    /// with the given context.
+    /// The source is the sourcecode of the template to be rendered.
+    /// The context is the variables that should be available in the template.
+    pub fn render_template_string<T: ToJson>(&self, source: &str, context: &T) -> PencilResult {
+        render_template_string(self, source, context)
     }
 
     /// The actual application handler.
