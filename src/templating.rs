@@ -142,9 +142,9 @@ impl FileSystemLoader {
     ///
     /// The loader takes the path to the templates:
     ///
-    /// ```rust,no_run
-    /// let loader = FileSystemLoader::new("/path/to/templates")
-    /// let source = loader.get_source("index.html")
+    /// ```ignore
+    /// let loader = FileSystemLoader::new("/path/to/templates");
+    /// let source = loader.get_source("index.html");
     /// ```
     pub fn new(search_path: &str) -> FileSystemLoader {
         FileSystemLoader {
