@@ -5,9 +5,7 @@ use std::fmt;
 
 use httputils::get_name_by_http_code;
 
-use types::PenString;
 use wrappers::Response;
-use helpers::make_response;
 
 pub use self::HTTPError::{
     BadRequest,
@@ -230,7 +228,7 @@ impl HTTPError {
 
     /// Get a response object.
     pub fn to_response(&self) -> Response {
-        let mut response = make_response(PenString(self.get_body()));
+        let mut response = Response::new(self.get_body());
         response.status_code = self.code();
         response.set_content_type("text/html");
         return response;

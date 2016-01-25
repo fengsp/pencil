@@ -86,7 +86,6 @@ pub use config::{
     Config,
 };
 pub use helpers::{
-    make_response,
     PathBound,
     safe_join,
     abort,

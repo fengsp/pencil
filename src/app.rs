@@ -15,6 +15,7 @@ use hyper::server::Response as HTTPResponse;
 
 use types::{
     PencilValue,
+        PenString,
         PenResponse,
 
     PencilError,
@@ -35,7 +36,6 @@ use wrappers::{
     Response,
 };
 use helpers::{PathBound, send_static_file};
-use helpers;
 use config;
 use logging;
 use serving::run_server;
@@ -309,7 +309,10 @@ impl Pencil {
     /// Converts the return value from a view function to a real
     /// response object.
     fn make_response(&self, rv: PencilValue) -> Response {
-        return helpers::make_response(rv);
+        match rv {
+            PenString(rv) => Response::new(rv),
+            PenResponse(response) => response,
+        }
     }
 
     /// Modify the response object before it's sent to the HTTP server.

@@ -9,9 +9,7 @@ use hyper::header::Location;
 
 use wrappers::{Request, Response};
 use types::{
-    PencilValue,
-        PenString,
-        PenResponse,
+    PenResponse,
     PenHTTPError,
     PencilResult,
 };
@@ -19,29 +17,6 @@ use errors::{
     HTTPError,
         NotFound,
 };
-
-
-/// Sometimes it is necessary to set additional headers in a view.  Because
-/// views do not have to return `Response` objects but can return a value that
-/// is converted into a response by Pencil.  You can call this function to
-/// get a response object which you can use to attach headers:
-///
-/// ```rust,no_run
-/// use pencil::{Request, PencilResult, PenString, PenResponse, make_response};
-///
-///
-/// fn index(_: Request) -> PencilResult {
-///     let mut response = make_response(PenString(String::from("Hello!")));
-///     response.set_content_type("text/css");
-///     return Ok(PenResponse(response));
-/// }
-/// ```
-pub fn make_response(rv: PencilValue) -> Response {
-    match rv {
-        PenString(rv) => Response::new(rv),
-        PenResponse(response) => response,
-    }
-}
 
 
 /// Path bound trait.
