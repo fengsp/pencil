@@ -6,7 +6,7 @@ use std::io::Result as IOResult;
 use std::fs::File;
 use std::path::PathBuf;
 
-use serialize::json::ToJson;
+use rustc_serialize::json::ToJson;
 use handlebars::RenderError;
 use handlebars::Context;
 use handlebars::RenderContext;

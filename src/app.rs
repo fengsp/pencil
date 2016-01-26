@@ -7,7 +7,7 @@ use std::error::Error;
 use std::fs::File;
 use std::path::PathBuf;
 
-use serialize::json::ToJson;
+use rustc_serialize::json::ToJson;
 use handlebars::Handlebars;
 use hyper;
 use hyper::server::Request as HTTPRequest;

@@ -5,7 +5,7 @@ use std::io::Read;
 use std::fs::File;
 use std::path::Path;
 use std::collections::BTreeMap;
-use serialize::json::{Object, Json};
+use rustc_serialize::json::{Object, Json};
 
 
 /// The pencil `Config` type, We provide ways to fill it from JSON files:

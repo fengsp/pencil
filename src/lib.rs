@@ -50,7 +50,7 @@
 #[macro_use]
 extern crate log;
 extern crate hyper;
-extern crate rustc_serialize as serialize;
+extern crate rustc_serialize;
 extern crate regex;
 extern crate url;
 extern crate handlebars;
