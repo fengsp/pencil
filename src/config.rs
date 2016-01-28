@@ -1,5 +1,6 @@
 // This module implements configuration related stuff.
 
+use std::fmt;
 use std::env;
 use std::io::Read;
 use std::fs::File;
@@ -80,5 +81,11 @@ impl Config {
         for (key, value) in object.iter() {
             self.set(&key, value.clone());
         }
+    }
+}
+
+impl fmt::Debug for Config {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "<Pencil Config {:?}>", self.config)
     }
 }
