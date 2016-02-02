@@ -108,6 +108,8 @@ impl Pencil {
     }
 
     /// Set global log level based on the application's debug flag.
+    /// This is only useful for `env_logger` crate users.
+    /// On debug mode, this turns on all debug logging.
     pub fn set_log_level(&self) {
         logging::set_log_level(self);
     }

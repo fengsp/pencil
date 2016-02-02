@@ -7,6 +7,7 @@ use app::Pencil;
 
 
 /// Set global log level based on the application's debug flag.
+/// This is only useful for `env_logger` crate.
 pub fn set_log_level(app: &Pencil) {
     match app.config.get("DEBUG") {
         Some(value) => {
