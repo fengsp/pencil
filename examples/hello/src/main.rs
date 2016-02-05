@@ -20,5 +20,5 @@ fn main() {
     env_logger::init().unwrap();
     app.route(r"/user/(\d+)", &["GET"], "user", user);
     info!("starting up");
-    // app.run();
+    app.run();
 }

@@ -7,6 +7,7 @@ use std::error::Error;
 use std::fs::File;
 use std::path::PathBuf;
 
+use rustc_serialize::json::Json;
 use rustc_serialize::json::ToJson;
 use handlebars::Handlebars;
 use hyper;
@@ -36,7 +37,7 @@ use wrappers::{
     Response,
 };
 use helpers::{PathBound, send_static_file};
-use config;
+use config::Config;
 use logging;
 use serving::run_server;
 use routing::{Map, Rule};
@@ -61,7 +62,7 @@ pub struct Pencil {
     /// Defaults to `''templates''` folder in the root path of the application.
     pub template_folder: String,
     /// The configuration for this application.
-    pub config: config::Config,
+    pub config: Config,
     /// The Handlebars registry used to load templates and register helpers.
     pub handlebars_registry: RwLock<Box<Handlebars>>,
     pub url_map: Map,
@@ -72,6 +73,13 @@ pub struct Pencil {
     teardown_request_funcs: Vec<TeardownRequestFunc>,
     http_error_handlers: HashMap<isize, HTTPErrorHandler>,
     user_error_handlers: HashMap<&'static str, UserErrorHandler>,
+}
+
+fn default_config() -> Config {
+    let mut config = Config::new();
+    config.set("DEBUG", Json::Boolean(false));
+    config.set("TESTING", Json::Boolean(false));
+    return config;
 }
 
 impl Pencil {
@@ -95,7 +103,7 @@ impl Pencil {
             static_folder: String::from("static"),
             static_url_path: String::from("/static"),
             template_folder: String::from("templates"),
-            config: config::Config::new(),
+            config: default_config(),
             handlebars_registry: RwLock::new(Box::new(Handlebars::new())),
             url_map: Map::new(),
             view_functions: HashMap::new(),
@@ -105,6 +113,32 @@ impl Pencil {
             http_error_handlers: HashMap::new(),
             user_error_handlers: HashMap::new(),
         }
+    }
+
+    /// The debug flag.  This field is configured from the config
+    /// with the `DEBUG` configuration key.  Defaults to `False`.
+    pub fn is_debug(&self) -> bool {
+        self.config.get_boolean("DEBUG", false)
+    }
+
+    /// The testing flag.  This field is configured from the config
+    /// with the `TESTING` configuration key.  Defaults to `False`.
+    pub fn is_testing(&self) -> bool {
+        self.config.get_boolean("TESTING", false)
+    }
+
+    /// Set the debug flag.  This field is configured from the config
+    /// with the `DEBUG` configuration key.  Set this to `True` to
+    /// enable debugging of the application.
+    pub fn set_debug(&mut self, flag: bool) {
+        self.config.set("DEBUG", Json::Boolean(flag));
+    }
+
+    /// Set the testing flag.  This field is configured from the config
+    /// with the `TESTING` configuration key.  Set this to `True` to
+    /// enable the test mode of the application.
+    pub fn set_testing(&mut self, flag: bool) {
+        self.config.set("TESTING", Json::Boolean(flag));
     }
 
     /// Set global log level based on the application's debug flag.
@@ -359,8 +393,8 @@ impl Pencil {
 
     /// Default error handing that kicks in when an error occurs that is not
     /// handled.
-    fn handle_error(&self, e: &PencilError) -> PencilValue {
-        self.log_error(e);
+    fn handle_error(&self, request_path: Option<String>, request_method: String, e: &PencilError) -> PencilValue {
+        self.log_error(request_path, request_method, e);
         let internal_server_error = InternalServerError;
         match self.http_error_handlers.get(&500) {
             Some(&handler) => {
@@ -380,8 +414,15 @@ impl Pencil {
     }
 
     /// Logs an error.
-    fn log_error(&self, e: &PencilError) {
-        error!("Error: {}", e.description());
+    fn log_error(&self, request_path: Option<String>, request_method: String, e: &PencilError) {
+        match request_path {
+            Some(path) => {
+                error!("Error on {} [{}]: {}", path, request_method, e.description());
+            },
+            None => {
+                error!("Error: {}", e.description());
+            }
+        }
     }
 
     /// Dispatches the request and performs request pre and postprocessing
@@ -423,13 +464,15 @@ impl Pencil {
     /// The actual application handler.
     pub fn handle_request(&self, mut request: Request) -> Response {
         request.match_request();
+        let request_path = request.path();
+        let request_method = request.method();
         match self.full_dispatch_request(request) {
             Ok(response) => {
                 self.do_teardown_request(None);
                 return response;
             },
             Err(e) => {
-                let response = self.make_response(self.handle_error(&e));
+                let response = self.make_response(self.handle_error(request_path, request_method, &e));
                 self.do_teardown_request(Some(&e));
                 return response;
             }

@@ -54,6 +54,23 @@ impl Config {
         self.config.get(&key.to_string())
     }
 
+    /// Get a boolean configuration value.  If the key doesn't exist
+    /// or the value is not a `Json::Boolean`, the default value
+    /// will be returned.
+    pub fn get_boolean(&self, key: &str, default: bool) -> bool {
+        match self.get(key) {
+            Some(value) => {
+                match value {
+                    &Json::Boolean(value) => {
+                        value
+                    },  
+                    _ => default
+                }   
+            },  
+            None => default
+        }
+    }
+
     /// Loads a configuration from an environment variable pointing to
     /// a JSON configuration file.
     pub fn from_envvar(&mut self, variable_name: &str) {
