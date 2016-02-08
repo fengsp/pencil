@@ -1,5 +1,6 @@
 // This module implements simple request and response objects.
 
+use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::io::{Read, Write};
 
@@ -67,7 +68,7 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
             request: request,
             url: url,
             url_rule: None,
-            view_args: vec![],
+            view_args: HashMap::new(),
             routing_error: None,
             args: None,
             form: None,

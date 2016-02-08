@@ -1,5 +1,6 @@
 // This module implements the central application object.
 
+use std::convert::Into;
 use std::sync::RwLock;
 use std::fmt;
 use std::collections::HashMap;
@@ -40,7 +41,7 @@ use helpers::{PathBound, send_static_file};
 use config::Config;
 use logging;
 use serving::run_server;
-use routing::{Map, Rule};
+use routing::{Map, Rule, Matcher};
 use testing::PencilClient;
 use errors::{HTTPError, NotFound, InternalServerError};
 use templating::{render_template, render_template_string};
@@ -150,13 +151,14 @@ impl Pencil {
 
     /// A shortcut that is used to register a view function for a given
     /// URL rule.
-    pub fn route(&mut self, rule: &str, methods: &[&str], endpoint: &str, view_func: ViewFunc) {
+    pub fn route<M: Into<Matcher>>(&mut self, rule: M, methods: &[&str], endpoint: &str, view_func: ViewFunc) {
         self.add_url_rule(rule, methods, endpoint, view_func);
     }
 
     /// Connects a URL rule.
-    fn add_url_rule(&mut self, rule: &str, methods: &[&str], endpoint: &str, view_func: ViewFunc) {
-        let url_rule = Rule::new(rule, methods, endpoint);
+    fn add_url_rule<M: Into<Matcher>>(&mut self, rule: M, methods: &[&str], endpoint: &str, view_func: ViewFunc) {
+        let matcher = rule.into();
+        let url_rule = Rule::new(matcher, methods, endpoint);
         self.url_map.add(url_rule);
         self.view_functions.insert(endpoint.to_string(), view_func);
     }
@@ -165,7 +167,8 @@ impl Pencil {
     pub fn enable_static_file_handle(&mut self) {
         let mut rule = self.static_url_path.clone();
         rule = rule + "/([^/].*?)";
-        self.add_url_rule(&rule, &["GET"], "static", send_static_file);
+        let rule_str: &str = &rule;
+        self.add_url_rule(rule_str, &["GET"], "static", send_static_file);
     }
 
     /// Registers a function to run before each request.

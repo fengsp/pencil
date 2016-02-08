@@ -1,34 +1,128 @@
 // This module implements the dispatcher.
 
+use std::collections::HashMap;
 use std::collections::HashSet;
 use regex::Regex;
+use regex::quote as regex_quote;
 use std::ascii::AsciiExt;
 
 use errors::{HTTPError, MethodNotAllowed, NotFound};
 use types::ViewArgs;
+use utils::join_string;
 
+/// Parse a rule and return a list of tuples in the form
+/// `(Option<converter>, variable)`.  If the converter
+/// is `None`, it's a static url part.
+fn parse_rule(rule: &str) -> Vec<(Option<&str>, &str)> {
+    let rule_re = Regex::new(r"(?x)
+        (?P<static>[^<]*)                            # static rule data
+        <
+        (?:
+            (?P<converter>[a-zA-Z_][a-zA-Z0-9_]*)    # converter name
+            :                                        # variable delimiter
+        )?
+        (?P<variable>[a-zA-Z_][a-zA-Z0-9_]*)         # variable name
+        >
+    ").unwrap();
+    let mut rule_parts: Vec<(Option<&str>, &str)> = Vec::new();
+    let mut remaining = rule;
+    let mut used_names = HashSet::new();
+    while !remaining.is_empty() {
+        match rule_re.captures(remaining) {
+            Some(caps) => {
+                let static_part = caps.name("static");
+                if static_part.is_some() {
+                    rule_parts.push((None, static_part.unwrap()));
+                }
+                let variable = caps.name("variable").unwrap();
+                let converter = match caps.name("converter") {
+                    Some(converter) => { converter },
+                    None => { "default" },
+                };
+                if used_names.contains(variable) {
+                    panic!("variable name {} used twice.", variable);
+                }
+                used_names.insert(variable);
+                rule_parts.push((Some(converter), variable));
+                let end = caps.pos(0).unwrap().1;
+                let (_, tail) = remaining.split_at(end);
+                remaining = tail;
+            },
+            None => {
+                break;
+            }
+        }
+    }
+    if !remaining.is_empty() {
+        if remaining.contains(">") || remaining.contains("<") {
+            panic!("malformed url rule: {}", rule);
+        }
+        rule_parts.push((None, remaining));
+    }
+    return rule_parts;
+}
+
+/// The matcher holds the url regex object.
+#[derive(Clone)]
+pub struct Matcher {
+    pub regex: Regex
+}
+
+impl Matcher {
+    pub fn new(regex: Regex) -> Matcher {
+        Matcher {
+            regex: regex
+        }
+    }
+}
+
+impl<'a> From<&'a str> for Matcher {
+    fn from(rule: &'a str) -> Matcher {
+        if !rule.starts_with("/") {
+            panic!("urls must start with a leading slash");
+        }
+
+        // Compiles the regular expression
+        let mut regex_parts: Vec<String> = Vec::new();
+        for (converter, variable) in parse_rule(rule) {
+            match converter {
+                Some(converter) => {
+                    let re = match converter {
+                        "string" => "[^/]{1,}",
+                        "int" => r"\d+",
+                        "float" => r"\d+\.\d+",
+                        "path" => "[^/].*?",
+                        "default" => "[^/]{1,}",
+                        _ => { panic!("the converter {} does not exist", converter); }
+                    };
+                    regex_parts.push(format!("(?P<{}>{})", variable, re));
+                },
+                None => {
+                    let escaped_variable = regex_quote(variable);
+                    regex_parts.push(escaped_variable);
+                }
+            }
+        }
+        let regex = format!(r"^{}$", join_string(regex_parts, ""));
+        Matcher::new(Regex::new(&regex).unwrap())
+    }
+}
 
 /// A Rule represents one URL pattern.
 #[derive(Clone)]
 pub struct Rule {
-    pub rule: String,
+    pub matcher: Matcher,
     pub methods: HashSet<String>,
     pub endpoint: String,
-    pub regex: Regex,
 }
 
 impl Rule {
-    /// Create a new `Rule`.  Rule strings basically are just normal url
+    /// Create a new `Rule`.  Matcher basically are used to hold url
     /// regular expressions.  Rule endpoint is a string that is used for
     /// URL generation.  Rule methods is an array of http methods this rule
     /// applies to, if `GET` is present in it and `HEAD` is not, `HEAD` is
     /// added automatically.
-    pub fn new(string: &str, methods: &[&str], endpoint: &str) -> Rule {
-        if !string.starts_with("/") {
-            panic!("urls must start with a leading slash");
-        }
-        let full_string = String::from(r"^") + string + r"$";
-
+    pub fn new(matcher: Matcher, methods: &[&str], endpoint: &str) -> Rule {
         let mut upper_methods: HashSet<String> = HashSet::new();
         for &method in methods.iter() {
             let upper_method = method.to_string().to_ascii_uppercase();
@@ -38,27 +132,24 @@ impl Rule {
             upper_methods.insert(String::from("HEAD"));
         }
         Rule {
+            matcher: matcher,
             endpoint: endpoint.to_string(),
             methods: upper_methods,
-            regex: Rule::compile(&full_string),
-            rule: full_string,
         }
-    }
-
-    /// Compiles the regular expression.
-    fn compile(string: &str) -> Regex {
-        Regex::new(string).unwrap()
     }
 
     /// Check if the rule matches a given path.
     pub fn captures(&self, path: String) -> Option<ViewArgs> {
-        match self.regex.captures(&path) {
+        match self.matcher.regex.captures(&path) {
             Some(caps) => {
-                let mut view_args: Vec<String> = vec![];
-                let mut iter = caps.iter();
-                iter.next();
-                for c in iter {
-                    view_args.push(c.unwrap().to_string());
+                let mut view_args: HashMap<String, String> = HashMap::new();
+                for variable in self.matcher.regex.capture_names() {
+                    match variable {
+                        Some(variable) => {
+                            view_args.insert(variable.to_string(), caps.name(variable).unwrap().to_string());
+                        },
+                        None => {}
+                    }
                 }
                 Some(view_args)
             },
@@ -131,13 +222,12 @@ impl<'m> MapAdapter<'m> {
 #[test]
 fn test_basic_routing() {
     let mut map = Map::new();
-    map.add(Rule::new(r"/", &["GET"], "index"));
-    map.add(Rule::new(r"/foo", &["GET"], "foo"));
-    map.add(Rule::new(r"/bar/", &["GET"], "bar"));
+    map.add(Rule::new("/".into(), &["GET"], "index"));
+    map.add(Rule::new("/foo".into(), &["GET"], "foo"));
+    map.add(Rule::new("/bar/".into(), &["GET"], "bar"));
     let adapter = map.bind(String::from("/bar/"), String::from("GET"));
     match adapter.captures() {
         Ok((rule, view_args)) => {
-            assert!(&rule.rule == r"^/bar/$");
             assert!(rule.methods.contains("GET"));
             assert!(!rule.methods.contains("POST"));
             assert!(rule.endpoint == String::from("bar"));

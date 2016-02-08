@@ -168,7 +168,7 @@ pub fn send_static_file(request: Request) -> PencilResult {
     let mut static_folder = PathBuf::from(&request.app.root_path);
     static_folder.push(&request.app.static_folder);
     let static_folder_str = static_folder.to_str().unwrap();
-    let filename = &request.view_args[0];
+    let filename = request.view_args.get("filename").unwrap();
     let mimetype = "text/plain";
     return send_from_directory(static_folder_str, filename, mimetype, false);
 }

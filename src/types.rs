@@ -1,5 +1,6 @@
 // This module implements a number of types.
 
+use std::collections::HashMap;
 use std::error;
 use std::convert;
 use std::error::Error;
@@ -103,7 +104,7 @@ pub type PencilResult = Result<PencilValue, PencilError>;
 
 
 /// View arguments type.
-pub type ViewArgs = Vec<String>;
+pub type ViewArgs = HashMap<String, String>;
 /// View function type.
 pub type ViewFunc = fn(Request) -> PencilResult;
 
