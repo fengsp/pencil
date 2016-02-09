@@ -76,15 +76,30 @@ impl Matcher {
     }
 }
 
+/// Rule strings basically are just normal URL paths with placeholders in
+/// the format `<converter:name>` where the converter are optional.
+/// Currently we support following converters:
+///
+/// - string(default)
+/// - int
+/// - float
+/// - path
+///
+/// If no converter is defined the `default` converter is used which means `string`.
+///
+/// URL rules that end with a slash are branch URLs, others are leaves.
+/// All branch URLs that are matched without a trailing slash will trigger a
+/// redirect to the same URL with the missing slash appended.
 impl<'a> From<&'a str> for Matcher {
     fn from(rule: &'a str) -> Matcher {
         if !rule.starts_with("/") {
             panic!("urls must start with a leading slash");
         }
+        let is_branch = rule.ends_with("/");
 
         // Compiles the regular expression
         let mut regex_parts: Vec<String> = Vec::new();
-        for (converter, variable) in parse_rule(rule) {
+        for (converter, variable) in parse_rule(rule.trim_right_matches("/")) {
             match converter {
                 Some(converter) => {
                     let re = match converter {
@@ -103,6 +118,9 @@ impl<'a> From<&'a str> for Matcher {
                 }
             }
         }
+        if is_branch {
+            regex_parts.push(String::from("(?P<__suffix__>/?)"));
+        }
         let regex = format!(r"^{}$", join_string(regex_parts, ""));
         Matcher::new(Regex::new(&regex).unwrap())
     }
@@ -111,8 +129,11 @@ impl<'a> From<&'a str> for Matcher {
 /// A Rule represents one URL pattern.
 #[derive(Clone)]
 pub struct Rule {
+    /// The matcher is used to match the url path.
     pub matcher: Matcher,
+    /// A set of http methods this rule applies to.
     pub methods: HashSet<String>,
+    /// The endpoint for this rule.
     pub endpoint: String,
 }
 
@@ -128,7 +149,7 @@ impl Rule {
             let upper_method = method.to_string().to_ascii_uppercase();
             upper_methods.insert(upper_method);
         }
-        if upper_methods.contains(&String::from("GET")) {
+        if upper_methods.contains("GET") {
             upper_methods.insert(String::from("HEAD"));
         }
         Rule {
@@ -139,14 +160,27 @@ impl Rule {
     }
 
     /// Check if the rule matches a given path.
-    pub fn captures(&self, path: String) -> Option<ViewArgs> {
+    pub fn matched(&self, path: String) -> Option<ViewArgs> {
         match self.matcher.regex.captures(&path) {
             Some(caps) => {
+                // We have a url without a trailing slash for branch url rule.
+                // So we redirect to the same url but with a trailing slash.
+                match caps.name("__suffix__") {
+                    Some(suffix) => {
+                        if suffix.is_empty() {
+                            // TODO: we should redirect here
+                            return None;
+                        }
+                    },
+                    None => {}
+                }
                 let mut view_args: HashMap<String, String> = HashMap::new();
                 for variable in self.matcher.regex.capture_names() {
                     match variable {
                         Some(variable) => {
-                            view_args.insert(variable.to_string(), caps.name(variable).unwrap().to_string());
+                            if variable != "__suffix__" {
+                                view_args.insert(variable.to_string(), caps.name(variable).unwrap().to_string());
+                            }
                         },
                         None => {}
                     }
@@ -196,11 +230,11 @@ impl<'m> MapAdapter<'m> {
         }
     }
 
-    pub fn captures(&self) -> Result<(Rule, ViewArgs), HTTPError> {
+    pub fn matched(&self) -> Result<(Rule, ViewArgs), HTTPError> {
         let mut have_match_for = HashSet::new();
         for rule in self.map.rules.iter() {
             let rv: ViewArgs;
-            match rule.captures(self.path.clone()) {
+            match rule.matched(self.path.clone()) {
                 Some(view_args) => { rv = view_args; },
                 None => { continue; },
             }
@@ -226,7 +260,7 @@ fn test_basic_routing() {
     map.add(Rule::new("/foo".into(), &["GET"], "foo"));
     map.add(Rule::new("/bar/".into(), &["GET"], "bar"));
     let adapter = map.bind(String::from("/bar/"), String::from("GET"));
-    match adapter.captures() {
+    match adapter.matched() {
         Ok((rule, view_args)) => {
             assert!(rule.methods.contains("GET"));
             assert!(!rule.methods.contains("POST"));
