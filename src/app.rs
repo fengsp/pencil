@@ -318,7 +318,7 @@ impl Pencil {
 
     /// Called before the actual request dispatching, you can return value
     /// from here and stop the further request handling.
-    fn preprocess_request(&self, request: &mut Request) -> Option<PencilResult> {
+    fn preprocess_request(&self, request: &Request) -> Option<PencilResult> {
         let mut result: Option<PencilResult>;
         for &func in self.before_request_funcs.iter() {
             result = func(request);

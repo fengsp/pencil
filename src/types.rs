@@ -116,7 +116,7 @@ pub type UserErrorHandler = fn(UserError) -> PencilResult;
 
 
 /// Before request func type.
-pub type BeforeRequestFunc = fn(&mut Request) -> Option<PencilResult>;
+pub type BeforeRequestFunc = fn(&Request) -> Option<PencilResult>;
 
 
 /// After request func type.
