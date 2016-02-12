@@ -1,15 +1,17 @@
 // This module implements simple request and response objects.
 
+use std::fmt;
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::io::{Read, Write};
 
 use hyper;
-use hyper::uri::RequestUri::AbsolutePath;
+use hyper::uri::RequestUri::{AbsolutePath, AbsoluteUri, Authority, Star};
 use hyper::header::{Headers, ContentLength, ContentType};
 use hyper::mime::{Mime, TopLevel, SubLevel};
 use hyper::method::Method;
 use url;
+use url::UrlParser;
 use url::form_urlencoded::parse as form_urlencoded_parse;
 
 use app::Pencil;
@@ -164,18 +166,14 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
 
     /// Requested path.
     pub fn path(&self) -> Option<String> {
-        if self.url.is_some() {
-            match self.url.as_ref().unwrap().serialize_path() {
-                Some(path) => {
-                    return Some(url::percent_encoding::
-                                lossy_utf8_percent_decode(path.as_bytes()));
-                },
-                None => {
-                    return None;
-                }
-            }
-        } else {
-            return None;
+        match self.request.uri {
+            AbsolutePath(ref path) => {
+                Some(path.splitn(2, '?').next().unwrap().to_string())
+            },
+            AbsoluteUri(ref url) => {
+                url.serialize_path()
+            },
+            Authority(_) | Star => None
         }
     }
 
@@ -267,6 +265,19 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
     /// Whether the request is secure (https).
     pub fn is_secure(&self) -> bool {
         self.scheme() == "https".to_string()
+    }
+}
+
+impl<'r, 'a, 'b: 'a> fmt::Debug for Request<'r, 'a, 'b> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self.url() {
+            Some(url) => {
+                write!(f, "Pencil Request '{}' {}", url, self.method())
+            },
+            None => {
+                write!(f, "Pencil Request")
+            }
+        }
     }
 }
 
