@@ -44,7 +44,7 @@ pub use self::HTTPError::{
 /// use pencil::{NotFound, PenHTTPError};
 ///
 ///
-/// fn view(_: Request) -> PencilResult {
+/// fn view(_: &Request) -> PencilResult {
 ///     return Err(PenHTTPError(NotFound))
 /// }
 /// ```
@@ -56,7 +56,7 @@ pub use self::HTTPError::{
 /// use pencil::abort;
 ///
 ///
-/// fn view(_: Request) -> PencilResult {
+/// fn view(_: &Request) -> PencilResult {
 ///     return abort(404)
 /// }
 /// ```

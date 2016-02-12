@@ -21,12 +21,12 @@ impl<'c> PencilClient<'c> {
     }
 
     /// Runs the wrapped pencil app with the given request.
-    fn run_pencil_app(&self, request: Request) -> Response {
+    fn run_pencil_app(&self, request: &mut Request) -> Response {
         self.application.handle_request(request)
     }
 
-    fn open(&self, request: Request) -> Response {
-        self.run_pencil_app(request)
+    fn open(&self, mut request: Request) -> Response {
+        self.run_pencil_app(&mut request)
     }
 
     pub fn get(&self, request: Request) -> Response {

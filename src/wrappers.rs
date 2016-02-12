@@ -18,26 +18,21 @@ use httputils::{get_name_by_http_code, get_content_type, get_host_value};
 use httputils::get_status_from_code;
 use routing::Rule;
 use types::ViewArgs;
-use errors::{HTTPError, NotFound};
-
-
-macro_rules! try_return(
-    ($e:expr) => {{
-        match $e {
-            Ok(v) => v,
-            Err(e) => { error!("Error: {}", e); return; }
-        }
-    }}
-);
+use http_errors::{HTTPError, NotFound};
 
 
 /// Request type.
 pub struct Request<'r, 'a, 'b: 'a> {
     pub app: &'r Pencil,
+    /// The original hyper request object.
     pub request: hyper::server::request::Request<'a, 'b>,
     url: Option<url::Url>,
+    /// The URL rule that matched the request.  This is
+    /// going to be `None` if nothing matched.
     pub url_rule: Option<Rule>,
+    /// A dict of view arguments that matched the request.
     pub view_args: ViewArgs,
+    /// If matching the URL failed, this will be the error.
     pub routing_error: Option<HTTPError>,
     args: Option<MultiDict>,
     form: Option<MultiDict>,

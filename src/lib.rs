@@ -26,7 +26,7 @@
 //! use pencil::{Request, PencilResult, PenString};
 //!
 //!
-//! fn hello(_: Request) -> PencilResult {
+//! fn hello(_: &Request) -> PencilResult {
 //!     Ok(PenString(String::from("Hello World!")))
 //! }
 //!
@@ -97,7 +97,7 @@ pub use helpers::{
 pub use serving::{
     run_server,
 };
-pub use errors::{
+pub use http_errors::{
     HTTPError,
         BadRequest,
         Unauthorized,
@@ -127,6 +127,8 @@ pub use errors::{
 };
 pub use testing::PencilClient;
 
+#[macro_use]
+mod utils;
 mod app;
 mod types;
 mod datastructures;
@@ -136,9 +138,8 @@ mod config;
 mod logging;
 mod helpers;
 mod serving;
-mod errors;
+mod http_errors;
 mod routing;
 mod testing;
 mod httputils;
 mod templating;
-mod utils;

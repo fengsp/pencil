@@ -6,7 +6,7 @@ use regex::Regex;
 use regex::quote as regex_quote;
 use std::ascii::AsciiExt;
 
-use errors::{HTTPError, MethodNotAllowed, NotFound};
+use http_errors::{HTTPError, MethodNotAllowed, NotFound};
 use types::ViewArgs;
 use utils::join_string;
 

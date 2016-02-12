@@ -43,7 +43,7 @@ use logging;
 use serving::run_server;
 use routing::{Map, Rule, Matcher};
 use testing::PencilClient;
-use errors::{HTTPError, NotFound, InternalServerError};
+use http_errors::{HTTPError, NotFound, InternalServerError};
 use templating::{render_template, render_template_string};
 
 
@@ -245,7 +245,7 @@ impl Pencil {
     /// }
     ///
     ///
-    /// fn hello(_: Request) -> PencilResult {
+    /// fn hello(_: &Request) -> PencilResult {
     ///     match some_operation() {
     ///         Ok(_) => Ok(PenString(String::from("Hello!"))),
     ///         Err(e) => my_err_handler(e),
@@ -288,7 +288,7 @@ impl Pencil {
     /// }
     ///
     ///
-    /// fn hello(_: Request) -> PencilResult {
+    /// fn hello(_: &Request) -> PencilResult {
     ///     let rv = try!(some_operation());
     ///     return Ok(PenString(rv));
     /// }
@@ -318,7 +318,7 @@ impl Pencil {
 
     /// Called before the actual request dispatching, you can return value
     /// from here and stop the further request handling.
-    fn preprocess_request(&self, request: &Request) -> Option<PencilResult> {
+    fn preprocess_request(&self, request: &mut Request) -> Option<PencilResult> {
         let mut result: Option<PencilResult>;
         for &func in self.before_request_funcs.iter() {
             result = func(request);
@@ -331,7 +331,7 @@ impl Pencil {
 
     /// Does the request dispatching.  Matches the URL and returns the return
     /// value of the view.
-    fn dispatch_request(&self, request: Request) -> PencilResult {
+    fn dispatch_request(&self, request: &Request) -> PencilResult {
         if request.routing_error.is_some() {
             return Err(PenHTTPError(request.routing_error.unwrap()));
         }
@@ -396,8 +396,8 @@ impl Pencil {
 
     /// Default error handing that kicks in when an error occurs that is not
     /// handled.
-    fn handle_error(&self, request_path: Option<String>, request_method: String, e: &PencilError) -> PencilValue {
-        self.log_error(request_path, request_method, e);
+    fn handle_error(&self, request: &Request, e: &PencilError) -> PencilValue {
+        self.log_error(request, e);
         let internal_server_error = InternalServerError;
         match self.http_error_handlers.get(&500) {
             Some(&handler) => {
@@ -417,10 +417,10 @@ impl Pencil {
     }
 
     /// Logs an error.
-    fn log_error(&self, request_path: Option<String>, request_method: String, e: &PencilError) {
-        match request_path {
+    fn log_error(&self, request: &Request, e: &PencilError) {
+        match request.path() {
             Some(path) => {
-                error!("Error on {} [{}]: {}", path, request_method, e.description());
+                error!("Error on {} [{}]: {}", path, request.method(), e.description());
             },
             None => {
                 error!("Error: {}", e.description());
@@ -430,8 +430,8 @@ impl Pencil {
 
     /// Dispatches the request and performs request pre and postprocessing
     /// as well as HTTP error handling.
-    fn full_dispatch_request(&self, request: Request) -> Result<Response, PencilError> {
-        let result = match self.preprocess_request(&request) {
+    fn full_dispatch_request(&self, request: &mut Request) -> Result<Response, PencilError> {
+        let result = match self.preprocess_request(request) {
             Some(result) => result,
             None => self.dispatch_request(request),
         };
@@ -465,17 +465,15 @@ impl Pencil {
     }
 
     /// The actual application handler.
-    pub fn handle_request(&self, mut request: Request) -> Response {
+    pub fn handle_request(&self, request: &mut Request) -> Response {
         request.match_request();
-        let request_path = request.path();
-        let request_method = request.method();
         match self.full_dispatch_request(request) {
             Ok(response) => {
                 self.do_teardown_request(None);
                 return response;
             },
             Err(e) => {
-                let response = self.make_response(self.handle_error(request_path, request_method, &e));
+                let response = self.make_response(self.handle_error(request, &e));
                 self.do_teardown_request(Some(&e));
                 return response;
             }
@@ -490,10 +488,9 @@ impl Pencil {
 
 impl hyper::server::Handler for Pencil {
     fn handle(&self, req: HTTPRequest, res: HTTPResponse) {
-        let request = Request::new(self, req);
-        let request_method = request.method();
-        let response = self.handle_request(request);
-        response.write(request_method, res);
+        let mut request = Request::new(self, req);
+        let response = self.handle_request(&mut request);
+        response.write(request.method(), res);
     }
 }
 
