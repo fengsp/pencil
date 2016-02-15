@@ -12,7 +12,7 @@ use hyper::mime::{Mime, TopLevel, SubLevel};
 use hyper::method::Method;
 use url;
 use url::UrlParser;
-use url::form_urlencoded::parse as form_urlencoded_parse;
+use url::form_urlencoded;
 
 use app::Pencil;
 use datastructures::MultiDict;
@@ -106,15 +106,27 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
     pub fn args(&mut self) -> &MultiDict {
         if self.args.is_none() {
             let mut args = MultiDict::new();
-            if self.url.is_some() {
-                match self.url.as_ref().unwrap().query_pairs() {
-                    Some(pairs) => {
-                        for &(ref k, ref v) in pairs.iter() {
-                            args.add(&k, &v);
-                        }
-                    },
-                    None => (),
-                }
+            let query_pairs = match self.request.uri {
+                AbsolutePath(ref path) => {
+                    match UrlParser::new().parse_path(path) {
+                        Ok((_, query, _)) => {
+                            query.map(|query| form_urlencoded::parse(query.as_bytes()))
+                        },
+                        Err(_) => None
+                    }
+                },
+                AbsoluteUri(ref url) => {
+                    url.query_pairs()
+                },
+                Authority(_) | Star => None
+            };
+            match query_pairs {
+                Some(pairs) => {
+                    for &(ref k, ref v) in pairs.iter() {
+                        args.add(&k, &v);
+                    }
+                },
+                None => {},
             }
             self.args = Some(args);
         }
@@ -138,7 +150,7 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
                     let mut body: Vec<u8> = Vec::new();
                     self.request.read_to_end(&mut body).unwrap();
                     let mut form = MultiDict::new();
-                    for &(ref k, ref v) in form_urlencoded_parse(&body).iter() {
+                    for &(ref k, ref v) in form_urlencoded::parse(&body).iter() {
                         form.add(&k, &v);
                     }
                     form
