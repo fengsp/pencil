@@ -10,7 +10,6 @@ use hyper::uri::RequestUri::{AbsolutePath, AbsoluteUri, Authority, Star};
 use hyper::header::{Headers, ContentLength, ContentType};
 use hyper::mime::{Mime, TopLevel, SubLevel};
 use hyper::method::Method;
-use url;
 use url::UrlParser;
 use url::form_urlencoded;
 
@@ -28,7 +27,6 @@ pub struct Request<'r, 'a, 'b: 'a> {
     pub app: &'r Pencil,
     /// The original hyper request object.
     pub request: hyper::server::request::Request<'a, 'b>,
-    url: Option<url::Url>,
     /// The URL rule that matched the request.  This is
     /// going to be `None` if nothing matched.
     pub url_rule: Option<Rule>,
@@ -43,27 +41,9 @@ pub struct Request<'r, 'a, 'b: 'a> {
 impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
     /// Create a `Request`.
     pub fn new(app: &'r Pencil, request: hyper::server::request::Request<'a, 'b>) -> Request<'r, 'a, 'b> {
-        let url = match request.uri {
-            AbsolutePath(ref url) => {
-                let host: Option<&hyper::header::Host> = request.headers.get();
-                match host {
-                    Some(host) => {
-                        let full_url = String::from("http://") + &get_host_value(host) +
-                            "/" + &url.trim_left_matches('/');
-                        match url::Url::parse(&full_url) {
-                            Ok(url) => Some(url),
-                            Err(_) => None,
-                        }
-                    },
-                    None => None,
-                }
-            },
-            _ => None,
-        };
         Request {
             app: app,
             request: request,
-            url: url,
             url_rule: None,
             view_args: HashMap::new(),
             routing_error: None,
@@ -106,20 +86,7 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
     pub fn args(&mut self) -> &MultiDict {
         if self.args.is_none() {
             let mut args = MultiDict::new();
-            let query_pairs = match self.request.uri {
-                AbsolutePath(ref path) => {
-                    match UrlParser::new().parse_path(path) {
-                        Ok((_, query, _)) => {
-                            query.map(|query| form_urlencoded::parse(query.as_bytes()))
-                        },
-                        Err(_) => None
-                    }
-                },
-                AbsoluteUri(ref url) => {
-                    url.query_pairs()
-                },
-                Authority(_) | Star => None
-            };
+            let query_pairs = self.query_string().map(|query| form_urlencoded::parse(query.as_bytes()));
             match query_pairs {
                 Some(pairs) => {
                     for &(ref k, ref v) in pairs.iter() {
@@ -206,12 +173,21 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
         host.map(|host| get_host_value(host))
     }
 
-    /// The URL parameters as raw String.
+    /// The query string.
     pub fn query_string(&self) -> Option<String> {
-        if self.url.is_some() {
-            return self.url.as_ref().unwrap().query.clone();
-        } else {
-            return None;
+        match self.request.uri {
+            AbsolutePath(ref path) => {
+                match UrlParser::new().parse_path(path) {
+                    Ok((_, query, _)) => {
+                        query
+                    },
+                    Err(_) => None
+                }
+            },
+            AbsoluteUri(ref url) => {
+                url.query.clone()
+            },
+            Authority(_) | Star => None
         }
     }
 
@@ -236,9 +212,14 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
         self.request.remote_addr.clone()
     }
 
-    /// URL scheme (http or https), currently I do not know how to get
-    /// this, the result will always be http.
+    /// URL scheme (http or https)
     pub fn scheme(&self) -> String {
+        match self.request.uri {
+            AbsoluteUri(ref url) => {
+                return url.scheme.clone();
+            },
+            _ => {}
+        }
         String::from("http")
     }
 
