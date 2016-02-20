@@ -3,15 +3,16 @@
 use std::fmt;
 use std::collections::HashMap;
 use std::net::SocketAddr;
-use std::io::{Read, Write};
+use std::io::Write;
 
 use hyper;
 use hyper::uri::RequestUri::{AbsolutePath, AbsoluteUri, Authority, Star};
 use hyper::header::{Headers, ContentLength, ContentType};
-use hyper::mime::{Mime, TopLevel, SubLevel};
+use hyper::mime::Mime;
 use hyper::method::Method;
 use url::UrlParser;
 use url::form_urlencoded;
+use formdata::uploaded_file::UploadedFile;
 
 use app::Pencil;
 use datastructures::MultiDict;
@@ -20,6 +21,7 @@ use httputils::get_status_from_code;
 use routing::Rule;
 use types::ViewArgs;
 use http_errors::{HTTPError, NotFound};
+use formparser::FormDataParser;
 
 
 /// Request type.
@@ -36,6 +38,7 @@ pub struct Request<'r, 'a, 'b: 'a> {
     pub routing_error: Option<HTTPError>,
     args: Option<MultiDict>,
     form: Option<MultiDict>,
+    files: Option<Vec<(String, UploadedFile)>>,
 }
 
 impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
@@ -49,6 +52,7 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
             routing_error: None,
             args: None,
             form: None,
+            files: None,
         }
     }
 
@@ -111,31 +115,29 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
         if self.form.is_some() {
             return
         }
-        let form = match self.content_type() {
-            Some(ContentType(Mime(toplevel, sublevel, _))) => {
-                if toplevel == TopLevel::Application && sublevel == SubLevel::WwwFormUrlEncoded {
-                    let mut body: Vec<u8> = Vec::new();
-                    self.request.read_to_end(&mut body).unwrap();
-                    let mut form = MultiDict::new();
-                    for &(ref k, ref v) in form_urlencoded::parse(&body).iter() {
-                        form.add(&k, &v);
-                    }
-                    form
-                } else {
-                    MultiDict::new()
-                }
+        let (form, files) = match self.content_type() {
+            Some(ContentType(mimetype)) => {
+                let parser = FormDataParser::new();
+                parser.parse(&mut self.request, &mimetype)
             },
             None => {
-                MultiDict::new()
+                (MultiDict::new(), Vec::new())
             }
         };
         self.form = Some(form);
+        self.files = Some(files);
     }
 
     /// The form parameters.
     pub fn form(&mut self) -> &MultiDict {
         self.load_form_data();
         self.form.as_ref().unwrap()
+    }
+
+    /// All uploaded files.
+    pub fn files(&mut self) -> &Vec<(String, UploadedFile)> {
+        self.load_form_data();
+        self.files.as_ref().unwrap()
     }
 
     /// The headers.
@@ -191,7 +193,7 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
         }
     }
 
-    /// The requested method.
+    /// The request method.
     pub fn method(&self) -> String {
         match self.request.method {
             Method::Options => "OPTIONS".to_string(),

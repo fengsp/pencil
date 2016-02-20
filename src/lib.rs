@@ -53,6 +53,7 @@ extern crate hyper;
 extern crate rustc_serialize;
 extern crate regex;
 extern crate url;
+extern crate formdata;
 extern crate handlebars;
 
 /* public api */
@@ -143,3 +144,4 @@ mod routing;
 mod testing;
 mod httputils;
 mod templating;
+mod formparser;
