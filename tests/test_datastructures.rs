@@ -2,7 +2,7 @@
 
 extern crate pencil;
 
-use pencil::MultiDict;
+use pencil::datastructures::MultiDict;
 
 
 #[test]

@@ -79,6 +79,9 @@ pub use wrappers::{
     Request,
     Response,
 };
+pub use http_errors::{
+    HTTPError
+};
 pub use json::jsonify;
 pub use config::{
     Config,
@@ -95,48 +98,20 @@ pub use helpers::{
 pub use serving::{
     run_server,
 };
-pub use http_errors::{
-    HTTPError,
-        BadRequest,
-        Unauthorized,
-        Forbidden,
-        NotFound,
-        MethodNotAllowed,
-        NotAcceptable,
-        RequestTimeout,
-        Conflict,
-        Gone,
-        LengthRequired,
-        PreconditionFailed,
-        RequestEntityTooLarge,
-        RequestURITooLarge,
-        UnsupportedMediaType,
-        RequestedRangeNotSatisfiable,
-        ExpectationFailed,
-        ImATeapot,
-        UnprocessableEntity,
-        PreconditionRequired,
-        TooManyRequests,
-        RequestHeaderFieldsTooLarge,
-        InternalServerError,
-        NotImplemented,
-        BadGateway,
-        ServiceUnavailable,
-};
 pub use testing::PencilClient;
 
+pub mod http_errors;
+pub mod datastructures;
 #[macro_use]
 mod utils;
 mod app;
 mod types;
-pub mod datastructures;
 mod wrappers;
 mod json;
 mod config;
 mod logging;
 mod helpers;
 mod serving;
-mod http_errors;
 mod routing;
 mod testing;
 mod httputils;

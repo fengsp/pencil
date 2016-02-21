@@ -3,7 +3,7 @@
 extern crate pencil;
 extern crate hyper;
 
-use pencil::NotFound;
+use pencil::http_errors::NotFound;
 use hyper::header::ContentType;
 
 

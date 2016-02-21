@@ -40,8 +40,8 @@ pub use self::HTTPError::{
 /// non-200 response.  Here is one usage example:
 ///
 /// ```rust,no_run
-/// use pencil::{Request, PencilResult};
-/// use pencil::{NotFound, PenHTTPError};
+/// use pencil::{Request, PencilResult, PenHTTPError};
+/// use pencil::http_errors::NotFound;
 ///
 ///
 /// fn view(_: &Request) -> PencilResult {
