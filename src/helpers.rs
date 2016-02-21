@@ -1,4 +1,4 @@
-// This module implements various helpers.
+//! This module implements various helpers.
 
 use std::error::Error;
 use std::fs::File;

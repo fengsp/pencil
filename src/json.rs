@@ -1,4 +1,4 @@
-// This module implements helpers for the JSON support in Pencil.
+//! This module implements helpers for the JSON support in Pencil.
 
 use rustc_serialize::json;
 use rustc_serialize::Encodable;

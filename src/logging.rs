@@ -1,4 +1,4 @@
-// This module implements the logging support for Pencil.
+//! This module implements the logging support for Pencil.
 
 use std::env;
 use rustc_serialize::json::Json;

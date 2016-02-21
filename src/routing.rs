@@ -1,4 +1,4 @@
-// This module implements the dispatcher.
+//! This module implements the dispatcher.
 
 use std::collections::HashMap;
 use std::collections::HashSet;

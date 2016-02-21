@@ -1,4 +1,4 @@
-// This module implements a number of types.
+//! This module implements a number of types.
 
 use std::collections::HashMap;
 use std::error;

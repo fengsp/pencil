@@ -1,4 +1,4 @@
-// This module implements the bridge to handlebars.
+//! This module implements the bridge to handlebars.
 use std::convert;
 use std::io::Read;
 use std::io::Write;

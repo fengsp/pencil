@@ -1,5 +1,5 @@
-// This module implements the form parsing. It supports url-encoded forms
-// as well as multipart uploads.
+//! This module implements the form parsing. It supports url-encoded forms
+//! as well as multipart uploads.
 
 use std::io::Read;
 

@@ -1,4 +1,4 @@
-// This module implements simple request and response objects.
+//! This module implements simple request and response objects.
 
 use std::fmt;
 use std::collections::HashMap;

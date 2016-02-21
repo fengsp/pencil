@@ -1,4 +1,4 @@
-// This module implements a number of http errors.
+//! This module implements a number of http errors.
 
 use std::error::Error;
 use std::fmt;

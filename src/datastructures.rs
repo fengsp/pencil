@@ -1,4 +1,4 @@
-// This module implements some useful objects.
+//! This module implements some useful objects.
 
 use std::iter;
 use std::collections::HashMap;

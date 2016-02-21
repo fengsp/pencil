@@ -1,5 +1,5 @@
-// This module implements a bunch of utilities that help Pencil
-// to deal with HTTP data.
+//! This module implements a bunch of utilities that help Pencil
+//! to deal with HTTP data.
 
 use hyper::header::Host;
 use hyper::status::StatusCode;

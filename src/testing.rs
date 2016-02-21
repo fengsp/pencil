@@ -1,4 +1,4 @@
-// This module implements test support helpers.
+//! This module implements test support helpers.
 
 use app::Pencil;
 use wrappers::{Request, Response};

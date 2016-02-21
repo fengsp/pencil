@@ -1,4 +1,4 @@
-// This module implements the central application object.
+//! This module implements the central application object.
 
 use std::convert::Into;
 use std::sync::RwLock;

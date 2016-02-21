@@ -1,4 +1,4 @@
-// This module implements the http server support for our application.
+//! This module implements the http server support for our application.
 
 use hyper::server::Server;
 

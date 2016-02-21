@@ -1,4 +1,4 @@
-// This module implements configuration related stuff.
+//! This module implements configuration related stuff.
 
 use std::fmt;
 use std::env;
