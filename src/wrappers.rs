@@ -36,9 +36,9 @@ pub struct Request<'r, 'a, 'b: 'a> {
     pub view_args: ViewArgs,
     /// If matching the URL failed, this will be the error.
     pub routing_error: Option<HTTPError>,
-    args: Option<MultiDict>,
-    form: Option<MultiDict>,
-    files: Option<Vec<(String, UploadedFile)>>,
+    args: Option<MultiDict<String>>,
+    form: Option<MultiDict<String>>,
+    files: Option<MultiDict<UploadedFile>>,
 }
 
 impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
@@ -87,14 +87,14 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
     }
 
     /// The parsed URL parameters.
-    pub fn args(&mut self) -> &MultiDict {
+    pub fn args(&mut self) -> &MultiDict<String> {
         if self.args.is_none() {
             let mut args = MultiDict::new();
             let query_pairs = self.query_string().map(|query| form_urlencoded::parse(query.as_bytes()));
             match query_pairs {
                 Some(pairs) => {
-                    for &(ref k, ref v) in pairs.iter() {
-                        args.add(&k, &v);
+                    for (k, v) in pairs {
+                        args.add(k, v);
                     }
                 },
                 None => {},
@@ -121,7 +121,7 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
                 parser.parse(&mut self.request, &mimetype)
             },
             None => {
-                (MultiDict::new(), Vec::new())
+                (MultiDict::new(), MultiDict::new())
             }
         };
         self.form = Some(form);
@@ -129,13 +129,13 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
     }
 
     /// The form parameters.
-    pub fn form(&mut self) -> &MultiDict {
+    pub fn form(&mut self) -> &MultiDict<String> {
         self.load_form_data();
         self.form.as_ref().unwrap()
     }
 
     /// All uploaded files.
-    pub fn files(&mut self) -> &Vec<(String, UploadedFile)> {
+    pub fn files(&mut self) -> &MultiDict<UploadedFile> {
         self.load_form_data();
         self.files.as_ref().unwrap()
     }

@@ -8,15 +8,15 @@ use pencil::MultiDict;
 #[test]
 fn test_multi_dict_basic_interface() {
     let mut multi_dict = MultiDict::new();
-    multi_dict.add("Content-Type", "text/plain");
-    multi_dict.add("X-Foo", "bar");
+    multi_dict.add("Content-Type".to_string(), "text/plain".to_string());
+    multi_dict.add("X-Foo".to_string(), "bar".to_string());
     assert!(multi_dict.get("X-Foo") != None);
     assert!(multi_dict.get("Content-Type") != None);
 
-    multi_dict.set("Content-Type", "foo/bar");
+    multi_dict.set("Content-Type", "foo/bar".to_string());
     assert!(multi_dict.get("Content-Type").unwrap() == "foo/bar");
 
-    multi_dict.add("X-Foo", "bar2");
+    multi_dict.add("X-Foo".to_string(), "bar2".to_string());
 
     let mut all_keys = vec![];
     for key in multi_dict.keys() {

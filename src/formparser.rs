@@ -21,18 +21,18 @@ impl FormDataParser {
         FormDataParser
     }
 
-    pub fn parse(&self, request: &mut hyper::server::request::Request, mimetype: &Mime) -> (MultiDict, Vec<(String, UploadedFile)>) {
-        let default = (MultiDict::new(), Vec::new());
+    pub fn parse(&self, request: &mut hyper::server::request::Request, mimetype: &Mime) -> (MultiDict<String>, MultiDict<UploadedFile>) {
+        let default = (MultiDict::new(), MultiDict::new());
         match *mimetype {
             Mime(TopLevel::Application, SubLevel::WwwFormUrlEncoded, _) => {
                 let mut body: Vec<u8> = Vec::new();
                 match request.read_to_end(&mut body) {
                     Ok(_) => {
                         let mut form = MultiDict::new();
-                        for (ref k, ref v) in form_urlencoded::parse(&body) {
+                        for (k, v) in form_urlencoded::parse(&body) {
                             form.add(k, v);
                         }
-                        (form, Vec::new())
+                        (form, MultiDict::new())
                     },
                     Err(_) => {
                         default
@@ -45,10 +45,14 @@ impl FormDataParser {
                         match parse_multipart(request, boundary) {
                             Ok(form_data) => {
                                 let mut form = MultiDict::new();
-                                for (ref name, ref value) in form_data.fields {
+                                let mut files = MultiDict::new();
+                                for (name, value) in form_data.fields {
                                     form.add(name, value);
                                 }
-                                (form, form_data.files)
+                                for (name, file) in form_data.files {
+                                    files.add(name, file);
+                                }
+                                (form, files)
                             },
                             Err(_) => {
                                 default
