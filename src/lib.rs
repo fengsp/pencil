@@ -75,11 +75,6 @@ pub use types::{
     AfterRequestFunc,
     TeardownRequestFunc,
 };
-pub use datastructures::{
-    MultiDict,
-        MultiDictIter,
-        MultiDictValues,
-};
 pub use wrappers::{
     Request,
     Response,
@@ -134,7 +129,7 @@ pub use testing::PencilClient;
 mod utils;
 mod app;
 mod types;
-mod datastructures;
+pub mod datastructures;
 mod wrappers;
 mod json;
 mod config;
