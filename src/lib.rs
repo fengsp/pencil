@@ -77,6 +77,8 @@ pub use types::{
 };
 pub use datastructures::{
     MultiDict,
+        MultiDictIter,
+        MultiDictValues,
 };
 pub use wrappers::{
     Request,

@@ -5,17 +5,34 @@ use std::collections::HashMap;
 use std::collections::hash_map;
 
 
-/// MultiDict keys iterator.
-pub type MultiDictKeys<'a, T> = hash_map::Keys<'a, String, Vec<T>>;
 /// MultiDict list entries iterator.
-pub type MultiDictListIter<'a, T> = hash_map::Iter<'a, String, Vec<T>>;
+type MultiDictListIter<'a, T> = hash_map::Iter<'a, String, Vec<T>>;
 /// MultiDict list values iterator.
-pub type MultiDictListValues<'a, T> = hash_map::Values<'a, String, Vec<T>>;
-/// MultiDict entries iterator.
-pub type MultiDictIter<'a, T> = iter::Map<MultiDictListIter<'a, T>, for<'b, 'c> fn((&'b String, &'c Vec<T>)) -> (&'b String, &'c T)>;
-/// MultiDict values iterator.
-pub type MultiDictValues<'a, T> = iter::Map<MultiDictListValues<'a, T>, for<'b> fn(&'b Vec<T>) -> &'b T>;
+type MultiDictListValues<'a, T> = hash_map::Values<'a, String, Vec<T>>;
 
+/// MultiDict values iterator.
+pub struct MultiDictValues<'a, T: 'a> {
+    inner: iter::Map<MultiDictListValues<'a, T>, fn(&'a Vec<T>) -> &'a T>
+}
+
+impl<'a, T: 'a> iter::Iterator for MultiDictValues<'a, T> {
+    type Item = &'a T;
+
+    #[inline] fn next(&mut self) -> Option<&'a T> { self.inner.next() }
+    #[inline] fn size_hint(&self) -> (usize, Option<usize>) { self.inner.size_hint() }
+}
+
+/// MultiDict entries iterator.
+pub struct MultiDictIter<'a, T: 'a> {
+    inner: iter::Map<MultiDictListIter<'a, T>, for<'b, 'c> fn((&'b String, &'c Vec<T>)) -> (&'b String, &'c T)>
+}
+
+impl<'a, T: 'a> iter::Iterator for MultiDictIter<'a, T> {
+    type Item = (&'a String, &'a T);
+
+    #[inline] fn next(&mut self) -> Option<(&'a String, &'a T)> { self.inner.next() }
+    #[inline] fn size_hint(&self) -> (usize, Option<usize>) { self.inner.size_hint() }
+}
 
 /// This is used to deal with multiple values for the same key.
 #[derive(Clone)]
@@ -63,31 +80,31 @@ impl<T> MultiDict<T> {
     
     /// An iterator of `(key, value)` pairs.
     /// The value will be first value of each key.
-    pub fn iter(&self) -> MultiDictIter<T> {
+    pub fn iter<'a>(&'a self) -> MultiDictIter<'a, T> {
         fn first<'a, 'b, A, B>(kvpair: (&'a A, &'b Vec<B>)) -> (&'a A, &'b B) { (kvpair.0, &kvpair.1[0]) }
         let first: for<'b, 'c> fn((&'b String, &'c Vec<T>)) -> (&'b String, &'c T) = first;
-        self.listiter().map(first)
+        MultiDictIter { inner: self.listiter().map(first) }
     }
 
     /// An iterator of `(key, values)` pairs.
-    pub fn listiter(&self) -> MultiDictListIter<T> {
+    pub fn listiter<'a>(&'a self) -> hash_map::Iter<'a, String, Vec<T>> {
         self.map.iter()
     }
 
     /// An iterator visiting all keys in arbitrary order.
-    pub fn keys(&self) -> MultiDictKeys<T> {
+    pub fn keys<'a>(&'a self) -> hash_map::Keys<'a, String, Vec<T>> {
         self.map.keys()
     }
 
     /// An iterator of the first value on every key's value list.
-    pub fn values(&self) -> MultiDictValues<T> {
+    pub fn values<'a>(&'a self) -> MultiDictValues<'a, T> {
         fn first<'a, A>(list: &'a Vec<A>) -> &'a A { &list[0] }
         let first: for<'b> fn(&'b Vec<T>) -> &'b T = first;
-        self.listvalues().map(first)
+        MultiDictValues { inner: self.listvalues().map(first) }
     }
 
     /// An iterator of all values corresponding to a key.
-    pub fn listvalues(&self) -> MultiDictListValues<T> {
+    pub fn listvalues<'a>(&'a self) -> hash_map::Values<'a, String, Vec<T>> {
         self.map.values()
     }
 }
