@@ -8,7 +8,7 @@ use std::io::{Read, Write};
 
 use hyper;
 use hyper::uri::RequestUri::{AbsolutePath, AbsoluteUri, Authority, Star};
-use hyper::header::{Headers, ContentLength, ContentType};
+use hyper::header::{Headers, ContentLength, ContentType, Cookie};
 use hyper::mime::Mime;
 use hyper::method::Method;
 use url::UrlParser;
@@ -192,6 +192,11 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
             },
             Authority(_) | Star => None
         }
+    }
+
+    /// The retrieved cookies.
+    pub fn cookies(&self) -> Option<&Cookie> {
+        self.request.headers.get()
     }
 
     /// The request method.
