@@ -124,7 +124,7 @@ pub type PencilResult = Result<PencilValue, PencilError>;
 /// View arguments type.
 pub type ViewArgs = HashMap<String, String>;
 /// View function type.
-pub type ViewFunc = fn(&Request) -> PencilResult;
+pub type ViewFunc = fn(&mut Request) -> PencilResult;
 
 
 /// HTTP Error handler type.
@@ -134,7 +134,7 @@ pub type UserErrorHandler = fn(UserError) -> PencilResult;
 
 
 /// Before request func type.
-pub type BeforeRequestFunc = fn(&Request) -> Option<PencilResult>;
+pub type BeforeRequestFunc = fn(&mut Request) -> Option<PencilResult>;
 
 
 /// After request func type.

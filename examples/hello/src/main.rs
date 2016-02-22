@@ -4,7 +4,7 @@ use pencil::Pencil;
 use pencil::{Request, PencilResult, PenString};
 
 
-fn user(r: &Request) -> PencilResult {
+fn user(r: &mut Request) -> PencilResult {
     Ok(PenString(format!("user {}", r.view_args.get("user_id").unwrap())))
 }
 

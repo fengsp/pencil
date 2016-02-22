@@ -24,7 +24,7 @@
 //! use pencil::{Request, PencilResult, PenString};
 //!
 //!
-//! fn hello(_: &Request) -> PencilResult {
+//! fn hello(_: &mut Request) -> PencilResult {
 //!     Ok(PenString(String::from("Hello World!")))
 //! }
 //!

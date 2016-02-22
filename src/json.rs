@@ -21,7 +21,7 @@ use types::{PencilResult, PenResponse, PenUserError, UserError};
 ///     name: String,
 /// }
 ///
-/// fn get_user(_: &Request) -> PencilResult {
+/// fn get_user(_: &mut Request) -> PencilResult {
 ///     let user = User {
 ///         id: 1,
 ///         name: String::from("admin"),

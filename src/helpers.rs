@@ -164,7 +164,7 @@ pub fn send_from_directory(directory: &str, filename: &str, mimetype: &str,
 
 /// View function used internally to send static files from the static folder
 /// to the browser.
-pub fn send_static_file(request: &Request) -> PencilResult {
+pub fn send_static_file(request: &mut Request) -> PencilResult {
     let mut static_folder = PathBuf::from(&request.app.root_path);
     static_folder.push(&request.app.static_folder);
     let static_folder_str = static_folder.to_str().unwrap();
