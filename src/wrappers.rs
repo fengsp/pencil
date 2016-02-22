@@ -14,6 +14,7 @@ use hyper::method::Method;
 use url::UrlParser;
 use url::form_urlencoded;
 use formdata::uploaded_file::UploadedFile;
+use rustc_serialize::json;
 
 use app::Pencil;
 use datastructures::MultiDict;
@@ -40,6 +41,7 @@ pub struct Request<'r, 'a, 'b: 'a> {
     args: Option<MultiDict<String>>,
     form: Option<MultiDict<String>>,
     files: Option<MultiDict<UploadedFile>>,
+    cached_json: Option<Option<json::Json>>
 }
 
 impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
@@ -54,6 +56,7 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
             args: None,
             form: None,
             files: None,
+            cached_json: None,
         }
     }
 
@@ -109,6 +112,26 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
     fn content_type(&self) -> Option<ContentType> {
         let content_type: Option<&ContentType> = self.request.headers.get();
         content_type.map(|c| c.clone())
+    }
+
+    /// Parses the incoming JSON request data.
+    pub fn get_json(&mut self) -> &Option<json::Json> {
+        if self.cached_json.is_none() {
+            let mut data = String::from("");
+            let rv = match self.request.read_to_string(&mut data) {
+                Ok(_) => {
+                    match json::Json::from_str(&data) {
+                        Ok(json) => Some(json),
+                        Err(_) => None
+                    }
+                },
+                Err(_) => {
+                    None
+                }
+            };
+            self.cached_json = Some(rv);
+        }
+        return self.cached_json.as_ref().unwrap();
     }
 
     /// This method is used internally to retrieve submitted data.
