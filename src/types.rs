@@ -98,6 +98,24 @@ pub enum PencilValue {
     PenResponse(Response),
 }
 
+impl<'a> convert::From<&'a str> for PencilValue {
+    fn from(s: &'a str) -> PencilValue {
+        PenString(s.to_string())
+    }
+}
+
+impl convert::From<String> for PencilValue {
+    fn from(s: String) -> PencilValue {
+        PenString(s)
+    }
+}
+
+impl convert::From<Response> for PencilValue {
+    fn from(response: Response) -> PencilValue {
+        PenResponse(response)
+    }
+}
+
 
 /// The Pencil Result type.
 pub type PencilResult = Result<PencilValue, PencilError>;

@@ -3,7 +3,8 @@
 use std::fmt;
 use std::collections::HashMap;
 use std::net::SocketAddr;
-use std::io::Write;
+use std::io;
+use std::io::{Read, Write};
 
 use hyper;
 use hyper::uri::RequestUri::{AbsolutePath, AbsoluteUri, Authority, Star};
@@ -273,6 +274,12 @@ impl<'r, 'a, 'b: 'a> fmt::Debug for Request<'r, 'a, 'b> {
                 write!(f, "Pencil Request")
             }
         }
+    }
+}
+
+impl<'r, 'a, 'b: 'a> Read for Request<'r, 'a, 'b> {
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        self.request.read(buf)
     }
 }
 
