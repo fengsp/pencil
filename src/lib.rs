@@ -98,13 +98,13 @@ pub use serving::{
 };
 pub use testing::PencilClient;
 
-pub mod http_errors;
-pub mod datastructures;
 #[macro_use]
 mod utils;
+pub mod http_errors;
+pub mod datastructures;
+pub mod wrappers;
 mod app;
 mod types;
-mod wrappers;
 mod json;
 mod config;
 mod logging;

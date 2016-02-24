@@ -4,7 +4,9 @@ use std::fmt;
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::io;
+use std::fs::File;
 use std::io::{Read, Write};
+use std::convert;
 
 use hyper;
 use hyper::uri::RequestUri::{AbsolutePath, AbsoluteUri, Authority, Star};
@@ -312,28 +314,91 @@ impl<'r, 'a, 'b: 'a> Read for Request<'r, 'a, 'b> {
 }
 
 
+/// The response body.
+pub struct ResponseBody<'a, 'r: 'a>(&'a mut hyper::server::Response<'r, hyper::net::Streaming>);
+
+impl<'a, 'r> ResponseBody<'a, 'r> {
+    /// Create a new ResponseBody.
+    pub fn new(res: &'a mut hyper::server::Response<'r, hyper::net::Streaming>) -> ResponseBody<'a, 'r> {
+        ResponseBody(res)
+    }
+}
+
+impl<'a, 'r> Write for ResponseBody<'a, 'r> {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        self.0.write(buf)
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        self.0.flush()
+    }
+}
+
+
+/// A trait which writes the body of one response.
+pub trait BodyWrite: Send {
+    fn write_body(&mut self, body: &mut ResponseBody) -> io::Result<()>;
+}
+
+impl BodyWrite for Vec<u8> {
+    fn write_body(&mut self, body: &mut ResponseBody) -> io::Result<()> {
+        body.write_all(self)
+    }
+}
+
+impl<'a> BodyWrite for &'a [u8] {
+    fn write_body(&mut self, body: &mut ResponseBody) -> io::Result<()> {
+        body.write_all(self)
+    }
+}
+
+impl BodyWrite for String {
+    fn write_body(&mut self, body: &mut ResponseBody) -> io::Result<()> {
+        self.as_bytes().write_body(body)
+    }
+}
+
+impl<'a> BodyWrite for &'a str {
+    fn write_body(&mut self, body: &mut ResponseBody) -> io::Result<()> {
+        self.as_bytes().write_body(body)
+    }
+}
+
+impl BodyWrite for File {
+    fn write_body(&mut self, body: &mut ResponseBody) -> io::Result<()> {
+        io::copy(self, body).map(|_| ())
+    }
+}
+
+
 /// Response type.  It is just one container with a couple of parameters
 /// (headers, body, status code etc).
-#[derive(Clone)]
 pub struct Response {
+    /// The HTTP Status code number
     pub status_code: isize,
     pub headers: Headers,
-    pub body: String,
+    pub body: Box<BodyWrite>,
 }
 
 impl Response {
-    /// Create a `Response`.
-    pub fn new(body: String) -> Response {
+    /// Create a `Response`.  Remember to set content length
+    /// if necessary.  Mostly you should just get a response
+    /// that is converted from other types, which set the
+    /// content length automatically.  For example:
+    ///
+    /// ```rust,ignore
+    /// // Content length is set automatically
+    /// let response = Response::from("Hello");
+    /// ```
+    pub fn new<T: 'static + BodyWrite>(body: T) -> Response {
         let mut response = Response {
             status_code: 200,
             headers: Headers::new(),
-            body: body,
+            body: Box::new(body),
         };
         let mime: Mime = "text/html; charset=UTF-8".parse().unwrap();
         let content_type = ContentType(mime);
-        let content_length = ContentLength(response.body.len() as u64);
         response.headers.set(content_type);
-        response.headers.set(content_length);
         return response;
     }
 
@@ -348,8 +413,8 @@ impl Response {
     /// Sets a new string as response body.  The content length is set
     /// automatically.
     pub fn set_data(&mut self, value: String) {
-        self.body = value;
-        let content_length = self.body.len();
+        let content_length = value.len();
+        self.body = Box::new(value);
         self.set_content_length(content_length);
     }
 
@@ -396,7 +461,8 @@ impl Response {
     }
 
     /// Write the response out.  Mostly you shouldn't use this directly.
-    pub fn write(self, request_method: String, mut res: hyper::server::Response) {
+    #[doc(hidden)]
+    pub fn write(mut self, request_method: String, mut res: hyper::server::Response) {
         // write status.
         let status_code = self.status_code;
         *res.status_mut() = get_status_from_code(status_code);
@@ -406,14 +472,56 @@ impl Response {
 
         // write data.
         if request_method == String::from("HEAD") ||
-           (100 <= status_code && status_code < 200) ||
-           status_code == 204 || status_code == 304 {
+           (100 <= status_code && status_code < 200) || status_code == 204 || status_code == 304 {
             res.headers_mut().set(ContentLength(0));
             try_return!(res.start().and_then(|w| w.end()));
         } else {
             let mut res = try_return!(res.start());
-            try_return!(res.write_all(self.body.as_bytes()));
+            try_return!(self.body.write_body(&mut ResponseBody::new(&mut res)));
             try_return!(res.end());
         }
+    }
+}
+
+impl convert::From<Vec<u8>> for Response {
+    fn from(bytes: Vec<u8>) -> Response {
+        let content_length = bytes.len();
+        let mut response = Response::new(bytes);
+        response.set_content_length(content_length);
+        return response;
+    }
+}
+
+impl<'a> convert::From<&'a [u8]> for Response {
+    fn from(bytes: &'a [u8]) -> Response {
+        bytes.to_vec().into()
+    }
+}
+
+impl<'a> convert::From<&'a str> for Response {
+    fn from(s: &'a str) -> Response {
+        s.to_owned().into()
+    }
+}
+
+impl convert::From<String> for Response {
+    fn from(s: String) -> Response {
+        s.into_bytes().into()
+    }
+}
+
+impl convert::From<File> for Response {
+    fn from(f: File) -> Response {
+        let content_length = match f.metadata() {
+            Ok(metadata) => {
+                Some(metadata.len())
+            },
+            Err(_) => None
+        };
+        let mut response = Response::new(f);
+        if let Some(content_length) = content_length {
+            response.set_content_length(content_length as usize);
+        }
+        return response;
     }
 }

@@ -92,7 +92,6 @@ impl error::Error for PencilError {
 
 
 /// Pencil view function return value type.
-#[derive(Clone)]
 pub enum PencilValue {
     PenString(String),
     PenResponse(Response),
