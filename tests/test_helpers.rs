@@ -34,7 +34,6 @@ fn test_redirect() {
         PenResponse(response) => Some(response),
     };
     let response = response.unwrap();
-    assert!(response.body.contains("/füübär"));
     let location: Option<&Location> = response.headers.get();
     let location_str = url::percent_encoding::lossy_utf8_percent_decode(location.unwrap().as_bytes());
     assert!(location_str.contains("/füübär"));
