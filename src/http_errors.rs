@@ -228,7 +228,7 @@ impl HTTPError {
 
     /// Get a response object.
     pub fn to_response(&self) -> Response {
-        let mut response = Response::new(self.get_body());
+        let mut response = Response::from(self.get_body());
         response.status_code = self.code();
         response.set_content_type("text/html");
         return response;

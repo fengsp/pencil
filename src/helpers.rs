@@ -9,7 +9,6 @@ use hyper::header::Location;
 
 use wrappers::{Request, Response};
 use types::{
-    PenResponse,
     PenHTTPError,
     PencilResult,
 };
@@ -76,7 +75,7 @@ pub fn abort(code: isize) -> PencilResult {
 
 /// Returns a response that redirects the client to the target location.
 pub fn redirect(location: &str, code: isize) -> PencilResult {
-    let mut response = Response::new(format!(
+    let mut response = Response::from(format!(
 "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\">
 <title>Redirecting...</title>
 <h1>Redirecting...</h1>
@@ -86,7 +85,7 @@ pub fn redirect(location: &str, code: isize) -> PencilResult {
     response.status_code = code;
     response.set_content_type("text/html");
     response.headers.set(Location(location.to_string()));
-    return Ok(PenResponse(response));
+    return Ok(response);
 }
 
 
@@ -113,7 +112,7 @@ pub fn send_file(filepath: &str, mimetype: &str, as_attachment: bool) -> PencilR
     let mut data = String::new();
     let mut response = match file.read_to_string(&mut data) {
         Ok(_) => {
-            Response::new(data)
+            Response::from(data)
         },
         Err(e) => panic!("couldn't read {}: {}", filepath.display(), e.description()),
     };
@@ -136,7 +135,7 @@ pub fn send_file(filepath: &str, mimetype: &str, as_attachment: bool) -> PencilR
             }
         }
     }
-    return Ok(PenResponse(response));
+    return Ok(response);
 }
 
 

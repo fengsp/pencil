@@ -9,9 +9,6 @@ use std::fmt;
 use wrappers::{Request, Response};
 use http_errors::HTTPError;
 
-pub use self::PencilValue::{
-    PenString, PenResponse
-};
 pub use self::PencilError::{
     PenHTTPError,
     PenUserError
@@ -91,33 +88,8 @@ impl error::Error for PencilError {
 }
 
 
-/// Pencil view function return value type.
-pub enum PencilValue {
-    PenString(String),
-    PenResponse(Response),
-}
-
-impl<'a> convert::From<&'a str> for PencilValue {
-    fn from(s: &'a str) -> PencilValue {
-        PenString(s.to_string())
-    }
-}
-
-impl convert::From<String> for PencilValue {
-    fn from(s: String) -> PencilValue {
-        PenString(s)
-    }
-}
-
-impl convert::From<Response> for PencilValue {
-    fn from(response: Response) -> PencilValue {
-        PenResponse(response)
-    }
-}
-
-
 /// The Pencil Result type.
-pub type PencilResult = Result<PencilValue, PencilError>;
+pub type PencilResult = Result<Response, PencilError>;
 
 
 /// View arguments type.

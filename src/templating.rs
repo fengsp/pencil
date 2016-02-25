@@ -14,7 +14,8 @@ use handlebars::Template;
 use handlebars::Renderable;
 
 use app::Pencil;
-use types::{PencilResult, PenString, PenUserError, UserError, PencilError};
+use types::{PencilResult, PenUserError, UserError, PencilError};
+use wrappers::Response;
 
 
 impl convert::From<RenderError> for PencilError {
@@ -33,7 +34,7 @@ pub fn render_template<T: ToJson>(app: &mut Pencil, template_name: &str, context
         let template_rv = registry.get_template(template_name);
         if template_rv.is_some() {
             let rv = try!(registry.render(template_name, context));
-            return Ok(PenString(rv));
+            return Ok(Response::from(rv));
         }
     }
 
@@ -50,7 +51,7 @@ pub fn render_template<T: ToJson>(app: &mut Pencil, template_name: &str, context
                     match registry.register_template_string(template_name, source) {
                         Ok(_) => {
                             let rv = try!(registry.render(template_name, context));
-                            return Ok(PenString(rv));
+                            return Ok(Response::from(rv));
                         },
                         Err(err) => {
                             return Err(PenUserError(UserError::new(format!("Template compile error: {}", err))));
@@ -112,7 +113,7 @@ pub fn render_template_string<T: ToJson>(app: &Pencil, source: &str, context: &T
                         let mut render_context = RenderContext::new(&mut writer);
                         try!(template.render(&c, &**registry, &mut render_context));
                     }
-                    Ok(PenString(writer.to_string()))
+                    Ok(Response::from(writer.to_string()))
                 },
                 Err(err) => {
                     Err(PenUserError(UserError::new(format!("Template compile error: {}", err))))

@@ -4,7 +4,7 @@ use rustc_serialize::json;
 use rustc_serialize::Encodable;
 
 use wrappers::{Response};
-use types::{PencilResult, PenResponse, PenUserError, UserError};
+use types::{PencilResult, PenUserError, UserError};
 
 
 /// Creates a view result with the JSON representation of the given object
@@ -32,9 +32,9 @@ use types::{PencilResult, PenResponse, PenUserError, UserError};
 pub fn jsonify<T: Encodable>(object: &T) -> PencilResult {
     match json::encode(object) {
         Ok(encoded) => {
-            let mut response = Response::new(encoded);
+            let mut response = Response::from(encoded);
             response.set_content_type("application/json");
-            return Ok(PenResponse(response));
+            return Ok(response);
         },
         Err(err) => {
             let error = UserError::new(format!("Json encoder error: {}", err));

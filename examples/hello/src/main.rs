@@ -1,11 +1,12 @@
 extern crate pencil;
 
 use pencil::Pencil;
-use pencil::{Request, Response, PencilResult, PenString, PenResponse};
+use pencil::{Request, PencilResult};
 
 
 fn user(r: &mut Request) -> PencilResult {
-    Ok(PenResponse(Response::from(format!("user {}", r.view_args.get("user_id").unwrap()))))
+    let user_id = r.view_args.get("user_id").unwrap();
+    Ok(format!("user {}", user_id).into())
 }
 
 

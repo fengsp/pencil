@@ -9,7 +9,6 @@ use std::path::PathBuf;
 use hyper::header::Location;
 
 use pencil::{PenHTTPError, PenUserError};
-use pencil::{PenString, PenResponse};
 use pencil::{abort, redirect, safe_join, escape};
 
 
@@ -28,24 +27,14 @@ fn test_abort() {
 #[test]
 fn test_redirect() {
     let result = redirect("http://localhost/füübär", 302);
-    let pencil_value = result.ok().unwrap();
-    let response = match pencil_value {
-        PenString(_) => None,
-        PenResponse(response) => Some(response),
-    };
-    let response = response.unwrap();
+    let response = result.ok().unwrap();
     let location: Option<&Location> = response.headers.get();
     let location_str = url::percent_encoding::lossy_utf8_percent_decode(location.unwrap().as_bytes());
     assert!(location_str.contains("/füübär"));
     assert!(response.status_code == 302);
 
     let result = redirect("http://example.com/", 301);
-    let pencil_value = result.ok().unwrap();
-    let response = match pencil_value {
-        PenString(_) => None,
-        PenResponse(response) => Some(response),
-    };
-    let response = response.unwrap();
+    let response = result.ok().unwrap();
     let location: Option<&Location> = response.headers.get();
     assert!(*location.unwrap() == Location("http://example.com/".to_owned()));
     assert!(response.status_code == 301);

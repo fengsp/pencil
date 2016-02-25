@@ -16,10 +16,6 @@ use hyper::server::Request as HTTPRequest;
 use hyper::server::Response as HTTPResponse;
 
 use types::{
-    PencilValue,
-        PenString,
-        PenResponse,
-
     PencilError,
         PenHTTPError,
         PenUserError,
@@ -203,14 +199,14 @@ impl Pencil {
     /// Registers a function as one http error handler.  Example:
     ///
     /// ```rust,no_run
-    /// use pencil::{Pencil, PencilResult, Response, PenResponse};
+    /// use pencil::{Pencil, PencilResult, Response};
     /// use pencil::HTTPError;
     ///
     ///
     /// fn page_not_found(error: HTTPError) -> PencilResult {
-    ///     let mut response = Response::new(String::from("The page does not exist"));
+    ///     let mut response = Response::from("The page does not exist");
     ///     response.status_code = 404;
-    ///     return Ok(PenResponse(response));
+    ///     return Ok(response);
     /// }
     ///
     ///
@@ -228,7 +224,7 @@ impl Pencil {
     ///
     /// ```rust,no_run
     /// use pencil::Request;
-    /// use pencil::{PencilResult, PenString};
+    /// use pencil::{PencilResult, Response};
     ///
     ///
     /// #[derive(Clone, Copy)]
@@ -241,13 +237,13 @@ impl Pencil {
     ///
     ///
     /// fn my_err_handler(_: MyErr) -> PencilResult {
-    ///     Ok(PenString(String::from("My err occurred!")))
+    ///     Ok(Response::from("My err occurred!"))
     /// }
     ///
     ///
     /// fn hello(_: &mut Request) -> PencilResult {
     ///     match some_operation() {
-    ///         Ok(_) => Ok(PenString(String::from("Hello!"))),
+    ///         Ok(_) => Ok(Response::from("Hello!")),
     ///         Err(e) => my_err_handler(e),
     ///     }
     /// }
@@ -263,7 +259,7 @@ impl Pencil {
     /// use std::convert;
     ///
     /// use pencil::Request;
-    /// use pencil::{Pencil, PencilResult, PenString};
+    /// use pencil::{Pencil, PencilResult, Response};
     /// use pencil::{PencilError, PenUserError, UserError};
     ///
     ///
@@ -279,7 +275,7 @@ impl Pencil {
     ///
     ///
     /// fn my_err_handler(_: UserError) -> PencilResult {
-    ///     Ok(PenString(String::from("My err occurred!")))
+    ///     Ok(Response::from("My err occurred!"))
     /// }
     ///
     ///
@@ -290,7 +286,7 @@ impl Pencil {
     ///
     /// fn hello(_: &mut Request) -> PencilResult {
     ///     let rv = try!(some_operation());
-    ///     return Ok(PenString(rv));
+    ///     return Ok(rv.into());
     /// }
     ///
     ///
@@ -345,15 +341,6 @@ impl Pencil {
         }
     }
 
-    /// Converts the return value from a view function to a real
-    /// response object.
-    fn make_response(&self, rv: PencilValue) -> Response {
-        match rv {
-            PenString(rv) => Response::new(rv),
-            PenResponse(response) => response,
-        }
-    }
-
     /// Modify the response object before it's sent to the HTTP server.
     fn process_response(&self, response: &mut Response) {
         // TODO: reverse order
@@ -390,13 +377,13 @@ impl Pencil {
     fn handle_http_error(&self, e: HTTPError) -> PencilResult {
         match self.http_error_handlers.get(&e.code()) {
             Some(&handler) => handler(e),
-            None => Ok(PenResponse(e.to_response())),
+            None => Ok(e.to_response()),
         }
     }
 
     /// Default error handing that kicks in when an error occurs that is not
     /// handled.
-    fn handle_error(&self, request: &Request, e: &PencilError) -> PencilValue {
+    fn handle_error(&self, request: &Request, e: &PencilError) -> Response {
         self.log_error(request, e);
         let internal_server_error = InternalServerError;
         match self.http_error_handlers.get(&500) {
@@ -405,13 +392,13 @@ impl Pencil {
                     Ok(value) => value,
                     Err(_) => {
                         let e = InternalServerError;
-                        PenResponse(e.to_response())
+                        e.to_response()
                     }
                 }
             },
             None => {
                 let e = InternalServerError;
-                PenResponse(e.to_response())
+                e.to_response()
             }
         }
     }
@@ -436,12 +423,11 @@ impl Pencil {
             None => self.dispatch_request(request),
         };
         let rv = match result {
-            Ok(value) => Ok(value),
+            Ok(response) => Ok(response),
             Err(e) => self.handle_all_error(e),
         };
         match rv {
-            Ok(value) => {
-                let mut response = self.make_response(value);
+            Ok(mut response) => {
                 self.process_response(&mut response);
                 Ok(response)
             },
@@ -473,7 +459,7 @@ impl Pencil {
                 return response;
             },
             Err(e) => {
-                let response = self.make_response(self.handle_error(request, &e));
+                let response = self.handle_error(request, &e);
                 self.do_teardown_request(Some(&e));
                 return response;
             }

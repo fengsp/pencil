@@ -21,11 +21,11 @@
 //! extern crate pencil;
 //!
 //! use pencil::Pencil;
-//! use pencil::{Request, PencilResult, PenString};
+//! use pencil::{Request, PencilResult, Response};
 //!
 //!
 //! fn hello(_: &mut Request) -> PencilResult {
-//!     Ok(PenString(String::from("Hello World!")))
+//!     Ok(Response::from("Hello World!"))
 //! }
 //!
 //!
@@ -57,9 +57,6 @@ extern crate handlebars;
 /* public api */
 pub use app::Pencil;
 pub use types::{
-    PencilValue,
-        PenString,
-        PenResponse,
     PencilError,
         PenHTTPError,
         PenUserError,
