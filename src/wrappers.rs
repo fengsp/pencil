@@ -298,10 +298,10 @@ impl<'r, 'a, 'b: 'a> fmt::Debug for Request<'r, 'a, 'b> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.url() {
             Some(url) => {
-                write!(f, "Pencil Request '{}' {}", url, self.method())
+                write!(f, "<Pencil Request '{}' {}>", url, self.method())
             },
             None => {
-                write!(f, "Pencil Request")
+                write!(f, "<Pencil Request>")
             }
         }
     }
@@ -315,16 +315,16 @@ impl<'r, 'a, 'b: 'a> Read for Request<'r, 'a, 'b> {
 
 
 /// The response body.
-pub struct ResponseBody<'a, 'r: 'a>(&'a mut hyper::server::Response<'r, hyper::net::Streaming>);
+pub struct ResponseBody<'a>(Box<Write + 'a>);
 
-impl<'a, 'r> ResponseBody<'a, 'r> {
+impl<'a> ResponseBody<'a> {
     /// Create a new ResponseBody.
-    pub fn new(res: &'a mut hyper::server::Response<'r, hyper::net::Streaming>) -> ResponseBody<'a, 'r> {
-        ResponseBody(res)
+    pub fn new<W: Write + 'a>(writer: W) -> ResponseBody<'a> {
+        ResponseBody(Box::new(writer))
     }
 }
 
-impl<'a, 'r> Write for ResponseBody<'a, 'r> {
+impl<'a> Write for ResponseBody<'a> {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         self.0.write(buf)
     }
@@ -381,10 +381,12 @@ pub struct Response {
 }
 
 impl Response {
-    /// Create a `Response`.  Remember to set content length
-    /// if necessary.  Mostly you should just get a response
-    /// that is converted from other types, which set the
-    /// content length automatically.  For example:
+    /// Create a `Response`.  By default, the status code is 200
+    /// and content type is "text/html; charset=UTF-8".
+    /// Remember to set content length if necessary.
+    /// Mostly you should just get a response that is converted
+    /// from other types, which set the content length automatically.
+    /// For example:
     ///
     /// ```rust,ignore
     /// // Content length is set automatically
@@ -408,14 +410,6 @@ impl Response {
             Some(name) => name,
             None => "UNKNOWN",
         }
-    }
-
-    /// Sets a new string as response body.  The content length is set
-    /// automatically.
-    pub fn set_data(&mut self, value: String) {
-        let content_length = value.len();
-        self.body = Box::new(value);
-        self.set_content_length(content_length);
     }
 
     /// Returns the response content type if available.
@@ -446,18 +440,9 @@ impl Response {
         self.headers.set(content_length);
     }
 
-    /// Sets a cookie(TODO).
-    pub fn set_cookie(&mut self) {
-    }
-
-    /// Delete a cookie(TODO).
-    pub fn delete_cookie(&mut self) {
-    }
-
-    /// Return `true` if the response is streamed(currently we do not support
-    /// streaming yet, always return `false`).
-    pub fn is_streamed(&self) -> bool {
-        false
+    /// Sets cookie.
+    pub fn set_cookie(&mut self, cookie: hyper::header::SetCookie) {
+        self.headers.set(cookie);
     }
 
     /// Write the response out.  Mostly you shouldn't use this directly.
@@ -483,7 +468,15 @@ impl Response {
     }
 }
 
+impl fmt::Debug for Response {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "<Pencil Response [{}]>", self.status_code)
+    }
+}
+
 impl convert::From<Vec<u8>> for Response {
+    /// Convert to response body.  The content length is set
+    /// automatically.
     fn from(bytes: Vec<u8>) -> Response {
         let content_length = bytes.len();
         let mut response = Response::new(bytes);
@@ -493,24 +486,32 @@ impl convert::From<Vec<u8>> for Response {
 }
 
 impl<'a> convert::From<&'a [u8]> for Response {
+    /// Convert to response body.  The content length is set
+    /// automatically.
     fn from(bytes: &'a [u8]) -> Response {
         bytes.to_vec().into()
     }
 }
 
 impl<'a> convert::From<&'a str> for Response {
+    /// Convert to response body.  The content length is set
+    /// automatically.
     fn from(s: &'a str) -> Response {
         s.to_owned().into()
     }
 }
 
 impl convert::From<String> for Response {
+    /// Convert a new string to response body.  The content length is set
+    /// automatically.
     fn from(s: String) -> Response {
         s.into_bytes().into()
     }
 }
 
 impl convert::From<File> for Response {
+    /// Convert to response body.  The content length is set
+    /// automatically if file size is available from metadata.
     fn from(f: File) -> Response {
         let content_length = match f.metadata() {
             Ok(metadata) => {
