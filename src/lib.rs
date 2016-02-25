@@ -94,21 +94,23 @@ pub use serving::{
     run_server,
 };
 pub use testing::PencilClient;
+pub use module::Module;
 
 #[macro_use]
 mod utils;
 pub mod http_errors;
 pub mod datastructures;
 pub mod wrappers;
+pub mod routing;
+pub mod json;
+pub mod config;
+pub mod helpers;
+pub mod testing;
 mod app;
 mod types;
-mod json;
-mod config;
 mod logging;
-mod helpers;
 mod serving;
-mod routing;
-mod testing;
 mod httputils;
 mod templating;
 mod formparser;
+mod module;

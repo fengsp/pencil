@@ -126,6 +126,13 @@ impl<'a> From<&'a str> for Matcher {
     }
 }
 
+impl From<Regex> for Matcher {
+    fn from(regex: Regex) -> Matcher {
+        Matcher::new(regex)
+    }
+}
+
+
 /// A Rule represents one URL pattern.
 #[derive(Clone)]
 pub struct Rule {

@@ -62,6 +62,7 @@ pub struct Pencil {
     pub config: Config,
     /// The Handlebars registry used to load templates and register helpers.
     pub handlebars_registry: RwLock<Box<Handlebars>>,
+    /// The url map for this pencil application.
     pub url_map: Map,
     // A dictionary of all view functions registered.
     view_functions: HashMap<String, ViewFunc>,
@@ -145,8 +146,14 @@ impl Pencil {
         logging::set_log_level(self);
     }
 
-    /// A shortcut that is used to register a view function for a given
-    /// URL rule.
+    /// This is used to register a view function for a given URL rule.
+    /// Basically this example:
+    ///
+    /// ```rust,ignore
+    /// app.route("/home", &["GET"], "home", home);
+    /// app.route("/user/<int:user_id>", &["GET"], "user", user);
+    /// ```
+    ///
     pub fn route<M: Into<Matcher>>(&mut self, rule: M, methods: &[&str], endpoint: &str, view_func: ViewFunc) {
         self.add_url_rule(rule, methods, endpoint, view_func);
     }
