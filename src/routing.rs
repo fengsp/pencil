@@ -88,8 +88,6 @@ impl Matcher {
 /// If no converter is defined the `default` converter is used which means `string`.
 ///
 /// URL rules that end with a slash are branch URLs, others are leaves.
-/// All branch URLs that are matched without a trailing slash will trigger a
-/// redirect to the same URL with the missing slash appended.
 impl<'a> From<&'a str> for Matcher {
     fn from(rule: &'a str) -> Matcher {
         if !rule.starts_with("/") {
@@ -170,6 +168,8 @@ impl Rule {
     pub fn matched(&self, path: String) -> Option<ViewArgs> {
         match self.matcher.regex.captures(&path) {
             Some(caps) => {
+                // All branch URLs that are matched without a trailing slash will trigger a
+                // redirect to the same URL with the missing slash appended.
                 // We have a url without a trailing slash for branch url rule.
                 // So we redirect to the same url but with a trailing slash.
                 match caps.name("__suffix__") {
