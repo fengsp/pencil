@@ -151,16 +151,16 @@ impl Pencil {
     /// Basically this example:
     ///
     /// ```rust,ignore
-    /// app.route("/home", &["GET"], "home", home);
-    /// app.route("/user/<int:user_id>", &["GET"], "user", user);
+    /// app.route("/home", &[Get], "home", home);
+    /// app.route("/user/<int:user_id>", &[Get], "user", user);
     /// ```
     ///
-    pub fn route<M: Into<Matcher>>(&mut self, rule: M, methods: &[&str], endpoint: &str, view_func: ViewFunc) {
+    pub fn route<M: Into<Matcher>>(&mut self, rule: M, methods: &[Method], endpoint: &str, view_func: ViewFunc) {
         self.add_url_rule(rule, methods, endpoint, view_func);
     }
 
     /// Connects a URL rule.
-    fn add_url_rule<M: Into<Matcher>>(&mut self, rule: M, methods: &[&str], endpoint: &str, view_func: ViewFunc) {
+    fn add_url_rule<M: Into<Matcher>>(&mut self, rule: M, methods: &[Method], endpoint: &str, view_func: ViewFunc) {
         let matcher = rule.into();
         let url_rule = Rule::new(matcher, methods, endpoint);
         self.url_map.add(url_rule);
@@ -172,7 +172,7 @@ impl Pencil {
         let mut rule = self.static_url_path.clone();
         rule = rule + "/([^/].*?)";
         let rule_str: &str = &rule;
-        self.add_url_rule(rule_str, &["GET"], "static", send_static_file);
+        self.add_url_rule(rule_str, &[Method::Get], "static", send_static_file);
     }
 
     /// Registers a function to run before each request.
@@ -360,25 +360,9 @@ impl Pencil {
                 if let Some(ref rule) = request.url_rule {
                     // if we provide automatic options for this URL and the request
                     // came with the OPTIONS method, reply automatically
-                    if rule.provide_automatic_options && request.method() == String::from("OPTIONS") {
+                    if rule.provide_automatic_options && request.method() == Method::Options {
                         let mut response = Response::from("");
-                        let mut methods: Vec<Method> = vec![];
-                        for m in url_adapter.allowed_methods() {
-                            let method = match &m as &str {
-                                "OPTIONS" => Method::Options,
-                                "GET" => Method::Get,
-                                "POST" => Method::Post,
-                                "PUT" => Method::Put,
-                                "DELETE" => Method::Delete,
-                                "HEAD" => Method::Head,
-                                "TRACE" => Method::Trace,
-                                "CONNECT" => Method::Connect,
-                                "PATCH" => Method::Patch,
-                                e => Method::Extension(e.to_string()),
-                            };
-                            methods.push(method);
-                        }
-                        response.headers.set(hyper::header::Allow(methods));
+                        response.headers.set(hyper::header::Allow(url_adapter.allowed_methods()));
                         return Some(response);
                     }
                 }

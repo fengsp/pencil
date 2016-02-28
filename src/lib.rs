@@ -22,6 +22,7 @@
 //!
 //! use pencil::Pencil;
 //! use pencil::{Request, PencilResult, Response};
+//! use pencil::method::Get;
 //!
 //!
 //! fn hello(_: &mut Request) -> PencilResult {
@@ -31,7 +32,7 @@
 //!
 //! fn main() {
 //!     let mut app = Pencil::new("/web/hello");
-//!     app.route("/", &["GET"], "hello", hello);
+//!     app.route("/", &[Get], "hello", hello);
 //!     app.run();
 //! }
 //! ```
@@ -106,6 +107,7 @@ pub mod json;
 pub mod config;
 pub mod helpers;
 pub mod testing;
+pub mod method;
 mod app;
 mod types;
 mod logging;

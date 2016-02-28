@@ -4,7 +4,8 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use regex::Regex;
 use regex::quote as regex_quote;
-use std::ascii::AsciiExt;
+
+use hyper::method::Method;
 
 use http_errors::{HTTPError, MethodNotAllowed, NotFound};
 use types::ViewArgs;
@@ -137,7 +138,7 @@ pub struct Rule {
     /// The matcher is used to match the url path.
     pub matcher: Matcher,
     /// A set of http methods this rule applies to.
-    pub methods: HashSet<String>,
+    pub methods: HashSet<Method>,
     /// The endpoint for this rule.
     pub endpoint: String,
     pub provide_automatic_options: bool,
@@ -149,17 +150,16 @@ impl Rule {
     /// URL generation.  Rule methods is an array of http methods this rule
     /// applies to, if `GET` is present in it and `HEAD` is not, `HEAD` is
     /// added automatically.
-    pub fn new(matcher: Matcher, methods: &[&str], endpoint: &str) -> Rule {
-        let mut upper_methods: HashSet<String> = HashSet::new();
-        for &method in methods.iter() {
-            let upper_method = method.to_string().to_ascii_uppercase();
-            upper_methods.insert(upper_method);
+    pub fn new(matcher: Matcher, methods: &[Method], endpoint: &str) -> Rule {
+        let mut all_methods = HashSet::new();
+        for method in methods.iter() {
+            all_methods.insert(method.clone());
         }
-        if upper_methods.contains("GET") {
-            upper_methods.insert(String::from("HEAD"));
+        if all_methods.contains(&Method::Get) {
+            all_methods.insert(Method::Head);
         }
-        let provide_automatic_options = if !upper_methods.contains("OPTIONS") {
-            upper_methods.insert(String::from("OPTIONS"));
+        let provide_automatic_options = if !all_methods.contains(&Method::Options) {
+            all_methods.insert(Method::Options);
             true
         } else {
             false
@@ -167,7 +167,7 @@ impl Rule {
         Rule {
             matcher: matcher,
             endpoint: endpoint.to_string(),
-            methods: upper_methods,
+            methods: all_methods,
             provide_automatic_options: provide_automatic_options,
         }
     }
@@ -223,7 +223,7 @@ impl Map {
         self.rules.push(rule);
     }
 
-    pub fn bind(&self, path: String, method: String) -> MapAdapter {
+    pub fn bind(&self, path: String, method: Method) -> MapAdapter {
         MapAdapter::new(self, path, method)
     }
 }
@@ -233,11 +233,11 @@ impl Map {
 pub struct MapAdapter<'m> {
     map: &'m Map,
     path: String,
-    method: String,
+    method: Method,
 }
 
 impl<'m> MapAdapter<'m> {
-    pub fn new(map: &Map, path: String, method: String) -> MapAdapter {
+    pub fn new(map: &Map, path: String, method: Method) -> MapAdapter {
         MapAdapter {
             map: map,
             path: path,
@@ -246,7 +246,7 @@ impl<'m> MapAdapter<'m> {
     }
 
     pub fn matched(&self) -> Result<(Rule, ViewArgs), HTTPError> {
-        let mut have_match_for: HashSet<String> = HashSet::new();
+        let mut have_match_for = HashSet::new();
         for rule in self.map.rules.iter() {
             let rv: ViewArgs;
             match rule.matched(self.path.clone()) {
@@ -262,13 +262,15 @@ impl<'m> MapAdapter<'m> {
             return Ok((rule.clone(), rv))
         }
         if !have_match_for.is_empty() {
-            return Err(MethodNotAllowed(Some(have_match_for)))
+            let mut allowed_methods = Vec::new();
+            allowed_methods.extend(have_match_for.into_iter());
+            return Err(MethodNotAllowed(Some(allowed_methods)))
         }
         return Err(NotFound)
     }
 
     /// Get the valid methods that match for the given path.
-    pub fn allowed_methods(&self) -> HashSet<String> {
+    pub fn allowed_methods(&self) -> Vec<Method> {
         let mut have_match_for = HashSet::new();
         for rule in self.map.rules.iter() {
             match rule.matched(self.path.clone()) {
@@ -281,7 +283,9 @@ impl<'m> MapAdapter<'m> {
                 None => { continue; },
             }
         }
-        return have_match_for;
+        let mut allowed_methods = Vec::new();
+        allowed_methods.extend(have_match_for.into_iter());
+        allowed_methods
     }
 }
 
@@ -289,14 +293,14 @@ impl<'m> MapAdapter<'m> {
 #[test]
 fn test_basic_routing() {
     let mut map = Map::new();
-    map.add(Rule::new("/".into(), &["GET"], "index"));
-    map.add(Rule::new("/foo".into(), &["GET"], "foo"));
-    map.add(Rule::new("/bar/".into(), &["GET"], "bar"));
-    let adapter = map.bind(String::from("/bar/"), String::from("GET"));
+    map.add(Rule::new("/".into(), &[Method::Get], "index"));
+    map.add(Rule::new("/foo".into(), &[Method::Get], "foo"));
+    map.add(Rule::new("/bar/".into(), &[Method::Get], "bar"));
+    let adapter = map.bind(String::from("/bar/"), Method::Get);
     match adapter.matched() {
         Ok((rule, view_args)) => {
-            assert!(rule.methods.contains("GET"));
-            assert!(!rule.methods.contains("POST"));
+            assert!(rule.methods.contains(&Method::Get));
+            assert!(!rule.methods.contains(&Method::Post));
             assert!(rule.endpoint == String::from("bar"));
             assert!(view_args.len() == 0);
         },

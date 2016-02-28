@@ -2,7 +2,6 @@
 
 use std::error::Error;
 use std::fmt;
-use std::collections::HashSet;
 
 use hyper;
 use hyper::method::Method;
@@ -69,7 +68,7 @@ pub enum HTTPError {
     Unauthorized,
     Forbidden,
     NotFound,
-    MethodNotAllowed(Option<HashSet<String>>),
+    MethodNotAllowed(Option<Vec<Method>>),
     NotAcceptable,
     RequestTimeout,
     Conflict,
@@ -236,23 +235,7 @@ impl HTTPError {
         response.set_content_type("text/html");
         match *self {
             MethodNotAllowed(Some(ref valid_methods)) => {
-                let mut methods: Vec<Method> = vec![];
-                for m in valid_methods {
-                    let method = match &m as &str {
-                        "OPTIONS" => Method::Options,
-                        "GET" => Method::Get,
-                        "POST" => Method::Post,
-                        "PUT" => Method::Put,
-                        "DELETE" => Method::Delete,
-                        "HEAD" => Method::Head,
-                        "TRACE" => Method::Trace,
-                        "CONNECT" => Method::Connect,
-                        "PATCH" => Method::Patch,
-                        e => Method::Extension(e.to_string()),
-                    };
-                    methods.push(method);
-                }
-                response.headers.set(hyper::header::Allow(methods));
+                response.headers.set(hyper::header::Allow(valid_methods.clone()));
             },
             _ => {}
         }

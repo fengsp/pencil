@@ -224,19 +224,8 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
     }
 
     /// The request method.
-    pub fn method(&self) -> String {
-        match self.request.method {
-            Method::Options => "OPTIONS".to_string(),
-            Method::Get => "GET".to_string(),
-            Method::Post => "POST".to_string(),
-            Method::Put => "PUT".to_string(),
-            Method::Delete => "DELETE".to_string(),
-            Method::Head => "HEAD".to_string(),
-            Method::Trace => "TRACE".to_string(),
-            Method::Connect => "CONNECT".to_string(),
-            Method::Patch => "PATCH".to_string(),
-            Method::Extension(ref method) => method.clone(),
-        }
+    pub fn method(&self) -> Method {
+        self.request.method.clone()
     }
 
     /// The remote address of the client.
@@ -446,7 +435,7 @@ impl Response {
 
     /// Write the response out.  Mostly you shouldn't use this directly.
     #[doc(hidden)]
-    pub fn write(mut self, request_method: String, mut res: hyper::server::Response) {
+    pub fn write(mut self, request_method: Method, mut res: hyper::server::Response) {
         // write status.
         let status_code = self.status_code;
         *res.status_mut() = get_status_from_code(status_code);
@@ -455,7 +444,7 @@ impl Response {
         *res.headers_mut() = self.headers;
 
         // write data.
-        if request_method == String::from("HEAD") ||
+        if request_method == Method::Head ||
            (100 <= status_code && status_code < 200) || status_code == 204 || status_code == 304 {
             res.headers_mut().set(ContentLength(0));
             try_return!(res.start().and_then(|w| w.end()));
