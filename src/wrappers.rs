@@ -68,8 +68,7 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
             Some(path) => {
                 let url_adapter = self.app.url_map.bind(path, self.method());
                 match url_adapter.matched() {
-                    Ok(caps) => {
-                        let (rule, view_args) = caps;
+                    Ok((rule, view_args)) => {
                         self.url_rule = Some(rule);
                         self.view_args = view_args;
                     },

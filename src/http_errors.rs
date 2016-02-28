@@ -2,9 +2,12 @@
 
 use std::error::Error;
 use std::fmt;
+use std::collections::HashSet;
+
+use hyper;
+use hyper::method::Method;
 
 use httputils::get_name_by_http_code;
-
 use wrappers::Response;
 
 pub use self::HTTPError::{
@@ -60,13 +63,13 @@ pub use self::HTTPError::{
 ///     return abort(404)
 /// }
 /// ```
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub enum HTTPError {
     BadRequest,
     Unauthorized,
     Forbidden,
     NotFound,
-    MethodNotAllowed,  // Set "Allow" header key for valid_methods seperated by ", "
+    MethodNotAllowed(Option<HashSet<String>>),
     NotAcceptable,
     RequestTimeout,
     Conflict,
@@ -97,7 +100,7 @@ impl HTTPError {
             401 => Unauthorized,
             403 => Forbidden,
             404 => NotFound,
-            405 => MethodNotAllowed,
+            405 => MethodNotAllowed(None),
             406 => NotAcceptable,
             408 => RequestTimeout,
             409 => Conflict,
@@ -129,7 +132,7 @@ impl HTTPError {
             Unauthorized => 401,
             Forbidden => 403,
             NotFound => 404,
-            MethodNotAllowed => 405,
+            MethodNotAllowed(_) => 405,
             NotAcceptable => 406,
             RequestTimeout => 408,
             Conflict => 409,
@@ -176,7 +179,7 @@ impl HTTPError {
                           by the server.",
             NotFound => "The requested URL was not found on the server.  If you \
                          entered the URL manually please check your spelling and try again.",
-            MethodNotAllowed => "The method is not allowed for the requested URL.",
+            MethodNotAllowed(_) => "The method is not allowed for the requested URL.",
             NotAcceptable => "The resource identified by the request is only capable \
                               of generating response entities which have content \
                               characteristics not acceptable according to the accept \
@@ -231,6 +234,28 @@ impl HTTPError {
         let mut response = Response::from(self.get_body());
         response.status_code = self.code();
         response.set_content_type("text/html");
+        match *self {
+            MethodNotAllowed(Some(ref valid_methods)) => {
+                let mut methods: Vec<Method> = vec![];
+                for m in valid_methods {
+                    let method = match &m as &str {
+                        "OPTIONS" => Method::Options,
+                        "GET" => Method::Get,
+                        "POST" => Method::Post,
+                        "PUT" => Method::Put,
+                        "DELETE" => Method::Delete,
+                        "HEAD" => Method::Head,
+                        "TRACE" => Method::Trace,
+                        "CONNECT" => Method::Connect,
+                        "PATCH" => Method::Patch,
+                        e => Method::Extension(e.to_string()),
+                    };
+                    methods.push(method);
+                }
+                response.headers.set(hyper::header::Allow(methods));
+            },
+            _ => {}
+        }
         return response;
     }
 }

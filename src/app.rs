@@ -12,6 +12,7 @@ use rustc_serialize::json::Json;
 use rustc_serialize::json::ToJson;
 use handlebars::Handlebars;
 use hyper;
+use hyper::method::Method;
 use hyper::server::Request as HTTPRequest;
 use hyper::server::Response as HTTPResponse;
 
@@ -335,8 +336,11 @@ impl Pencil {
     /// Does the request dispatching.  Matches the URL and returns the return
     /// value of the view.
     fn dispatch_request(&self, request: &mut Request) -> PencilResult {
-        if request.routing_error.is_some() {
-            return Err(PenHTTPError(request.routing_error.unwrap()));
+        if let Some(ref routing_error) = request.routing_error {
+            return Err(PenHTTPError(routing_error.clone()));
+        }
+        if let Some(default_options_response) = self.make_default_options_response(request) {
+            return Ok(default_options_response);
         }
         match self.view_functions.get(&request.endpoint().unwrap()) {
             Some(&view_func) => {
@@ -346,6 +350,42 @@ impl Pencil {
                 return Err(PenHTTPError(NotFound));
             }
         }
+    }
+
+    /// This method is called to create the default `OPTIONS` response.
+    fn make_default_options_response(&self, request: &Request) -> Option<Response> {
+        match request.path() {
+            Some(path) => {
+                let url_adapter = self.url_map.bind(path, request.method());
+                if let Some(ref rule) = request.url_rule {
+                    // if we provide automatic options for this URL and the request
+                    // came with the OPTIONS method, reply automatically
+                    if rule.provide_automatic_options && request.method() == String::from("OPTIONS") {
+                        let mut response = Response::from("");
+                        let mut methods: Vec<Method> = vec![];
+                        for m in url_adapter.allowed_methods() {
+                            let method = match &m as &str {
+                                "OPTIONS" => Method::Options,
+                                "GET" => Method::Get,
+                                "POST" => Method::Post,
+                                "PUT" => Method::Put,
+                                "DELETE" => Method::Delete,
+                                "HEAD" => Method::Head,
+                                "TRACE" => Method::Trace,
+                                "CONNECT" => Method::Connect,
+                                "PATCH" => Method::Patch,
+                                e => Method::Extension(e.to_string()),
+                            };
+                            methods.push(method);
+                        }
+                        response.headers.set(hyper::header::Allow(methods));
+                        return Some(response);
+                    }
+                }
+            },
+            None => {}
+        }
+        None
     }
 
     /// Modify the response object before it's sent to the HTTP server.
@@ -423,7 +463,7 @@ impl Pencil {
     }
 
     /// Dispatches the request and performs request pre and postprocessing
-    /// as well as HTTP error handling.
+    /// as well as HTTP error handling and User error handling.
     fn full_dispatch_request(&self, request: &mut Request) -> Result<Response, PencilError> {
         let result = match self.preprocess_request(request) {
             Some(result) => result,

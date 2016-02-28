@@ -140,6 +140,7 @@ pub struct Rule {
     pub methods: HashSet<String>,
     /// The endpoint for this rule.
     pub endpoint: String,
+    pub provide_automatic_options: bool,
 }
 
 impl Rule {
@@ -157,10 +158,17 @@ impl Rule {
         if upper_methods.contains("GET") {
             upper_methods.insert(String::from("HEAD"));
         }
+        let provide_automatic_options = if !upper_methods.contains("OPTIONS") {
+            upper_methods.insert(String::from("OPTIONS"));
+            true
+        } else {
+            false
+        };
         Rule {
             matcher: matcher,
             endpoint: endpoint.to_string(),
             methods: upper_methods,
+            provide_automatic_options: provide_automatic_options,
         }
     }
 
@@ -238,7 +246,7 @@ impl<'m> MapAdapter<'m> {
     }
 
     pub fn matched(&self) -> Result<(Rule, ViewArgs), HTTPError> {
-        let mut have_match_for = HashSet::new();
+        let mut have_match_for: HashSet<String> = HashSet::new();
         for rule in self.map.rules.iter() {
             let rv: ViewArgs;
             match rule.matched(self.path.clone()) {
@@ -246,19 +254,37 @@ impl<'m> MapAdapter<'m> {
                 None => { continue; },
             }
             if !rule.methods.contains(&self.method) {
-                for method in rule.methods.iter() {
-                    have_match_for.insert(method);
+                for method in &rule.methods {
+                    have_match_for.insert(method.clone());
                 }
                 continue;
             }
             return Ok((rule.clone(), rv))
         }
         if !have_match_for.is_empty() {
-            return Err(MethodNotAllowed)
+            return Err(MethodNotAllowed(Some(have_match_for)))
         }
         return Err(NotFound)
     }
+
+    /// Get the valid methods that match for the given path.
+    pub fn allowed_methods(&self) -> HashSet<String> {
+        let mut have_match_for = HashSet::new();
+        for rule in self.map.rules.iter() {
+            match rule.matched(self.path.clone()) {
+                Some(_) => {
+                    for method in &rule.methods {
+                        have_match_for.insert(method.clone());
+                    }
+                    continue;
+                },
+                None => { continue; },
+            }
+        }
+        return have_match_for;
+    }
 }
+
 
 #[test]
 fn test_basic_routing() {
