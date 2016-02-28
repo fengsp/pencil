@@ -159,6 +159,42 @@ impl Pencil {
         self.add_url_rule(rule, methods, endpoint, view_func);
     }
 
+    /// This is a shortcut for `route`, register a view function for
+    /// a given URL rule with just `GET` method.
+    pub fn get<M: Into<Matcher>>(&mut self, rule: M, endpoint: &str, view_func: ViewFunc) {
+        self.add_url_rule(rule, &[Method::Get], endpoint, view_func);
+    }
+
+    /// This is a shortcut for `route`, register a view function for
+    /// a given URL rule with just `HEAD` method.
+    pub fn head<M: Into<Matcher>>(&mut self, rule: M, endpoint: &str, view_func: ViewFunc) {
+        self.add_url_rule(rule, &[Method::Head], endpoint, view_func);
+    }
+
+    /// This is a shortcut for `route`, register a view function for
+    /// a given URL rule with just `POST` method.
+    pub fn post<M: Into<Matcher>>(&mut self, rule: M, endpoint: &str, view_func: ViewFunc) {
+        self.add_url_rule(rule, &[Method::Post], endpoint, view_func);
+    }
+
+    /// This is a shortcut for `route`, register a view function for
+    /// a given URL rule with just `DELETE` method.
+    pub fn delete<M: Into<Matcher>>(&mut self, rule: M, endpoint: &str, view_func: ViewFunc) {
+        self.add_url_rule(rule, &[Method::Delete], endpoint, view_func);
+    }
+
+    /// This is a shortcut for `route`, register a view function for
+    /// a given URL rule with just `PATCH` method.
+    pub fn patch<M: Into<Matcher>>(&mut self, rule: M, endpoint: &str, view_func: ViewFunc) {
+        self.add_url_rule(rule, &[Method::Patch], endpoint, view_func);
+    }
+
+    /// This is a shortcut for `route`, register a view function for
+    /// a given URL rule with just `PUT` method.
+    pub fn put<M: Into<Matcher>>(&mut self, rule: M, endpoint: &str, view_func: ViewFunc) {
+        self.add_url_rule(rule, &[Method::Put], endpoint, view_func);
+    }
+
     /// Connects a URL rule.
     fn add_url_rule<M: Into<Matcher>>(&mut self, rule: M, methods: &[Method], endpoint: &str, view_func: ViewFunc) {
         let matcher = rule.into();
