@@ -397,7 +397,7 @@ impl Pencil {
                     // if we provide automatic options for this URL and the request
                     // came with the OPTIONS method, reply automatically
                     if rule.provide_automatic_options && request.method() == Method::Options {
-                        let mut response = Response::from("");
+                        let mut response = Response::new_empty();
                         response.headers.set(hyper::header::Allow(url_adapter.allowed_methods()));
                         return Some(response);
                     }

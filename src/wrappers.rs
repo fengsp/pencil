@@ -365,7 +365,7 @@ pub struct Response {
     /// The HTTP Status code number
     pub status_code: isize,
     pub headers: Headers,
-    pub body: Box<BodyWrite>,
+    pub body: Option<Box<BodyWrite>>,
 }
 
 impl Response {
@@ -384,12 +384,21 @@ impl Response {
         let mut response = Response {
             status_code: 200,
             headers: Headers::new(),
-            body: Box::new(body),
+            body: Some(Box::new(body)),
         };
         let mime: Mime = "text/html; charset=UTF-8".parse().unwrap();
         let content_type = ContentType(mime);
         response.headers.set(content_type);
         return response;
+    }
+
+    /// Create an empty response without body.
+    pub fn new_empty() -> Response {
+        Response {
+            status_code: 200,
+            headers: Headers::new(),
+            body: None,
+        }
     }
 
     /// Get status name.
@@ -435,7 +444,7 @@ impl Response {
 
     /// Write the response out.  Mostly you shouldn't use this directly.
     #[doc(hidden)]
-    pub fn write(mut self, request_method: Method, mut res: hyper::server::Response) {
+    pub fn write(self, request_method: Method, mut res: hyper::server::Response) {
         // write status.
         let status_code = self.status_code;
         *res.status_mut() = get_status_from_code(status_code);
@@ -449,9 +458,17 @@ impl Response {
             res.headers_mut().set(ContentLength(0));
             try_return!(res.start().and_then(|w| w.end()));
         } else {
-            let mut res = try_return!(res.start());
-            try_return!(self.body.write_body(&mut ResponseBody::new(&mut res)));
-            try_return!(res.end());
+            match self.body {
+                Some(mut body) => {
+                    let mut res = try_return!(res.start());
+                    try_return!(body.write_body(&mut ResponseBody::new(&mut res)));
+                    try_return!(res.end());
+                },
+                None => {
+                    res.headers_mut().set(ContentLength(0));
+                    try_return!(res.start().and_then(|w| w.end()));
+                }
+            }
         }
     }
 }
