@@ -71,7 +71,7 @@ pub struct Pencil {
     after_request_funcs: Vec<AfterRequestFunc>,
     teardown_request_funcs: Vec<TeardownRequestFunc>,
     http_error_handlers: HashMap<isize, HTTPErrorHandler>,
-    user_error_handlers: HashMap<&'static str, UserErrorHandler>,
+    user_error_handlers: HashMap<String, UserErrorHandler>,
 }
 
 fn default_config() -> Config {
@@ -236,8 +236,8 @@ impl Pencil {
 
     /// Registers a function as one user error handler.
     /// Same to `usererrorhandler`.
-    pub fn register_user_error_handler(&mut self, error_desc: &'static str, f: UserErrorHandler) {
-        self.user_error_handlers.insert(error_desc, f);
+    pub fn register_user_error_handler(&mut self, error_desc: &str, f: UserErrorHandler) {
+        self.user_error_handlers.insert(error_desc.to_string(), f);
     }
 
     /// Registers a function as one http error handler.  Example:
@@ -340,7 +340,7 @@ impl Pencil {
     ///     app.usererrorhandler("MyErr", my_err_handler);
     /// }
     /// ```
-    pub fn usererrorhandler(&mut self, error_desc: &'static str, f: UserErrorHandler) {
+    pub fn usererrorhandler(&mut self, error_desc: &str, f: UserErrorHandler) {
         self.register_user_error_handler(error_desc, f);
     }
 
@@ -434,7 +434,7 @@ impl Pencil {
 
     /// Handles an User error.
     fn handle_user_error(&self, e: UserError) -> PencilResult {
-        match self.user_error_handlers.get(e.description()) {
+        match self.user_error_handlers.get(&e.desc) {
             Some(&handler) => handler(e),
             None => Err(PenUserError(e)),
         }
