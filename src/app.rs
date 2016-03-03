@@ -155,49 +155,48 @@ impl Pencil {
     /// app.route("/user/<int:user_id>", &[Get], "user", user);
     /// ```
     ///
-    pub fn route<M: Into<Matcher>>(&mut self, rule: M, methods: &[Method], endpoint: &str, view_func: ViewFunc) {
-        self.add_url_rule(rule, methods, endpoint, view_func);
+    pub fn route<M: Into<Matcher>, N: AsRef<[Method]>>(&mut self, rule: M, methods: N, endpoint: &str, view_func: ViewFunc) {
+        self.add_url_rule(rule.into(), methods.as_ref(), endpoint, view_func);
     }
 
     /// This is a shortcut for `route`, register a view function for
     /// a given URL rule with just `GET` method.
     pub fn get<M: Into<Matcher>>(&mut self, rule: M, endpoint: &str, view_func: ViewFunc) {
-        self.add_url_rule(rule, &[Method::Get], endpoint, view_func);
+        self.route(rule, &[Method::Get], endpoint, view_func);
     }
 
     /// This is a shortcut for `route`, register a view function for
     /// a given URL rule with just `HEAD` method.
     pub fn head<M: Into<Matcher>>(&mut self, rule: M, endpoint: &str, view_func: ViewFunc) {
-        self.add_url_rule(rule, &[Method::Head], endpoint, view_func);
+        self.route(rule, &[Method::Head], endpoint, view_func);
     }
 
     /// This is a shortcut for `route`, register a view function for
     /// a given URL rule with just `POST` method.
     pub fn post<M: Into<Matcher>>(&mut self, rule: M, endpoint: &str, view_func: ViewFunc) {
-        self.add_url_rule(rule, &[Method::Post], endpoint, view_func);
+        self.route(rule, &[Method::Post], endpoint, view_func);
     }
 
     /// This is a shortcut for `route`, register a view function for
     /// a given URL rule with just `DELETE` method.
     pub fn delete<M: Into<Matcher>>(&mut self, rule: M, endpoint: &str, view_func: ViewFunc) {
-        self.add_url_rule(rule, &[Method::Delete], endpoint, view_func);
+        self.route(rule, &[Method::Delete], endpoint, view_func);
     }
 
     /// This is a shortcut for `route`, register a view function for
     /// a given URL rule with just `PATCH` method.
     pub fn patch<M: Into<Matcher>>(&mut self, rule: M, endpoint: &str, view_func: ViewFunc) {
-        self.add_url_rule(rule, &[Method::Patch], endpoint, view_func);
+        self.route(rule, &[Method::Patch], endpoint, view_func);
     }
 
     /// This is a shortcut for `route`, register a view function for
     /// a given URL rule with just `PUT` method.
     pub fn put<M: Into<Matcher>>(&mut self, rule: M, endpoint: &str, view_func: ViewFunc) {
-        self.add_url_rule(rule, &[Method::Put], endpoint, view_func);
+        self.route(rule, &[Method::Put], endpoint, view_func);
     }
 
     /// Connects a URL rule.
-    fn add_url_rule<M: Into<Matcher>>(&mut self, rule: M, methods: &[Method], endpoint: &str, view_func: ViewFunc) {
-        let matcher = rule.into();
+    pub fn add_url_rule(&mut self, matcher: Matcher, methods: &[Method], endpoint: &str, view_func: ViewFunc) {
         let url_rule = Rule::new(matcher, methods, endpoint);
         self.url_map.add(url_rule);
         self.view_functions.insert(endpoint.to_string(), view_func);
@@ -208,7 +207,7 @@ impl Pencil {
         let mut rule = self.static_url_path.clone();
         rule = rule + "/([^/].*?)";
         let rule_str: &str = &rule;
-        self.add_url_rule(rule_str, &[Method::Get], "static", send_static_file);
+        self.route(rule_str, &[Method::Get], "static", send_static_file);
     }
 
     /// Registers a function to run before each request.

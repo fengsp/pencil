@@ -125,6 +125,14 @@ impl<'a> From<&'a str> for Matcher {
     }
 }
 
+/// Same rule as `&str`.
+impl From<String> for Matcher {
+    fn from(rule: String) -> Matcher {
+        let rule_str: &str = &rule;
+        rule_str.into()
+    }
+}
+
 impl From<Regex> for Matcher {
     fn from(regex: Regex) -> Matcher {
         Matcher::new(regex)

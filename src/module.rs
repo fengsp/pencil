@@ -2,6 +2,7 @@
 //! pluggable applications.
 
 use std::collections::HashMap;
+use std::mem;
 
 use hyper::method::Method;
 
@@ -10,6 +11,7 @@ use routing::Matcher;
 use types::ViewFunc;
 use types::{BeforeRequestFunc, AfterRequestFunc, TeardownRequestFunc};
 use types::{HTTPErrorHandler, UserErrorHandler};
+use helpers::send_static_file;
 
 
 /// Represents a module.
@@ -18,15 +20,11 @@ pub struct Module {
     pub name: String,
     /// The path where your module locates.
     pub root_path: String,
-    /// The url prefix.
-    pub url_prefix: String,
     /// The folder with static files that should be served at `static_url_path`.
-    /// Defaults to the `"static"` folder in the root path of the module.
     pub static_folder: Option<String>,
     /// The url path for the static files on the web.
     pub static_url_path: Option<String>,
     /// The folder that contains the templates that should be used for the module.
-    /// Defaults to `''templates''` folder in the root path of the module.
     pub template_folder: Option<String>,
     before_request_funcs: Vec<BeforeRequestFunc>,
     after_request_funcs: Vec<AfterRequestFunc>,
@@ -34,14 +32,14 @@ pub struct Module {
     http_error_handlers: HashMap<isize, HTTPErrorHandler>,
     user_error_handlers: HashMap<String, UserErrorHandler>,
     deferred_functions: Vec<Box<Fn(&mut Pencil)>>,
+    deferred_routes: Vec<(Matcher, Vec<Method>, String, ViewFunc)>,
 }
 
 impl Module {
-    pub fn new(name: &str, root_path: &str, url_prefix: &str) -> Module {
+    pub fn new(name: &str, root_path: &str) -> Module {
         Module {
             name: name.to_string(),
             root_path: root_path.to_string(),
-            url_prefix: url_prefix.to_string(),
             static_folder: None,
             static_url_path: None,
             template_folder: None,
@@ -51,6 +49,7 @@ impl Module {
             http_error_handlers: HashMap::new(),
             user_error_handlers: HashMap::new(),
             deferred_functions: Vec::new(),
+            deferred_routes: Vec::new(),
         }
     }
 
@@ -58,11 +57,15 @@ impl Module {
         self.deferred_functions.push(Box::new(f));
     }
 
-    pub fn route<M: Into<Matcher>>(&mut self, rule: M, methods: &[Method], endpoint: &str, view_func: ViewFunc) {
+    /// The endpoint is automatically prefixed with the module's name.
+    pub fn route<M: Into<Matcher>, N: AsRef<[Method]>>(&mut self, rule: M, methods: N, endpoint: &str, view_func: ViewFunc) {
+        let mut methods_vec: Vec<Method> = Vec::new();
+        methods_vec.extend(methods.as_ref().iter().cloned());
         if endpoint.contains(".") {
             panic!("Module endpoint should not contain dot");
         }
-        // self.record(|app| app.add_url_rule(rule, methods, endpoint, view_func));
+        let endpoint = format!("{}.{}", self.name, endpoint);
+        self.deferred_routes.push((rule.into(), methods_vec, endpoint, view_func));
     }
 
     /// Before request for a module.  This is only executed before each request
@@ -120,5 +123,32 @@ impl Module {
     pub fn app_usererrorhandler(&mut self, error_desc: &str, f: UserErrorHandler) {
         let desc = error_desc.to_string();
         self.record(move |app| app.register_user_error_handler(&desc, f));
+    }
+
+    /// Register this module.
+    pub fn register(mut self, app: &mut Pencil) {
+        let static_url_path = match self.static_folder {
+            Some(_) => {
+                match self.static_url_path {
+                    Some(ref static_url_path) => Some(static_url_path.clone()),
+                    None => None,
+                }
+            },
+            None => None
+        };
+        if let Some(static_url_path) = static_url_path {
+            let mut rule = static_url_path.clone();
+            rule = rule + "/<path:filename>";
+            // TODO implement send_module_static_file
+            self.route(rule, &[Method::Get], "static", send_static_file);
+        }
+        let deferred_routes = mem::replace(&mut self.deferred_routes, Vec::new());
+        for (matcher, methods, endpoint, view_func) in deferred_routes {
+            app.add_url_rule(matcher, methods.as_ref(), &endpoint, view_func);
+        }
+        let deferred_functions = mem::replace(&mut self.deferred_functions, Vec::new());
+        for deferred in deferred_functions {
+            deferred(app);
+        }
     }
 }
