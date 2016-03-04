@@ -42,6 +42,7 @@ use routing::{Map, Rule, Matcher};
 use testing::PencilClient;
 use http_errors::{HTTPError, NotFound, InternalServerError};
 use templating::{render_template, render_template_string};
+use module::Module;
 
 
 /// The pencil type.  It acts as the central application object.  Once it is created it
@@ -65,7 +66,9 @@ pub struct Pencil {
     pub handlebars_registry: RwLock<Box<Handlebars>>,
     /// The url map for this pencil application.
     pub url_map: Map,
-    // A dictionary of all view functions registered.
+    /// All the attached modules in a hashmap by name.
+    modules: HashMap<String, Module>,
+    /// A dictionary of all view functions registered.
     view_functions: HashMap<String, ViewFunc>,
     before_request_funcs: Vec<BeforeRequestFunc>,
     after_request_funcs: Vec<AfterRequestFunc>,
@@ -105,6 +108,7 @@ impl Pencil {
             config: default_config(),
             handlebars_registry: RwLock::new(Box::new(Handlebars::new())),
             url_map: Map::new(),
+            modules: HashMap::new(),
             view_functions: HashMap::new(),
             before_request_funcs: vec![],
             after_request_funcs: vec![],
@@ -200,6 +204,15 @@ impl Pencil {
         let url_rule = Rule::new(matcher, methods, endpoint);
         self.url_map.add(url_rule);
         self.view_functions.insert(endpoint.to_string(), view_func);
+    }
+
+    /// Register a module on the application.
+    pub fn register_module(&mut self, mut module: Module) {
+        if self.modules.contains_key(&module.name) {
+            panic!("A module that is named {} already exists, name collision occurred.", module.name);
+        }
+        module.register(self);
+        self.modules.insert(module.name.clone(), module);
     }
 
     /// Enables static file handling.

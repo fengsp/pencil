@@ -31,7 +31,7 @@ pub struct Module {
     teardown_request_funcs: Vec<TeardownRequestFunc>,
     http_error_handlers: HashMap<isize, HTTPErrorHandler>,
     user_error_handlers: HashMap<String, UserErrorHandler>,
-    deferred_functions: Vec<Box<Fn(&mut Pencil)>>,
+    deferred_functions: Vec<Box<Fn(&mut Pencil) + Send + Sync>>,
     deferred_routes: Vec<(Matcher, Vec<Method>, String, ViewFunc)>,
 }
 
@@ -53,7 +53,7 @@ impl Module {
         }
     }
 
-    fn record<F: Fn(&mut Pencil) + 'static>(&mut self, f: F) {
+    fn record<F: Fn(&mut Pencil) + Send + Sync + 'static>(&mut self, f: F) {
         self.deferred_functions.push(Box::new(f));
     }
 
@@ -126,7 +126,7 @@ impl Module {
     }
 
     /// Register this module.
-    pub fn register(mut self, app: &mut Pencil) {
+    pub fn register(&mut self, app: &mut Pencil) {
         let static_url_path = match self.static_folder {
             Some(_) => {
                 match self.static_url_path {
