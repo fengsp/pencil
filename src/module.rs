@@ -26,11 +26,16 @@ pub struct Module {
     pub static_url_path: Option<String>,
     /// The folder that contains the templates that should be used for the module.
     pub template_folder: Option<String>,
-    before_request_funcs: Vec<BeforeRequestFunc>,
-    after_request_funcs: Vec<AfterRequestFunc>,
-    teardown_request_funcs: Vec<TeardownRequestFunc>,
-    http_error_handlers: HashMap<isize, HTTPErrorHandler>,
-    user_error_handlers: HashMap<String, UserErrorHandler>,
+    #[doc(hidden)]
+    pub before_request_funcs: Vec<BeforeRequestFunc>,
+    #[doc(hidden)]
+    pub after_request_funcs: Vec<AfterRequestFunc>,
+    #[doc(hidden)]
+    pub teardown_request_funcs: Vec<TeardownRequestFunc>,
+    #[doc(hidden)]
+    pub http_error_handlers: HashMap<isize, HTTPErrorHandler>,
+    #[doc(hidden)]
+    pub user_error_handlers: HashMap<String, UserErrorHandler>,
     deferred_functions: Vec<Box<Fn(&mut Pencil) + Send + Sync>>,
     deferred_routes: Vec<(Matcher, Vec<Method>, String, ViewFunc)>,
 }
@@ -126,7 +131,11 @@ impl Module {
     }
 
     /// Register this module.
-    pub fn register(&mut self, app: &mut Pencil) {
+    pub fn register(mut self, app: &mut Pencil) {
+        if app.modules.contains_key(&self.name) {
+            panic!("A module that is named {} already exists, name collision occurred.", self.name);
+        }
+
         let static_url_path = match self.static_folder {
             Some(_) => {
                 match self.static_url_path {
@@ -150,5 +159,7 @@ impl Module {
         for deferred in deferred_functions {
             deferred(app);
         }
+
+        app.modules.insert(self.name.clone(), self);
     }
 }

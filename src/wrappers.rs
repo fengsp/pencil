@@ -91,6 +91,17 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
         }
     }
 
+    /// The current module name.
+    pub fn module_name(&self) -> Option<String> {
+        if let Some(endpoint) = self.endpoint() {
+            if endpoint.contains(".") {
+                let v: Vec<&str> = endpoint.rsplitn(2, '.').collect();
+                return Some(v[1].to_string());
+            }
+        }
+        None
+    }
+
     /// The parsed URL parameters.
     pub fn args(&mut self) -> &MultiDict<String> {
         if self.args.is_none() {
