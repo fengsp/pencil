@@ -54,6 +54,7 @@ extern crate regex;
 extern crate url;
 extern crate formdata;
 extern crate handlebars;
+extern crate anymap;
 
 /* public api */
 pub use app::Pencil;

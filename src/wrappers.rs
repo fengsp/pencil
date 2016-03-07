@@ -17,6 +17,7 @@ use url::UrlParser;
 use url::form_urlencoded;
 use formdata::uploaded_file::UploadedFile;
 use rustc_serialize::json;
+use anymap::AnyMap;
 
 use app::Pencil;
 use datastructures::MultiDict;
@@ -40,6 +41,8 @@ pub struct Request<'r, 'a, 'b: 'a> {
     pub view_args: ViewArgs,
     /// If matching the URL failed, this will be the error.
     pub routing_error: Option<HTTPError>,
+    /// Storage for data of extensions.
+    pub extensions_data: AnyMap,
     args: Option<MultiDict<String>>,
     form: Option<MultiDict<String>>,
     files: Option<MultiDict<UploadedFile>>,
@@ -55,6 +58,7 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
             url_rule: None,
             view_args: HashMap::new(),
             routing_error: None,
+            extensions_data: AnyMap::new(),
             args: None,
             form: None,
             files: None,
