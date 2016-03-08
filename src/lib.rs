@@ -5,8 +5,8 @@
 //! This crate is called `pencil` and you can depend on it via cargo:
 //!
 //! ```ini
-//! [dependencies.pencil]
-//! git = "https://github.com/fengsp/pencil.git"
+//! [dependencies]
+//! pencil = "*"
 //! ```
 //!
 //! # Quickstart
