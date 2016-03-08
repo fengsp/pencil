@@ -429,7 +429,9 @@ impl Response {
         self.headers.get()
     }
 
-    /// Set response content type.
+    /// Set response content type.  If the mimetype passed is a
+    /// mimetype starting with `text/` or something that needs a charset,
+    /// the charset(UTF-8) parameter is appended to it.
     pub fn set_content_type(&mut self, mimetype: &str) {
         let mimetype = get_content_type(mimetype, "UTF-8");
         let mime: Mime = (&mimetype).parse().unwrap();

@@ -3,15 +3,19 @@
 
 use std::collections::HashMap;
 use std::mem;
+use std::path::PathBuf;
 
 use hyper::method::Method;
 
+use http_errors::NotFound;
 use app::Pencil;
 use routing::Matcher;
 use types::ViewFunc;
+use types::PencilResult;
 use types::{BeforeRequestFunc, AfterRequestFunc, TeardownRequestFunc};
 use types::{HTTPErrorHandler, UserErrorHandler};
-use helpers::send_static_file;
+use helpers::send_from_directory;
+use wrappers::Request;
 
 
 /// Represents a module.
@@ -148,8 +152,7 @@ impl Module {
         if let Some(static_url_path) = static_url_path {
             let mut rule = static_url_path.clone();
             rule = rule + "/<path:filename>";
-            // TODO implement send_module_static_file
-            self.route(rule, &[Method::Get], "static", send_static_file);
+            self.route(rule, &[Method::Get], "static", send_module_static_file);
         }
         let deferred_routes = mem::replace(&mut self.deferred_routes, Vec::new());
         for (matcher, methods, endpoint, view_func) in deferred_routes {
@@ -162,4 +165,19 @@ impl Module {
 
         app.modules.insert(self.name.clone(), self);
     }
+}
+
+/// View function used internally to send static files from the static folder
+/// to the browser.
+fn send_module_static_file(request: &mut Request) -> PencilResult {
+    if let Some(module_name) = request.module_name() {
+        if let Some(module) = request.app.modules.get(&module_name) {
+            let mut static_folder = PathBuf::from(&module.root_path);
+            static_folder.push(&request.app.static_folder);
+            let static_folder_str = static_folder.to_str().unwrap();
+            let filename = request.view_args.get("filename").unwrap();
+            return send_from_directory(static_folder_str, filename, false);
+        }
+    }
+    return Err(NotFound.into());
 }

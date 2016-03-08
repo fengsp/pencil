@@ -34,7 +34,7 @@ use wrappers::{
     Request,
     Response,
 };
-use helpers::{PathBound, send_static_file};
+use helpers::{PathBound, send_from_directory};
 use config::Config;
 use logging;
 use serving::run_server;
@@ -210,9 +210,9 @@ impl Pencil {
     /// Enables static file handling.
     pub fn enable_static_file_handle(&mut self) {
         let mut rule = self.static_url_path.clone();
-        rule = rule + "/([^/].*?)";
+        rule = rule + "/<path:filename>";
         let rule_str: &str = &rule;
-        self.route(rule_str, &[Method::Get], "static", send_static_file);
+        self.route(rule_str, &[Method::Get], "static", send_app_static_file);
     }
 
     /// Registers a function to run before each request.
@@ -592,4 +592,14 @@ impl fmt::Debug for Pencil {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "<Pencil application {}>", self.name)
     }
+}
+
+/// View function used internally to send static files from the static folder
+/// to the browser.
+fn send_app_static_file(request: &mut Request) -> PencilResult {
+    let mut static_folder = PathBuf::from(&request.app.root_path);
+    static_folder.push(&request.app.static_folder);
+    let static_folder_str = static_folder.to_str().unwrap();
+    let filename = request.view_args.get("filename").unwrap();
+    return send_from_directory(static_folder_str, filename, false);
 }

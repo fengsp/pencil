@@ -2,15 +2,17 @@
 
 use std::error::Error;
 use std::fs::File;
-use std::io::Read;
 use std::path::{Path, PathBuf};
 
-use hyper::header::Location;
+use hyper::header::{Location, ContentType};
+use mime_guess::guess_mime_type;
+use mime::Mime;
 
-use wrappers::{Request, Response};
+use wrappers::Response;
 use types::{
     PenHTTPError,
     PencilResult,
+    UserError,
 };
 use http_errors::{
     HTTPError,
@@ -100,23 +102,19 @@ pub fn escape(s: String) -> String {
 /// function from user sources without checking them first.  Set `as_attachment` to
 /// `true` if you want to send this file with a `Content-Disposition: attachment`
 /// header.  This will return `NotFound` if filepath is not one file.
-pub fn send_file(filepath: &str, mimetype: &str, as_attachment: bool) -> PencilResult {
+pub fn send_file(filepath: &str, mimetype: Mime, as_attachment: bool) -> PencilResult {
     let filepath = Path::new(filepath);
     if !filepath.is_file() {
         return Err(PenHTTPError(NotFound));
     }
-    let mut file = match File::open(&filepath) {
+    let file = match File::open(&filepath) {
         Ok(file) => file,
-        Err(e) => panic!("couldn't open {}: {}", filepath.display(), e.description()),
+        Err(e) => {
+            return Err(UserError::new(format!("couldn't open {}: {}", filepath.display(), e.description())).into());
+        }
     };
-    let mut data = String::new();
-    let mut response = match file.read_to_string(&mut data) {
-        Ok(_) => {
-            Response::from(data)
-        },
-        Err(e) => panic!("couldn't read {}: {}", filepath.display(), e.description()),
-    };
-    response.set_content_type(mimetype);
+    let mut response: Response = file.into();
+    response.headers.set(ContentType(mimetype));
     if as_attachment {
         match filepath.file_name() {
             Some(file) => {
@@ -126,12 +124,12 @@ pub fn send_file(filepath: &str, mimetype: &str, as_attachment: bool) -> PencilR
                         response.headers.set_raw("Content-Disposition", vec![content_disposition.as_bytes().to_vec()]);
                     },
                     None => {
-                        panic!("filename unavailable, required for sending as attachment.");
+                        return Err(UserError::new("filename unavailable, required for sending as attachment.").into());
                     }
                 }
             },
             None => {
-                panic!("filename unavailable, required for sending as attachment.");
+                return Err(UserError::new("filename unavailable, required for sending as attachment.").into());
             }
         }
     }
@@ -140,11 +138,13 @@ pub fn send_file(filepath: &str, mimetype: &str, as_attachment: bool) -> PencilR
 
 
 /// Send a file from a given directory with `send_file`.  This is a secure way to
-/// quickly expose static files from an folder.
-pub fn send_from_directory(directory: &str, filename: &str, mimetype: &str,
+/// quickly expose static files from an folder.  This will guess the mimetype
+/// for you.
+pub fn send_from_directory(directory: &str, filename: &str,
                            as_attachment: bool) -> PencilResult {
     match safe_join(directory, filename) {
         Some(filepath) => {
+            let mimetype = guess_mime_type(filepath.as_path());
             match filepath.as_path().to_str() {
                 Some(filepath) => {
                     return send_file(filepath, mimetype, as_attachment);
@@ -158,16 +158,4 @@ pub fn send_from_directory(directory: &str, filename: &str, mimetype: &str,
             return Err(PenHTTPError(NotFound));
         }
     }
-}
-
-
-/// View function used internally to send static files from the static folder
-/// to the browser.
-pub fn send_static_file(request: &mut Request) -> PencilResult {
-    let mut static_folder = PathBuf::from(&request.app.root_path);
-    static_folder.push(&request.app.static_folder);
-    let static_folder_str = static_folder.to_str().unwrap();
-    let filename = request.view_args.get("filename").unwrap();
-    let mimetype = "text/plain";
-    return send_from_directory(static_folder_str, filename, mimetype, false);
 }

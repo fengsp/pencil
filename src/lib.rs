@@ -55,6 +55,8 @@ extern crate url;
 extern crate formdata;
 extern crate handlebars;
 extern crate typemap;
+extern crate mime;
+extern crate mime_guess;
 
 /* public api */
 pub use app::Pencil;
