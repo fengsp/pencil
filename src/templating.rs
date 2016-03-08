@@ -24,49 +24,14 @@ impl convert::From<RenderError> for PencilError {
     }
 }
 
-pub fn render_template<T: ToJson>(app: &mut Pencil, template_name: &str, context: &T) -> PencilResult {
-    {
-        let registry_read_rv = app.handlebars_registry.read();
-        if registry_read_rv.is_err() {
-            return Err(PenUserError(UserError::new("Can't acquire handlebars registry")));
-        }
-        let registry = registry_read_rv.unwrap();
-        let template_rv = registry.get_template(template_name);
-        if template_rv.is_some() {
-            let rv = try!(registry.render(template_name, context));
-            return Ok(Response::from(rv));
-        }
+pub fn render_template<T: ToJson>(app: &Pencil, template_name: &str, context: &T) -> PencilResult {
+    let registry_read_rv = app.handlebars_registry.read();
+    if registry_read_rv.is_err() {
+        return Err(PenUserError(UserError::new("Can't acquire handlebars registry")));
     }
-
-    // Try to load the template here.
-    let registry_write_rv = app.handlebars_registry.write();
-    if registry_write_rv.is_err() {
-        return Err(PenUserError(UserError::new("Can't write handlebars registry")));
-    }
-    let mut registry = registry_write_rv.unwrap();
-    match load_template(app, template_name) {
-        Some(source_rv) => {
-            match source_rv {
-                Ok(source) => {
-                    match registry.register_template_string(template_name, source) {
-                        Ok(_) => {
-                            let rv = try!(registry.render(template_name, context));
-                            return Ok(Response::from(rv));
-                        },
-                        Err(err) => {
-                            return Err(PenUserError(UserError::new(format!("Template compile error: {}", err))));
-                        }
-                    }
-                },
-                Err(err) => {
-                    return Err(PenUserError(UserError::new(format!("Template {} can't be loaded: {}", template_name, err))));
-                }
-            }
-        },
-        None => {
-            return Err(PenUserError(UserError::new(format!("Template not found: {}", template_name))));
-        }
-    }
+    let registry = registry_read_rv.unwrap();
+    let rv = try!(registry.render(template_name, context));
+    return Ok(Response::from(rv));
 }
 
 struct StringWriter {
@@ -171,7 +136,7 @@ impl TemplateLoader for FileSystemLoader {
     }
 }
 
-fn load_template(app: &Pencil, template_name: &str) -> Option<IOResult<String>> {
+pub fn load_template(app: &Pencil, template_name: &str) -> Option<IOResult<String>> {
     let mut template_path = PathBuf::from(&app.root_path);
     template_path.push(&app.template_folder);
     let template_loader = FileSystemLoader::new(template_path.to_str().unwrap());

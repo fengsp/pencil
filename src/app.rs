@@ -42,7 +42,7 @@ use serving::run_server;
 use routing::{Map, Rule, Matcher};
 use testing::PencilClient;
 use http_errors::{HTTPError, NotFound, InternalServerError};
-use templating::{render_template, render_template_string};
+use templating::{render_template, render_template_string, load_template};
 use module::Module;
 
 
@@ -209,7 +209,7 @@ impl Pencil {
     }
 
     /// Enables static file handling.
-    pub fn enable_static_file_handle(&mut self) {
+    pub fn enable_static_file_handling(&mut self) {
         let mut rule = self.static_url_path.clone();
         rule = rule + "/<path:filename>";
         let rule_str: &str = &rule;
@@ -531,13 +531,41 @@ impl Pencil {
         }
     }
 
+    /// Load and compile and register a template.
+    pub fn register_template(&mut self, template_name: &str) {
+        let registry_write_rv = self.handlebars_registry.write();
+        if registry_write_rv.is_err() {
+            panic!("Can't write handlebars registry");
+        }
+        let mut registry = registry_write_rv.unwrap();
+        match load_template(self, template_name) {
+            Some(source_rv) => {
+                match source_rv {
+                    Ok(source) => {
+                        if let Err(err) = registry.register_template_string(template_name, source) {
+                            panic!(format!("Template compile error: {}", err));
+                        }
+                    },
+                    Err(err) => {
+                        panic!(format!("Template {} can't be loaded: {}", template_name, err));
+                    }
+                }
+            },
+            None => {
+                panic!(format!("Template not found: {}", template_name));
+            }
+        }
+    }
+
+    /// We use `handlebars-rs` as template engine.
     /// Renders a template from the template folder with the given context.
     /// The template name is the name of the template to be rendered.
     /// The context is the variables that should be available in the template.
-    pub fn render_template<T: ToJson>(&mut self, template_name: &str, context: &T) -> PencilResult {
+    pub fn render_template<T: ToJson>(&self, template_name: &str, context: &T) -> PencilResult {
         render_template(self, template_name, context)
     }
 
+    /// We use `handlebars-rs` as template engine.
     /// Renders a template from the given template source string
     /// with the given context.
     /// The source is the sourcecode of the template to be rendered.

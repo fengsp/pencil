@@ -11,5 +11,4 @@ use app::Pencil;
 pub fn run_server<A: ToSocketAddrs>(application: Pencil, addr: A) {
     let server = Server::http(addr).unwrap();
     let _guard = server.handle(application).unwrap();
-    println!("Pencil is listening ...");
 }

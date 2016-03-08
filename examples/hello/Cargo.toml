@@ -8,5 +8,6 @@ authors = ["Shipeng Feng <fsp261@gmail.com>"]
 path = "../.."
 
 [dependencies]
+typemap = "*"
 log = "*"
 env_logger = "*"
