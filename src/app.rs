@@ -159,20 +159,16 @@ impl Pencil {
     /// app.route("/user/<int:user_id>", &[Get], "user", user);
     /// ```
     ///
+    /// A rule that listens for `GET` will implicitly listen for `HEAD`.
+    ///
     pub fn route<M: Into<Matcher>, N: AsRef<[Method]>>(&mut self, rule: M, methods: N, endpoint: &str, view_func: ViewFunc) {
         self.add_url_rule(rule.into(), methods.as_ref(), endpoint, view_func);
     }
 
     /// This is a shortcut for `route`, register a view function for
-    /// a given URL rule with just `GET` method.
+    /// a given URL rule with just `GET` method (implicitly `HEAD`).
     pub fn get<M: Into<Matcher>>(&mut self, rule: M, endpoint: &str, view_func: ViewFunc) {
         self.route(rule, &[Method::Get], endpoint, view_func);
-    }
-
-    /// This is a shortcut for `route`, register a view function for
-    /// a given URL rule with just `HEAD` method.
-    pub fn head<M: Into<Matcher>>(&mut self, rule: M, endpoint: &str, view_func: ViewFunc) {
-        self.route(rule, &[Method::Head], endpoint, view_func);
     }
 
     /// This is a shortcut for `route`, register a view function for
