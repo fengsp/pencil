@@ -378,7 +378,7 @@ impl BodyWrite for File {
 /// (headers, body, status code etc).
 pub struct Response {
     /// The HTTP Status code number
-    pub status_code: isize,
+    pub status_code: u16,
     pub headers: Headers,
     pub body: Option<Box<BodyWrite>>,
 }

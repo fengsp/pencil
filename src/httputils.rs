@@ -6,7 +6,7 @@ use hyper::status::StatusCode;
 
 
 /// Get HTTP status name by status code.
-pub fn get_name_by_http_code(code: isize) -> Option<&'static str> {
+pub fn get_name_by_http_code(code: u16) -> Option<&'static str> {
     let status_code = get_status_from_code(code);
     return status_code.canonical_reason();
 }
@@ -36,7 +36,7 @@ pub fn get_host_value(host: &Host) -> String {
 
 
 /// Return the status code used by hyper response.
-pub fn get_status_from_code(code: isize) -> StatusCode {
+pub fn get_status_from_code(code: u16) -> StatusCode {
     match code {
         100 => StatusCode::Continue,
         101 => StatusCode::SwitchingProtocols,
@@ -96,7 +96,7 @@ pub fn get_status_from_code(code: isize) -> StatusCode {
         508 => StatusCode::LoopDetected,
         510 => StatusCode::NotExtended,
         511 => StatusCode::NetworkAuthenticationRequired,
-        _ => StatusCode::Unregistered(code as u16),
+        _ => StatusCode::Unregistered(code),
     }
 }
 

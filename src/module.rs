@@ -37,7 +37,7 @@ pub struct Module {
     #[doc(hidden)]
     pub teardown_request_funcs: Vec<TeardownRequestFunc>,
     #[doc(hidden)]
-    pub http_error_handlers: HashMap<isize, HTTPErrorHandler>,
+    pub http_error_handlers: HashMap<u16, HTTPErrorHandler>,
     #[doc(hidden)]
     pub user_error_handlers: HashMap<String, UserErrorHandler>,
     deferred_functions: Vec<Box<Fn(&mut Pencil) + Send + Sync>>,
@@ -114,7 +114,7 @@ impl Module {
     }
 
     /// Registers a http error handler that becomes active for this module only.
-    pub fn httperrorhandler(&mut self, status_code: isize, f: HTTPErrorHandler) {
+    pub fn httperrorhandler(&mut self, status_code: u16, f: HTTPErrorHandler) {
         self.http_error_handlers.insert(status_code, f);
     }
 
@@ -124,7 +124,7 @@ impl Module {
     }
 
     /// Registers a http error handler for all requests of the application.
-    pub fn app_httperrorhandler(&mut self, status_code: isize, f: HTTPErrorHandler) {
+    pub fn app_httperrorhandler(&mut self, status_code: u16, f: HTTPErrorHandler) {
         self.record(move |app| app.httperrorhandler(status_code, f));
     }
 

@@ -93,7 +93,7 @@ pub enum HTTPError {
 
 impl HTTPError {
     /// Create a new `HTTPError`.
-    pub fn new(code: isize) -> HTTPError {
+    pub fn new(code: u16) -> HTTPError {
         match code {
             400 => BadRequest,
             401 => Unauthorized,
@@ -125,7 +125,7 @@ impl HTTPError {
     }
 
     /// The status code.
-    pub fn code(&self) -> isize {
+    pub fn code(&self) -> u16 {
         match *self {
             BadRequest => 400,
             Unauthorized => 401,

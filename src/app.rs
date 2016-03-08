@@ -74,7 +74,7 @@ pub struct Pencil {
     before_request_funcs: Vec<BeforeRequestFunc>,
     after_request_funcs: Vec<AfterRequestFunc>,
     teardown_request_funcs: Vec<TeardownRequestFunc>,
-    http_error_handlers: HashMap<isize, HTTPErrorHandler>,
+    http_error_handlers: HashMap<u16, HTTPErrorHandler>,
     user_error_handlers: HashMap<String, UserErrorHandler>,
 }
 
@@ -235,7 +235,7 @@ impl Pencil {
 
     /// Registers a function as one http error handler.
     /// Same to `httperrorhandler`.
-    pub fn register_http_error_handler(&mut self, status_code: isize, f: HTTPErrorHandler) {
+    pub fn register_http_error_handler(&mut self, status_code: u16, f: HTTPErrorHandler) {
         self.http_error_handlers.insert(status_code, f);
     }
 
@@ -264,7 +264,7 @@ impl Pencil {
     ///     app.httperrorhandler(404, page_not_found);
     /// }
     /// ```
-    pub fn httperrorhandler(&mut self, status_code: isize, f: HTTPErrorHandler) {
+    pub fn httperrorhandler(&mut self, status_code: u16, f: HTTPErrorHandler) {
         self.register_http_error_handler(status_code, f);
     }
 

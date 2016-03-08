@@ -69,14 +69,14 @@ pub fn safe_join(directory: &str, filename: &str) -> Option<PathBuf> {
 
 
 /// One helper function that can be used to return HTTP Error inside a view function.
-pub fn abort(code: isize) -> PencilResult {
+pub fn abort(code: u16) -> PencilResult {
     let error = HTTPError::new(code);
     return Err(PenHTTPError(error));
 }
 
 
 /// Returns a response that redirects the client to the target location.
-pub fn redirect(location: &str, code: isize) -> PencilResult {
+pub fn redirect(location: &str, code: u16) -> PencilResult {
     let mut response = Response::from(format!(
 "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\">
 <title>Redirecting...</title>
