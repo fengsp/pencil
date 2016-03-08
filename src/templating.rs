@@ -44,7 +44,7 @@ pub fn render_template<T: ToJson>(app: &mut Pencil, template_name: &str, context
         return Err(PenUserError(UserError::new("Can't write handlebars registry")));
     }
     let mut registry = registry_write_rv.unwrap();
-    match load_template(template_name) {
+    match load_template(app, template_name) {
         Some(source_rv) => {
             match source_rv {
                 Ok(source) => {
@@ -171,7 +171,22 @@ impl TemplateLoader for FileSystemLoader {
     }
 }
 
-fn load_template(template_name: &str) -> Option<IOResult<String>> {
-    let template_loader = FileSystemLoader::new("/templates");
-    return template_loader.get_source(template_name);
+fn load_template(app: &Pencil, template_name: &str) -> Option<IOResult<String>> {
+    let mut template_path = PathBuf::from(&app.root_path);
+    template_path.push(&app.template_folder);
+    let template_loader = FileSystemLoader::new(template_path.to_str().unwrap());
+    if let Some(source) = template_loader.get_source(template_name) {
+        return Some(source);
+    }
+    for module in app.modules.values() {
+        if let Some(ref module_template_folder) = module.template_folder {
+            let mut template_path = PathBuf::from(&module.root_path);
+            template_path.push(module_template_folder);
+            let template_loader = FileSystemLoader::new(template_path.to_str().unwrap());
+            if let Some(source) = template_loader.get_source(template_name) {
+                return Some(source);
+            }
+        }
+    }
+    return None;
 }

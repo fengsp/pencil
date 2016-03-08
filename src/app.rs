@@ -7,6 +7,7 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
 use std::path::PathBuf;
+use std::net::ToSocketAddrs;
 
 use rustc_serialize::json::Json;
 use rustc_serialize::json::ToJson;
@@ -560,9 +561,9 @@ impl Pencil {
         };
     }
 
-    /// Runs the application on a local development server.
-    pub fn run(self) {
-        run_server(self);
+    /// Runs the application on a hyper HTTP server.
+    pub fn run<A: ToSocketAddrs>(self, addr: A) {
+        run_server(self, addr);
     }
 }
 
@@ -597,9 +598,9 @@ impl fmt::Debug for Pencil {
 /// View function used internally to send static files from the static folder
 /// to the browser.
 fn send_app_static_file(request: &mut Request) -> PencilResult {
-    let mut static_folder = PathBuf::from(&request.app.root_path);
-    static_folder.push(&request.app.static_folder);
-    let static_folder_str = static_folder.to_str().unwrap();
+    let mut static_path = PathBuf::from(&request.app.root_path);
+    static_path.push(&request.app.static_folder);
+    let static_path_str = static_path.to_str().unwrap();
     let filename = request.view_args.get("filename").unwrap();
-    return send_from_directory(static_folder_str, filename, false);
+    return send_from_directory(static_path_str, filename, false);
 }

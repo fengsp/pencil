@@ -173,11 +173,11 @@ fn send_module_static_file(request: &mut Request) -> PencilResult {
     if let Some(module_name) = request.module_name() {
         if let Some(module) = request.app.modules.get(&module_name) {
             if let Some(ref module_static_folder) = module.static_folder {
-                let mut static_folder = PathBuf::from(&module.root_path);
-                static_folder.push(module_static_folder);
-                let static_folder_str = static_folder.to_str().unwrap();
+                let mut static_path = PathBuf::from(&module.root_path);
+                static_path.push(module_static_folder);
+                let static_path_str = static_path.to_str().unwrap();
                 let filename = request.view_args.get("filename").unwrap();
-                return send_from_directory(static_folder_str, filename, false);
+                return send_from_directory(static_path_str, filename, false);
             }
         }
     }

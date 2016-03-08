@@ -14,5 +14,5 @@ fn user(r: &mut Request) -> PencilResult {
 fn main() {
     let mut app = Pencil::new("/web/example");
     app.route("/user/<int:user_id>", &[Get], "user", user);
-    app.run();
+    app.run("127.0.0.1:5000");
 }
