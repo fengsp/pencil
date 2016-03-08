@@ -357,7 +357,8 @@ impl Pencil {
     /// let response = client.get('/');
     /// assert!(response.code, 200);
     /// ```
-    pub fn test_client(&self) -> PencilClient {
+    #[allow(dead_code)]
+    fn test_client(&self) -> PencilClient {
         PencilClient::new(self)
     }
 

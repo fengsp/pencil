@@ -33,7 +33,7 @@
 //! fn main() {
 //!     let mut app = Pencil::new("/web/hello");
 //!     app.route("/", &[Get], "hello", hello);
-//!     app.run();
+//!     app.run("127.0.0.1:5000");
 //! }
 //! ```
 
@@ -94,10 +94,6 @@ pub use helpers::{
     send_file,
     send_from_directory,
 };
-pub use serving::{
-    run_server,
-};
-pub use testing::PencilClient;
 pub use module::Module;
 
 #[macro_use]
@@ -109,8 +105,8 @@ pub mod routing;
 pub mod json;
 pub mod config;
 pub mod helpers;
-pub mod testing;
 pub mod method;
+mod testing;
 mod app;
 mod types;
 mod logging;

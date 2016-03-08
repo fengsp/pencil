@@ -5,6 +5,7 @@ use wrappers::{Request, Response};
 
 
 /// This type allows to send requests to a wrapped application.
+#[allow(dead_code)]
 pub struct PencilClient<'c> {
     application: &'c Pencil,
 }
@@ -16,6 +17,7 @@ impl<'c> PencilClient<'c> {
     }
 
     /// Get wrapped application.
+    #[allow(dead_code)]
     pub fn get_application(&self) -> &Pencil {
         return self.application;
     }
@@ -29,6 +31,7 @@ impl<'c> PencilClient<'c> {
         self.run_pencil_app(&mut request)
     }
 
+    #[allow(dead_code)]
     pub fn get(&self, request: Request) -> Response {
         self.open(request)
     }
