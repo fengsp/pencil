@@ -71,7 +71,7 @@ pub fn safe_join(directory: &str, filename: &str) -> Option<PathBuf> {
 /// One helper function that can be used to return HTTP Error inside a view function.
 pub fn abort(code: u16) -> PencilResult {
     let error = HTTPError::new(code);
-    return Err(PenHTTPError(error));
+    Err(PenHTTPError(error))
 }
 
 
@@ -87,14 +87,16 @@ pub fn redirect(location: &str, code: u16) -> PencilResult {
     response.status_code = code;
     response.set_content_type("text/html");
     response.headers.set(Location(location.to_string()));
-    return Ok(response);
+    Ok(response)
 }
 
 
 /// Replace special characters "&", "<", ">" and (") to HTML-safe characters.
 pub fn escape(s: String) -> String {
-    return s.replace("&", "&amp;").replace("<", "&lt;")
-            .replace(">", "&gt;").replace("\"", "&quot;");
+    s.replace("&", "&amp;")
+     .replace("<", "&lt;")
+     .replace(">", "&gt;")
+     .replace("\"", "&quot;")
 }
 
 
@@ -133,7 +135,7 @@ pub fn send_file(filepath: &str, mimetype: Mime, as_attachment: bool) -> PencilR
             }
         }
     }
-    return Ok(response);
+    Ok(response)
 }
 
 
@@ -147,15 +149,15 @@ pub fn send_from_directory(directory: &str, filename: &str,
             let mimetype = guess_mime_type(filepath.as_path());
             match filepath.as_path().to_str() {
                 Some(filepath) => {
-                    return send_file(filepath, mimetype, as_attachment);
+                    send_file(filepath, mimetype, as_attachment)
                 },
                 None => {
-                    return Err(PenHTTPError(NotFound));
+                    Err(PenHTTPError(NotFound))
                 }
             }
         },
         None => {
-            return Err(PenHTTPError(NotFound));
+            Err(PenHTTPError(NotFound))
         }
     }
 }

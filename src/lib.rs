@@ -45,6 +45,10 @@
        html_root_url = "http://fengsp.github.io/pencil/")]
 
 #![deny(non_camel_case_types)]
+#![cfg_attr(feature="clippy", feature(plugin))]
+#![cfg_attr(feature="clippy", plugin(clippy))]
+#![cfg_attr(feature="clippy", deny(clippy))]
+#![cfg_attr(feature="clippy", warn(cyclomatic_complexity))]
 
 #[macro_use]
 extern crate log;

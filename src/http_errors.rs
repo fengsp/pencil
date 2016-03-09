@@ -239,7 +239,7 @@ impl HTTPError {
             },
             _ => {}
         }
-        return response;
+        response
     }
 }
 

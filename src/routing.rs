@@ -60,7 +60,7 @@ fn parse_rule(rule: &str) -> Vec<(Option<&str>, &str)> {
         }
         rule_parts.push((None, remaining));
     }
-    return rule_parts;
+    rule_parts
 }
 
 /// The matcher holds the url regex object.
@@ -166,11 +166,11 @@ impl Rule {
         if all_methods.contains(&Method::Get) {
             all_methods.insert(Method::Head);
         }
-        let provide_automatic_options = if !all_methods.contains(&Method::Options) {
+        let provide_automatic_options = if all_methods.contains(&Method::Options) {
+            false
+        } else {
             all_methods.insert(Method::Options);
             true
-        } else {
-            false
         };
         Rule {
             matcher: matcher,
@@ -274,7 +274,7 @@ impl<'m> MapAdapter<'m> {
             allowed_methods.extend(have_match_for.into_iter());
             return Err(MethodNotAllowed(Some(allowed_methods)))
         }
-        return Err(NotFound)
+        Err(NotFound)
     }
 
     /// Get the valid methods that match for the given path.
