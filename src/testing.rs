@@ -19,7 +19,7 @@ impl<'c> PencilClient<'c> {
     /// Get wrapped application.
     #[allow(dead_code)]
     pub fn get_application(&self) -> &Pencil {
-        return self.application;
+        self.application
     }
 
     /// Runs the wrapped pencil app with the given request.

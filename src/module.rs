@@ -181,5 +181,5 @@ fn send_module_static_file(request: &mut Request) -> PencilResult {
             }
         }
     }
-    return Err(NotFound.into());
+    Err(NotFound.into())
 }

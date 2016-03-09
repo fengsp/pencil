@@ -19,8 +19,8 @@ use hyper::server::Response as HTTPResponse;
 
 use types::{
     PencilError,
-        PenHTTPError,
-        PenUserError,
+    PenHTTPError,
+    PenUserError,
 
     UserError,
     PencilResult,
@@ -82,7 +82,7 @@ fn default_config() -> Config {
     let mut config = Config::new();
     config.set("DEBUG", Json::Boolean(false));
     config.set("TESTING", Json::Boolean(false));
-    return config;
+    config
 }
 
 impl Pencil {
@@ -377,7 +377,7 @@ impl Pencil {
                 return Some(result);
             }
         }
-        return None;
+        None
     }
 
     /// Does the request dispatching.  Matches the URL and returns the return
@@ -391,10 +391,10 @@ impl Pencil {
         }
         match self.view_functions.get(&request.endpoint().unwrap()) {
             Some(&view_func) => {
-                return view_func(request);
+                view_func(request)
             },
             None => {
-                return Err(PenHTTPError(NotFound));
+                Err(PenHTTPError(NotFound))
             }
         }
     }
@@ -608,7 +608,7 @@ impl PathBound for Pencil {
     fn open_resource(&self, resource: &str) -> File {
         let mut pathbuf = PathBuf::from(&self.root_path);
         pathbuf.push(resource);
-        return File::open(&pathbuf.as_path()).unwrap();
+        File::open(&pathbuf.as_path()).unwrap()
     }
 }
 
@@ -631,5 +631,5 @@ fn send_app_static_file(request: &mut Request) -> PencilResult {
     static_path.push(&request.app.static_folder);
     let static_path_str = static_path.to_str().unwrap();
     let filename = request.view_args.get("filename").unwrap();
-    return send_from_directory(static_path_str, filename, false);
+    send_from_directory(static_path_str, filename, false)
 }

@@ -20,7 +20,7 @@ use wrappers::Response;
 
 impl convert::From<RenderError> for PencilError {
     fn from(err: RenderError) -> PencilError {
-        return PenUserError(UserError::new(&err.desc));
+        PenUserError(UserError::new(&err.desc))
     }
 }
 
@@ -31,7 +31,7 @@ pub fn render_template<T: ToJson>(app: &Pencil, template_name: &str, context: &T
     }
     let registry = registry_read_rv.unwrap();
     let rv = try!(registry.render(template_name, context));
-    return Ok(Response::from(rv));
+    Ok(Response::from(rv))
 }
 
 struct StringWriter {
@@ -153,5 +153,5 @@ pub fn load_template(app: &Pencil, template_name: &str) -> Option<IOResult<Strin
             }
         }
     }
-    return None;
+    None
 }

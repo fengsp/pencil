@@ -121,7 +121,7 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
             }
             self.args = Some(args);
         }
-        return self.args.as_ref().unwrap();
+        self.args.as_ref().unwrap()
     }
 
     /// Get content type.
@@ -147,7 +147,7 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
             };
             self.cached_json = Some(rv);
         }
-        return self.cached_json.as_ref().unwrap();
+        self.cached_json.as_ref().unwrap()
     }
 
     /// This method is used internally to retrieve submitted data.
@@ -203,9 +203,9 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
         let path = self.path();
         let query_string = self.query_string();
         if path.is_some() && query_string.is_some() {
-            return Some(path.unwrap() + "?" + &query_string.unwrap());
+            Some(path.unwrap() + "?" + &query_string.unwrap())
         } else  {
-            return path;
+            path
         }
     }
 
@@ -404,7 +404,7 @@ impl Response {
         let mime: Mime = "text/html; charset=UTF-8".parse().unwrap();
         let content_type = ContentType(mime);
         response.headers.set(content_type);
-        return response;
+        response
     }
 
     /// Create an empty response without body.
@@ -503,7 +503,7 @@ impl convert::From<Vec<u8>> for Response {
         let content_length = bytes.len();
         let mut response = Response::new(bytes);
         response.set_content_length(content_length);
-        return response;
+        response
     }
 }
 
@@ -545,6 +545,6 @@ impl convert::From<File> for Response {
         if let Some(content_length) = content_length {
             response.set_content_length(content_length as usize);
         }
-        return response;
+        response
     }
 }

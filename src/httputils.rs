@@ -8,7 +8,7 @@ use hyper::status::StatusCode;
 /// Get HTTP status name by status code.
 pub fn get_name_by_http_code(code: u16) -> Option<&'static str> {
     let status_code = get_status_from_code(code);
-    return status_code.canonical_reason();
+    status_code.canonical_reason()
 }
 
 
@@ -22,7 +22,7 @@ pub fn get_content_type(mimetype: &str, charset: &str) -> String {
             return content_type;
         }
     }
-    return mimetype.to_string();
+    mimetype.to_string()
 }
 
 
