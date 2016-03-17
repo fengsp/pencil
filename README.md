@@ -1,6 +1,6 @@
 #Pencil
 
-[![Build Status](https://travis-ci.org/fengsp/pencil.svg?branch=master)](https://travis-ci.org/fengsp/pencil)
+[![Build Status](https://travis-ci.org/fengsp/pencil.svg?branch=master)](https://travis-ci.org/fengsp/pencil) [![Crates.io Version](https://img.shields.io/crates/v/pencil.svg)](https://crates.io/crates/pencil/) [![Crates.io LICENSE](https://img.shields.io/crates/l/pencil.svg)](https://crates.io/crates/pencil/)
 
 A microframework for Rust inspired by Flask.
 
