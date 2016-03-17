@@ -6,3 +6,11 @@ Version 0.1.0
 -------------
 
 First public preview release.
+
+
+Version 0.1.1
+-------------
+
+Released on Mar 17th 2016
+
+- Use caret requirement for dependencies
