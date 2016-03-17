@@ -20,4 +20,4 @@ fn main() {
 }
 ```
 
-If you feel anything wrong, feedbacks or pull requests are welcomed.
+If you feel anything wrong, feedbacks or pull requests are welcome.
