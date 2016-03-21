@@ -10,14 +10,25 @@ homepage = "https://github.com/fengsp/pencil"
 documentation = "http://fengsp.github.io/pencil/"
 description = "A micro web framework for Rust."
 
+[features]
+default = ["ssl"]
+ssl = ["hyper/ssl", "formdata/ssl"]
+
 [dependencies]
-hyper = "0.8.0"
 regex = "0.1.58"
 rustc-serialize = "0.3.18"
 url = "0.5.7"
 log = "0.3.5"
-formdata = "0.7.9"
 handlebars = "0.15.0"
 typemap = "0.3.3"
 mime = "0.2.0"
 mime_guess = "1.6.0"
+
+[dependencies.hyper]
+version = "0.8.0"
+default_features = false
+
+[dependencies.formdata]
+version = "0.7.10"
+default_features = false
+features = ["with-syntex"]
