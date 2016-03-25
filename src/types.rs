@@ -97,7 +97,6 @@ pub type ViewArgs = HashMap<String, String>;
 /// View function type.
 pub type ViewFunc = fn(&mut Request) -> PencilResult;
 
-
 /// HTTP Error handler type.
 pub type HTTPErrorHandler = fn(HTTPError) -> PencilResult;
 /// User Error handler type.
