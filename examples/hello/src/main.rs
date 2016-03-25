@@ -89,6 +89,13 @@ fn main() {
     app.get("/login", "login", login);
     app.get("/search", "search", search);
 
+    let name = "Closure";
+    app.get("/closure1", "closure1", |_| Ok(Response::from("Hello, World!")));
+    app.get("/closure2", "closure2", move |_| Ok(Response::from(format!("Hello, {}!", name))));
+    app.get("/closure3/<string:name>", "closure3", |r| {
+        Ok(Response::from(format!("Hello, {}!", r.view_args.get("name").unwrap())))
+    });
+
     let mut demo_module = Module::new("demo", "/web/hello/demo");
     demo_module.route("/demo/hi", &[Get], "hi", hi_module);
     app.register_module(demo_module);
