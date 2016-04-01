@@ -98,7 +98,7 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
     /// The current module name.
     pub fn module_name(&self) -> Option<String> {
         if let Some(endpoint) = self.endpoint() {
-            if endpoint.contains(".") {
+            if endpoint.contains('.') {
                 let v: Vec<&str> = endpoint.rsplitn(2, '.').collect();
                 return Some(v[1].to_string());
             }
@@ -111,23 +111,20 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
         if self.args.is_none() {
             let mut args = MultiDict::new();
             let query_pairs = self.query_string().map(|query| form_urlencoded::parse(query.as_bytes()));
-            match query_pairs {
-                Some(pairs) => {
-                    for (k, v) in pairs {
-                        args.add(k, v);
-                    }
-                },
-                None => {},
+            if let Some(pairs) = query_pairs {
+                for (k, v) in pairs {
+                    args.add(k, v);
+                }
             }
             self.args = Some(args);
         }
-        return self.args.as_ref().unwrap();
+        self.args.as_ref().unwrap()
     }
 
     /// Get content type.
     fn content_type(&self) -> Option<ContentType> {
         let content_type: Option<&ContentType> = self.request.headers.get();
-        content_type.map(|c| c.clone())
+        content_type.cloned()
     }
 
     /// Parses the incoming JSON request data.
@@ -147,7 +144,7 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
             };
             self.cached_json = Some(rv);
         }
-        return self.cached_json.as_ref().unwrap();
+        self.cached_json.as_ref().unwrap()
     }
 
     /// This method is used internally to retrieve submitted data.
@@ -203,9 +200,9 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
         let path = self.path();
         let query_string = self.query_string();
         if path.is_some() && query_string.is_some() {
-            return Some(path.unwrap() + "?" + &query_string.unwrap());
-        } else  {
-            return path;
+            Some(path.unwrap() + "?" + &query_string.unwrap())
+        } else {
+            path
         }
     }
 
@@ -245,16 +242,13 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
 
     /// The remote address of the client.
     pub fn remote_addr(&self) -> SocketAddr {
-        self.request.remote_addr.clone()
+        self.request.remote_addr
     }
 
     /// URL scheme (http or https)
     pub fn scheme(&self) -> String {
-        match self.request.uri {
-            AbsoluteUri(ref url) => {
-                return url.scheme.clone();
-            },
-            _ => {}
+        if let AbsoluteUri(ref url) = self.request.uri {
+            return url.scheme.clone();
         }
         String::from("http")
     }
@@ -293,7 +287,7 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
 
     /// Whether the request is secure (https).
     pub fn is_secure(&self) -> bool {
-        self.scheme() == "https".to_string()
+        self.scheme() == "https"
     }
 }
 
@@ -404,7 +398,7 @@ impl Response {
         let mime: Mime = "text/html; charset=UTF-8".parse().unwrap();
         let content_type = ContentType(mime);
         response.headers.set(content_type);
-        return response;
+        response
     }
 
     /// Create an empty response without body.
@@ -503,7 +497,7 @@ impl convert::From<Vec<u8>> for Response {
         let content_length = bytes.len();
         let mut response = Response::new(bytes);
         response.set_content_length(content_length);
-        return response;
+        response
     }
 }
 
@@ -545,6 +539,6 @@ impl convert::From<File> for Response {
         if let Some(content_length) = content_length {
             response.set_content_length(content_length as usize);
         }
-        return response;
+        response
     }
 }

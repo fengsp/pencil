@@ -70,7 +70,7 @@ impl Module {
     pub fn route<M: Into<Matcher>, N: AsRef<[Method]>>(&mut self, rule: M, methods: N, endpoint: &str, view_func: ViewFunc) {
         let mut methods_vec: Vec<Method> = Vec::new();
         methods_vec.extend(methods.as_ref().iter().cloned());
-        if endpoint.contains(".") {
+        if endpoint.contains('.') {
             panic!("Module endpoint should not contain dot");
         }
         let endpoint = format!("{}.{}", self.name, endpoint);
@@ -181,5 +181,5 @@ fn send_module_static_file(request: &mut Request) -> PencilResult {
             }
         }
     }
-    return Err(NotFound.into());
+    Err(NotFound.into())
 }

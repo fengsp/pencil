@@ -34,11 +34,11 @@ pub fn jsonify<T: Encodable>(object: &T) -> PencilResult {
         Ok(encoded) => {
             let mut response = Response::from(encoded);
             response.set_content_type("application/json");
-            return Ok(response);
+            Ok(response)
         },
         Err(err) => {
             let error = UserError::new(format!("Json encoder error: {}", err));
-            return Err(PenUserError(error));
+            Err(PenUserError(error))
         },
     }
 }

@@ -5,12 +5,12 @@ use std::collections::HashMap;
 use std::collections::hash_map;
 
 
-/// MultiDict list entries iterator.
+/// `MultiDict` list entries iterator.
 type MultiDictListIter<'a, T> = hash_map::Iter<'a, String, Vec<T>>;
-/// MultiDict list values iterator.
+/// `MultiDict` list values iterator.
 type MultiDictListValues<'a, T> = hash_map::Values<'a, String, Vec<T>>;
 
-/// MultiDict values iterator.
+/// `MultiDict` values iterator.
 pub struct MultiDictValues<'a, T: 'a> {
     inner: iter::Map<MultiDictListValues<'a, T>, fn(&'a Vec<T>) -> &'a T>
 }
@@ -22,7 +22,7 @@ impl<'a, T: 'a> iter::Iterator for MultiDictValues<'a, T> {
     #[inline] fn size_hint(&self) -> (usize, Option<usize>) { self.inner.size_hint() }
 }
 
-/// MultiDict entries iterator.
+/// `MultiDict` entries iterator.
 pub struct MultiDictIter<'a, T: 'a> {
     inner: iter::Map<MultiDictListIter<'a, T>, for<'b, 'c> fn((&'b String, &'c Vec<T>)) -> (&'b String, &'c T)>
 }

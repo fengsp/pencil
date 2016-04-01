@@ -116,7 +116,7 @@ impl HTTPError {
             428 => PreconditionRequired,
             429 => TooManyRequests,
             431 => RequestHeaderFieldsTooLarge,
-            500 => InternalServerError,
+            // 500 => InternalServerError
             501 => NotImplemented,
             502 => BadGateway,
             503 => ServiceUnavailable,
@@ -233,13 +233,10 @@ impl HTTPError {
         let mut response = Response::from(self.get_body());
         response.status_code = self.code();
         response.set_content_type("text/html");
-        match *self {
-            MethodNotAllowed(Some(ref valid_methods)) => {
-                response.headers.set(hyper::header::Allow(valid_methods.clone()));
-            },
-            _ => {}
+        if let MethodNotAllowed(Some(ref valid_methods)) = *self {
+            response.headers.set(hyper::header::Allow(valid_methods.clone()));
         }
-        return response;
+        response
     }
 }
 

@@ -82,7 +82,7 @@ fn default_config() -> Config {
     let mut config = Config::new();
     config.set("DEBUG", Json::Boolean(false));
     config.set("TESTING", Json::Boolean(false));
-    return config;
+    config
 }
 
 impl Pencil {
@@ -377,7 +377,7 @@ impl Pencil {
                 return Some(result);
             }
         }
-        return None;
+        None
     }
 
     /// Does the request dispatching.  Matches the URL and returns the return
@@ -391,30 +391,27 @@ impl Pencil {
         }
         match self.view_functions.get(&request.endpoint().unwrap()) {
             Some(&view_func) => {
-                return view_func(request);
+                view_func(request)
             },
             None => {
-                return Err(PenHTTPError(NotFound));
+                Err(PenHTTPError(NotFound))
             }
         }
     }
 
     /// This method is called to create the default `OPTIONS` response.
     fn make_default_options_response(&self, request: &Request) -> Option<Response> {
-        match request.path() {
-            Some(path) => {
-                let url_adapter = self.url_map.bind(path, request.method());
-                if let Some(ref rule) = request.url_rule {
-                    // if we provide automatic options for this URL and the request
-                    // came with the OPTIONS method, reply automatically
-                    if rule.provide_automatic_options && request.method() == Method::Options {
-                        let mut response = Response::new_empty();
-                        response.headers.set(hyper::header::Allow(url_adapter.allowed_methods()));
-                        return Some(response);
-                    }
+        if let Some(path) = request.path() {
+            let url_adapter = self.url_map.bind(path, request.method());
+            if let Some(ref rule) = request.url_rule {
+                // if we provide automatic options for this URL and the request
+                // came with the OPTIONS method, reply automatically
+                if rule.provide_automatic_options && request.method() == Method::Options {
+                    let mut response = Response::new_empty();
+                    response.headers.set(hyper::header::Allow(url_adapter.allowed_methods()));
+                    return Some(response);
                 }
-            },
-            None => {}
+            }
         }
         None
     }
@@ -608,7 +605,7 @@ impl PathBound for Pencil {
     fn open_resource(&self, resource: &str) -> File {
         let mut pathbuf = PathBuf::from(&self.root_path);
         pathbuf.push(resource);
-        return File::open(&pathbuf.as_path()).unwrap();
+        File::open(&pathbuf.as_path()).unwrap()
     }
 }
 
@@ -631,5 +628,5 @@ fn send_app_static_file(request: &mut Request) -> PencilResult {
     static_path.push(&request.app.static_folder);
     let static_path_str = static_path.to_str().unwrap();
     let filename = request.view_args.get("filename").unwrap();
-    return send_from_directory(static_path_str, filename, false);
+    send_from_directory(static_path_str, filename, false)
 }

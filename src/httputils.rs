@@ -7,29 +7,26 @@ use hyper::status::StatusCode;
 
 /// Get HTTP status name by status code.
 pub fn get_name_by_http_code(code: u16) -> Option<&'static str> {
-    let status_code = get_status_from_code(code);
-    return status_code.canonical_reason();
+    get_status_from_code(code).canonical_reason()
 }
 
 
 /// Return the full content type with charset for a mimetype.
 pub fn get_content_type(mimetype: &str, charset: &str) -> String {
-    if mimetype.starts_with("text/") | (mimetype == "application/xml") |
-       (mimetype.starts_with("application/") & mimetype.ends_with("+xml")) {
-        if !mimetype.contains("charset") {
-            let mut content_type = mimetype.to_string();
-            content_type = content_type + "; charset=" + charset;
-            return content_type;
-        }
+    if (mimetype.starts_with("text/") || (mimetype == "application/xml") ||
+       (mimetype.starts_with("application/") && mimetype.ends_with("+xml"))) &&
+       !mimetype.contains("charset") {
+        mimetype.to_string() + "; charset=" + charset
+    } else {
+        mimetype.to_string()
     }
-    return mimetype.to_string();
 }
 
 
 /// Return the http value of host.
 pub fn get_host_value(host: &Host) -> String {
     match host.port {
-        None | Some(80) | Some(443) => format!("{}", host.hostname),
+        None | Some(80) | Some(443) => host.hostname.clone(),
         Some(port) => format!("{}:{}", host.hostname, port),
     }
 }
@@ -72,7 +69,7 @@ pub fn get_status_from_code(code: u16) -> StatusCode {
         410 => StatusCode::Gone,
         411 => StatusCode::LengthRequired,
         412 => StatusCode::PreconditionFailed,
-        413 => StatusCode::PermanentRedirect,
+        413 => StatusCode::PayloadTooLarge,
         414 => StatusCode::UriTooLong,
         415 => StatusCode::UnsupportedMediaType,
         416 => StatusCode::RangeNotSatisfiable,
