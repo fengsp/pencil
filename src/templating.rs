@@ -1,26 +1,27 @@
 //! This module implements the bridge to handlebars.
 use std::convert;
 use std::io::Read;
-use std::io::Write;
 use std::io::Result as IOResult;
 use std::fs::File;
 use std::path::PathBuf;
+use std::error::Error;
 
 use rustc_serialize::json::ToJson;
-use handlebars::RenderError;
-use handlebars::Context;
-use handlebars::RenderContext;
-use handlebars::Template;
-use handlebars::Renderable;
+use handlebars::{RenderError, TemplateRenderError};
 
 use app::Pencil;
 use types::{PencilResult, PenUserError, UserError, PencilError};
 use wrappers::Response;
 
-
 impl convert::From<RenderError> for PencilError {
     fn from(err: RenderError) -> PencilError {
-        PenUserError(UserError::new(&err.desc))
+        PenUserError(UserError::new(err.description()))
+    }
+}
+
+impl convert::From<TemplateRenderError> for PencilError {
+    fn from(err: TemplateRenderError) -> PencilError {
+        PenUserError(UserError::new(err.description()))
     }
 }
 
@@ -34,61 +35,14 @@ pub fn render_template<T: ToJson>(app: &Pencil, template_name: &str, context: &T
     Ok(Response::from(rv))
 }
 
-struct StringWriter {
-    buf: Vec<u8>
-}
-
-impl StringWriter {
-    pub fn new() -> StringWriter {
-        StringWriter {
-            buf: Vec::new()
-        }
-    }
-
-    pub fn to_string(self) -> String {
-        if let Ok(s) = String::from_utf8(self.buf) {
-            s
-        } else {
-            String::new()
-        }
-    }
-}
-
-impl Write for StringWriter {
-    fn write(&mut self, buf: &[u8]) -> IOResult<usize> {
-        for b in buf {
-            self.buf.push(*b);
-        }
-        Ok(buf.len())
-    }
-
-    fn flush(&mut self) -> IOResult<()> {
-        Ok(())
-    }
-}
-
 pub fn render_template_string<T: ToJson>(app: &Pencil, source: &str, context: &T) -> PencilResult {
-    match app.handlebars_registry.read() {
-        Ok(registry) => {
-            match Template::compile(source.to_owned()) {
-                Ok(template) => {
-                    let c = Context::wraps(context);
-                    let mut writer = StringWriter::new();
-                    {
-                        let mut render_context = RenderContext::new(&mut writer);
-                        try!(template.render(&c, &**registry, &mut render_context));
-                    }
-                    Ok(Response::from(writer.to_string()))
-                },
-                Err(err) => {
-                    Err(PenUserError(UserError::new(format!("Template compile error: {}", err))))
-                }
-            }
-        },
-        Err(_) => {
-            Err(PenUserError(UserError::new("Can't acquire handlebars registry")))
-        }
+    let registry_read_rv = app.handlebars_registry.read();
+    if registry_read_rv.is_err() {
+        return Err(PenUserError(UserError::new("Can't acquire handlebars registry")));
     }
+    let registry = registry_read_rv.unwrap();
+    let rv = try!(registry.template_render(source, context));
+    Ok(Response::from(rv))
 }
 
 /// The template loader trait allows for loading template source.
