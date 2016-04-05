@@ -55,12 +55,12 @@ fn parse_rule(rule: &str) -> Vec<(Option<&str>, &str)> {
         }
     }
     if !remaining.is_empty() {
-        if remaining.contains(">") || remaining.contains("<") {
+        if remaining.contains('>') || remaining.contains('<') {
             panic!("malformed url rule: {}", rule);
         }
         rule_parts.push((None, remaining));
     }
-    return rule_parts;
+    rule_parts
 }
 
 /// The matcher holds the url regex object.
@@ -91,22 +91,21 @@ impl Matcher {
 /// URL rules that end with a slash are branch URLs, others are leaves.
 impl<'a> From<&'a str> for Matcher {
     fn from(rule: &'a str) -> Matcher {
-        if !rule.starts_with("/") {
+        if !rule.starts_with('/') {
             panic!("urls must start with a leading slash");
         }
-        let is_branch = rule.ends_with("/");
+        let is_branch = rule.ends_with('/');
 
         // Compiles the regular expression
         let mut regex_parts: Vec<String> = Vec::new();
-        for (converter, variable) in parse_rule(rule.trim_right_matches("/")) {
+        for (converter, variable) in parse_rule(rule.trim_right_matches('/')) {
             match converter {
                 Some(converter) => {
                     let re = match converter {
-                        "string" => "[^/]{1,}",
+                        "string" | "default" => "[^/]{1,}",
                         "int" => r"\d+",
                         "float" => r"\d+\.\d+",
                         "path" => "[^/].*?",
-                        "default" => "[^/]{1,}",
                         _ => { panic!("the converter {} does not exist", converter); }
                     };
                     regex_parts.push(format!("(?P<{}>{})", variable, re));
@@ -166,11 +165,11 @@ impl Rule {
         if all_methods.contains(&Method::Get) {
             all_methods.insert(Method::Head);
         }
-        let provide_automatic_options = if !all_methods.contains(&Method::Options) {
+        let provide_automatic_options = if all_methods.contains(&Method::Options) {
+            false
+        } else {
             all_methods.insert(Method::Options);
             true
-        } else {
-            false
         };
         Rule {
             matcher: matcher,
@@ -188,24 +187,18 @@ impl Rule {
                 // redirect to the same URL with the missing slash appended.
                 // We have a url without a trailing slash for branch url rule.
                 // So we redirect to the same url but with a trailing slash.
-                match caps.name("__suffix__") {
-                    Some(suffix) => {
-                        if suffix.is_empty() {
-                            // TODO: we should redirect here
-                            return None;
-                        }
-                    },
-                    None => {}
+                if let Some(suffix) = caps.name("__suffix__") {
+                    if suffix.is_empty() {
+                        // TODO: we should redirect here
+                        return None;
+                    }
                 }
                 let mut view_args: HashMap<String, String> = HashMap::new();
                 for variable in self.matcher.regex.capture_names() {
-                    match variable {
-                        Some(variable) => {
-                            if variable != "__suffix__" {
-                                view_args.insert(variable.to_string(), caps.name(variable).unwrap().to_string());
-                            }
-                        },
-                        None => {}
+                    if let Some(variable) = variable {
+                        if variable != "__suffix__" {
+                            view_args.insert(variable.to_string(), caps.name(variable).unwrap().to_string());
+                        }
                     }
                 }
                 Some(view_args)
@@ -220,6 +213,12 @@ impl Rule {
 #[derive(Clone)]
 pub struct Map {
     rules: Vec<Rule>,
+}
+
+impl Default for Map {
+    fn default() -> Map {
+        Map::new()
+    }
 }
 
 impl Map {
@@ -255,7 +254,7 @@ impl<'m> MapAdapter<'m> {
 
     pub fn matched(&self) -> Result<(Rule, ViewArgs), HTTPError> {
         let mut have_match_for = HashSet::new();
-        for rule in self.map.rules.iter() {
+        for rule in &self.map.rules {
             let rv: ViewArgs;
             match rule.matched(self.path.clone()) {
                 Some(view_args) => { rv = view_args; },
@@ -274,13 +273,13 @@ impl<'m> MapAdapter<'m> {
             allowed_methods.extend(have_match_for.into_iter());
             return Err(MethodNotAllowed(Some(allowed_methods)))
         }
-        return Err(NotFound)
+        Err(NotFound)
     }
 
     /// Get the valid methods that match for the given path.
     pub fn allowed_methods(&self) -> Vec<Method> {
         let mut have_match_for = HashSet::new();
-        for rule in self.map.rules.iter() {
+        for rule in &self.map.rules {
             match rule.matched(self.path.clone()) {
                 Some(_) => {
                     for method in &rule.methods {

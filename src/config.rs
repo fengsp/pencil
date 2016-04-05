@@ -35,6 +35,12 @@ pub struct Config {
     config: Object,
 }
 
+impl Default for Config {
+    fn default() -> Config {
+        Config::new()
+    }
+}
+
 impl Config {
     /// Create a `Config` object.
     pub fn new() -> Config {
@@ -60,10 +66,8 @@ impl Config {
     pub fn get_boolean(&self, key: &str, default: bool) -> bool {
         match self.get(key) {
             Some(value) => {
-                match value {
-                    &Json::Boolean(value) => {
-                        value
-                    },  
+                match *value {
+                    Json::Boolean(value) => value,
                     _ => default
                 }   
             },  
@@ -95,7 +99,7 @@ impl Config {
 
     /// Updates the values from the given `Object`.
     pub fn from_object(&mut self, object: Object) {
-        for (key, value) in object.iter() {
+        for (key, value) in &object {
             self.set(&key, value.clone());
         }
     }

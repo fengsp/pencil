@@ -80,9 +80,9 @@ impl error::Error for PencilError {
     }
 
     fn cause(&self) -> Option<&error::Error> {
-        match self {
-            &PenHTTPError(ref err) => Some(&*err as &error::Error),
-            &PenUserError(_) => None,
+        match *self {
+            PenHTTPError(ref err) => Some(&*err as &error::Error),
+            PenUserError(_) => None,
         }
     }
 }
