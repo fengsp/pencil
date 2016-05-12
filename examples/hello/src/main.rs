@@ -50,8 +50,8 @@ fn before_request(request: &mut Request) -> Option<PencilResult> {
     None
 }
 
-fn apple(_: &mut Request) -> PencilResult {
-    return redirect("http://www.apple.com/", 302);
+fn github(_: &mut Request) -> PencilResult {
+    return redirect("https://github.com/", 302);
 }
 
 fn login(_: &mut Request) -> PencilResult {
@@ -85,7 +85,7 @@ fn main() {
     app.get("/user/<int:user_id>", "user", user);
     app.get("/info", "app_info", app_info);
     app.get("/hello_template", "hello_template", hello_template);
-    app.get("/apple", "apple", apple);
+    app.get("/github", "github", github);
     app.get("/login", "login", login);
     app.get("/search", "search", search);
 
