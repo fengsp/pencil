@@ -82,7 +82,7 @@ fn main() {
     app.httperrorhandler(404, page_not_found);
 
     app.get("/", "hello", hello);
-    app.get("/user/<int:user_id>", "user", user);
+    app.get("/user/<user_id:int>", "user", user);
     app.get("/info", "app_info", app_info);
     app.get("/hello_template", "hello_template", hello_template);
     app.get("/github", "github", github);

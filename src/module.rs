@@ -151,7 +151,7 @@ impl Module {
         };
         if let Some(static_url_path) = static_url_path {
             let mut rule = static_url_path.clone();
-            rule = rule + "/<path:filename>";
+            rule = rule + "/<filename:path>";
             self.route(rule, &[Method::Get], "static", send_module_static_file);
         }
         let deferred_routes = mem::replace(&mut self.deferred_routes, Vec::new());

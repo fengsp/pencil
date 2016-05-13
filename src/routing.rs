@@ -19,10 +19,10 @@ fn parse_rule(rule: &str) -> Vec<(Option<&str>, &str)> {
         (?P<static>[^<]*)                            # static rule data
         <
         (?:
-            (?P<converter>[a-zA-Z_][a-zA-Z0-9_]*)    # converter name
+            (?P<variable>[a-zA-Z_][a-zA-Z0-9_]*)     # variable name
             :                                        # variable delimiter
         )?
-        (?P<variable>[a-zA-Z_][a-zA-Z0-9_]*)         # variable name
+        (?P<converter>[a-zA-Z_][a-zA-Z0-9_]*)        # converter name
         >
     ").unwrap();
     let mut rule_parts: Vec<(Option<&str>, &str)> = Vec::new();
@@ -78,7 +78,7 @@ impl Matcher {
 }
 
 /// Rule strings basically are just normal URL paths with placeholders in
-/// the format `<converter:name>` where the converter are optional.
+/// the format `<name:converter>` where the converter are optional.
 /// Currently we support following converters:
 ///
 /// - string(default)

@@ -157,7 +157,7 @@ impl Pencil {
     ///
     /// ```rust,ignore
     /// app.route("/home", &[Get], "home", home);
-    /// app.route("/user/<int:user_id>", &[Get], "user", user);
+    /// app.route("/user/<user_id:int>", &[Get], "user", user);
     /// ```
     ///
     /// A rule that listens for `GET` will implicitly listen for `HEAD`.
@@ -211,7 +211,7 @@ impl Pencil {
     /// Enables static file handling.
     pub fn enable_static_file_handling(&mut self) {
         let mut rule = self.static_url_path.clone();
-        rule = rule + "/<path:filename>";
+        rule = rule + "/<filename:path>";
         let rule_str: &str = &rule;
         self.route(rule_str, &[Method::Get], "static", send_app_static_file);
     }
