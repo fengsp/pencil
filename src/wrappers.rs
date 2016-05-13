@@ -13,7 +13,7 @@ use hyper::uri::RequestUri::{AbsolutePath, AbsoluteUri, Authority, Star};
 use hyper::header::{Headers, ContentLength, ContentType, Cookie};
 use hyper::mime::Mime;
 use hyper::method::Method;
-use url::UrlParser;
+use url::Url;
 use url::form_urlencoded;
 use formdata::uploaded_file::UploadedFile;
 use rustc_serialize::json;
@@ -110,9 +110,9 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
     pub fn args(&mut self) -> &MultiDict<String> {
         if self.args.is_none() {
             let mut args = MultiDict::new();
-            let query_pairs = self.query_string().map(|query| form_urlencoded::parse(query.as_bytes()));
-            if let Some(pairs) = query_pairs {
-                for (k, v) in pairs {
+            if let Some(query) = self.query_string() {
+                let pairs = form_urlencoded::parse(query.as_bytes());
+                for (k, v) in pairs.into_owned() {
                     args.add(k, v);
                 }
             }
@@ -189,7 +189,7 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
                 Some(path.splitn(2, '?').next().unwrap().to_string())
             },
             AbsoluteUri(ref url) => {
-                url.serialize_path()
+                Some(url.path().to_owned())
             },
             Authority(_) | Star => None
         }
@@ -216,15 +216,18 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
     pub fn query_string(&self) -> Option<String> {
         match self.request.uri {
             AbsolutePath(ref path) => {
-                match UrlParser::new().parse_path(path) {
-                    Ok((_, query, _)) => {
-                        query
+                // Url can not parse relative urls
+                // TODO: fix this
+                let fake_base = Url::parse("http://pencil.io").unwrap();
+                match fake_base.join(path) {
+                    Ok(url) => {
+                        url.query().map(|q| q.to_owned())
                     },
                     Err(_) => None
                 }
             },
             AbsoluteUri(ref url) => {
-                url.query.clone()
+                url.query().map(|q| q.to_owned())
             },
             Authority(_) | Star => None
         }
@@ -248,7 +251,7 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
     /// URL scheme (http or https)
     pub fn scheme(&self) -> String {
         if let AbsoluteUri(ref url) = self.request.uri {
-            return url.scheme.clone();
+            return url.scheme().to_owned();
         }
         String::from("http")
     }

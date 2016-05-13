@@ -29,7 +29,7 @@ impl FormDataParser {
                 match request.read_to_end(&mut body) {
                     Ok(_) => {
                         let mut form = MultiDict::new();
-                        for (k, v) in form_urlencoded::parse(&body) {
+                        for (k, v) in form_urlencoded::parse(&body).into_owned() {
                             form.add(k, v);
                         }
                         (form, MultiDict::new())
