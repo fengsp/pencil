@@ -29,7 +29,7 @@ fn test_redirect() {
     let result = redirect("http://localhost/füübär", 302);
     let response = result.ok().unwrap();
     let location: Option<&Location> = response.headers.get();
-    let location_str = url::percent_encoding::lossy_utf8_percent_decode(location.unwrap().as_bytes());
+    let location_str = url::percent_encoding::percent_decode(location.unwrap().as_bytes()).decode_utf8_lossy();
     assert!(location_str.contains("/füübär"));
     assert!(response.status_code == 302);
 
