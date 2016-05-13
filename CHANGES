@@ -6,3 +6,11 @@ Version 0.1.0
 -------------
 
 First public preview release.
+
+
+Version 0.2.0
+-------------
+
+Released on May 13th 2016
+
+- Changed routing format to <name:converter>
