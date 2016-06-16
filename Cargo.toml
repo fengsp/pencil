@@ -29,6 +29,6 @@ version = "0.9.4"
 default_features = false
 
 [dependencies.formdata]
-version = "0.8.2"
+version = "0.8.4"
 default_features = false
 features = ["rust-stable"]
