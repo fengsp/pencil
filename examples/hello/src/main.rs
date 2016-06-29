@@ -3,6 +3,7 @@ extern crate typemap;
 #[macro_use] extern crate log;
 extern crate env_logger;
 
+use std::env;
 use std::collections::BTreeMap;
 use typemap::Key;
 use pencil::{Pencil, Request, Response, PencilResult};
@@ -71,7 +72,7 @@ fn hi_module(_: &mut Request) -> PencilResult {
 }
 
 fn main() {
-    let mut app = Pencil::new("/web/hello");
+    let mut app = Pencil::new(env::var("HELLO_ROOT_PATH").unwrap().as_ref());
     app.set_debug(true);
     app.set_log_level();
     env_logger::init().unwrap();
