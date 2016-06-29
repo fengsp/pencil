@@ -25,7 +25,7 @@ use httputils::{get_name_by_http_code, get_content_type, get_host_value};
 use httputils::get_status_from_code;
 use routing::Rule;
 use types::ViewArgs;
-use http_errors::{HTTPError, NotFound};
+use http_errors::HTTPError;
 use formparser::FormDataParser;
 
 
@@ -43,6 +43,7 @@ pub struct Request<'r, 'a, 'b: 'a> {
     pub routing_error: Option<HTTPError>,
     /// Storage for data of extensions.
     pub extensions_data: TypeMap,
+    url: Url,
     args: Option<MultiDict<String>>,
     form: Option<MultiDict<String>>,
     files: Option<MultiDict<UploadedFile>>,
@@ -51,39 +52,55 @@ pub struct Request<'r, 'a, 'b: 'a> {
 
 impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
     /// Create a `Request`.
-    pub fn new(app: &'r Pencil, request: hyper::server::request::Request<'a, 'b>) -> Request<'r, 'a, 'b> {
-        Request {
+    pub fn new(app: &'r Pencil, request: hyper::server::request::Request<'a, 'b>) -> Result<Request<'r, 'a, 'b>, String> {
+        let url = match request.uri {
+            AbsolutePath(ref path) => {
+                let url_string = match request.headers.get::<hyper::header::Host>() {
+                    Some(ref host) => {
+                        format!("http://{}{}", get_host_value(host), path)
+                    },
+                    None => {
+                        return Err("No host specified in your request".into());
+                    }
+                };
+                match Url::parse(&url_string) {
+                    Ok(url) => url,
+                    Err(e) => return Err(format!("Couldn't parse requested URL: {}", e))
+                }
+            },
+            AbsoluteUri(ref url) => {
+                url.clone()
+            },
+            Authority(_) | Star => {
+                return Err("Unsupported request URI".into());
+            }
+        };
+        Ok(Request {
             app: app,
             request: request,
             url_rule: None,
             view_args: HashMap::new(),
             routing_error: None,
             extensions_data: TypeMap::new(),
+            url: url,
             args: None,
             form: None,
             files: None,
             cached_json: None,
-        }
+        })
     }
 
     /// Match the request, set the `url_rule` and `view_args` field.
     pub fn match_request(&mut self) {
-        match self.path() {
-            Some(path) => {
-                let url_adapter = self.app.url_map.bind(path, self.method());
-                match url_adapter.matched() {
-                    Ok((rule, view_args)) => {
-                        self.url_rule = Some(rule);
-                        self.view_args = view_args;
-                    },
-                    Err(e) => {
-                        self.routing_error = Some(e);
-                    },
-                }
+        let url_adapter = self.app.url_map.bind(self.path(), self.method());
+        match url_adapter.matched() {
+            Ok((rule, view_args)) => {
+                self.url_rule = Some(rule);
+                self.view_args = view_args;
             },
-            None => {
-                self.routing_error = Some(NotFound);
-            }
+            Err(e) => {
+                self.routing_error = Some(e);
+            },
         }
     }
 
@@ -183,24 +200,16 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
     }
 
     /// Requested path.
-    pub fn path(&self) -> Option<String> {
-        match self.request.uri {
-            AbsolutePath(ref path) => {
-                Some(path.splitn(2, '?').next().unwrap().to_string())
-            },
-            AbsoluteUri(ref url) => {
-                Some(url.path().to_owned())
-            },
-            Authority(_) | Star => None
-        }
+    pub fn path(&self) -> String {
+        self.url.path().to_owned()
     }
 
     /// Requested path including the query string.
-    pub fn full_path(&self) -> Option<String> {
+    pub fn full_path(&self) -> String {
         let path = self.path();
         let query_string = self.query_string();
-        if path.is_some() && query_string.is_some() {
-            Some(path.unwrap() + "?" + &query_string.unwrap())
+        if query_string.is_some() {
+            path + "?" + &query_string.unwrap()
         } else {
             path
         }
@@ -214,23 +223,7 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
 
     /// The query string.
     pub fn query_string(&self) -> Option<String> {
-        match self.request.uri {
-            AbsolutePath(ref path) => {
-                // Url can not parse relative urls
-                // TODO: fix this
-                let fake_base = Url::parse("http://pencil.io").unwrap();
-                match fake_base.join(path) {
-                    Ok(url) => {
-                        url.query().map(|q| q.to_owned())
-                    },
-                    Err(_) => None
-                }
-            },
-            AbsoluteUri(ref url) => {
-                url.query().map(|q| q.to_owned())
-            },
-            Authority(_) | Star => None
-        }
+        self.url.query().map(|q| q.to_owned())
     }
 
     /// The retrieved cookies.
@@ -270,8 +263,8 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
     pub fn url(&self) -> Option<String> {
         let host_url = self.host_url();
         let full_path = self.full_path();
-        if host_url.is_some() && full_path.is_some() {
-            Some(host_url.unwrap() + &(full_path.unwrap()).trim_left_matches('/'))
+        if host_url.is_some() {
+            Some(host_url.unwrap() + &full_path.trim_left_matches('/'))
         } else {
             None
         }
@@ -281,8 +274,8 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
     pub fn base_url(&self) -> Option<String> {
         let host_url = self.host_url();
         let path = self.path();
-        if host_url.is_some() && path.is_some() {
-            Some(host_url.unwrap() + &path.unwrap().trim_left_matches('/'))
+        if host_url.is_some() {
+            Some(host_url.unwrap() + &path.trim_left_matches('/'))
         } else {
             None
         }

@@ -14,6 +14,7 @@ use rustc_serialize::json::ToJson;
 use handlebars::Handlebars;
 use hyper;
 use hyper::method::Method;
+use hyper::status::StatusCode;
 use hyper::server::Request as HTTPRequest;
 use hyper::server::Response as HTTPResponse;
 
@@ -401,16 +402,14 @@ impl Pencil {
 
     /// This method is called to create the default `OPTIONS` response.
     fn make_default_options_response(&self, request: &Request) -> Option<Response> {
-        if let Some(path) = request.path() {
-            let url_adapter = self.url_map.bind(path, request.method());
-            if let Some(ref rule) = request.url_rule {
-                // if we provide automatic options for this URL and the request
-                // came with the OPTIONS method, reply automatically
-                if rule.provide_automatic_options && request.method() == Method::Options {
-                    let mut response = Response::new_empty();
-                    response.headers.set(hyper::header::Allow(url_adapter.allowed_methods()));
-                    return Some(response);
-                }
+        let url_adapter = self.url_map.bind(request.path(), request.method());
+        if let Some(ref rule) = request.url_rule {
+            // if we provide automatic options for this URL and the request
+            // came with the OPTIONS method, reply automatically
+            if rule.provide_automatic_options && request.method() == Method::Options {
+                let mut response = Response::new_empty();
+                response.headers.set(hyper::header::Allow(url_adapter.allowed_methods()));
+                return Some(response);
             }
         }
         None
@@ -498,14 +497,7 @@ impl Pencil {
 
     /// Logs an error.
     fn log_error(&self, request: &Request, e: &PencilError) {
-        match request.path() {
-            Some(path) => {
-                error!("Error on {} [{}]: {}", path, request.method(), e.description());
-            },
-            None => {
-                error!("Error: {}", e.description());
-            }
-        }
+        error!("Error on {} [{}]: {}", request.path(), request.method(), e.description());
     }
 
     /// Dispatches the request and performs request pre and postprocessing
@@ -594,10 +586,19 @@ impl Pencil {
 }
 
 impl hyper::server::Handler for Pencil {
-    fn handle(&self, req: HTTPRequest, res: HTTPResponse) {
-        let mut request = Request::new(self, req);
-        let response = self.handle_request(&mut request);
-        response.write(request.method(), res);
+    fn handle(&self, req: HTTPRequest, mut res: HTTPResponse) {
+        match Request::new(self, req) {
+            Ok(mut request) => {
+                let response = self.handle_request(&mut request);
+                response.write(request.method(), res);
+            }
+            Err(_) => {
+                *res.status_mut() = StatusCode::BadRequest;
+                if let Ok(w) = res.start() {
+                    let _ = w.end();
+                }
+            }
+        };
     }
 }
 
