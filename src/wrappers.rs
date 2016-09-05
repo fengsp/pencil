@@ -44,6 +44,7 @@ pub struct Request<'r, 'a, 'b: 'a> {
     /// Storage for data of extensions.
     pub extensions_data: TypeMap,
     url: Url,
+    host: hyper::header::Host,
     args: Option<MultiDict<String>>,
     form: Option<MultiDict<String>>,
     files: Option<MultiDict<FilePart>>,
@@ -53,16 +54,15 @@ pub struct Request<'r, 'a, 'b: 'a> {
 impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
     /// Create a `Request`.
     pub fn new(app: &'r Pencil, request: hyper::server::request::Request<'a, 'b>) -> Result<Request<'r, 'a, 'b>, String> {
+        let host = match request.headers.get::<hyper::header::Host>() {
+            Some(host) => host.clone(),
+            None => {
+                return Err("No host specified in your request".into());
+            }
+        };
         let url = match request.uri {
             AbsolutePath(ref path) => {
-                let url_string = match request.headers.get::<hyper::header::Host>() {
-                    Some(ref host) => {
-                        format!("http://{}{}", get_host_value(host), path)
-                    },
-                    None => {
-                        return Err("No host specified in your request".into());
-                    }
-                };
+                let url_string = format!("http://{}{}", get_host_value(&host), path);
                 match Url::parse(&url_string) {
                     Ok(url) => url,
                     Err(e) => return Err(format!("Couldn't parse requested URL: {}", e))
@@ -83,6 +83,7 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
             routing_error: None,
             extensions_data: TypeMap::new(),
             url: url,
+            host: host,
             args: None,
             form: None,
             files: None,
@@ -216,9 +217,8 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
     }
 
     /// The host including the port if available.
-    pub fn host(&self) -> Option<String> {
-        let host: Option<&hyper::header::Host> = self.request.headers.get();
-        host.map(|host| get_host_value(host))
+    pub fn host(&self) -> String {
+        get_host_value(&self.host)
     }
 
     /// The query string.
@@ -250,35 +250,18 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
     }
 
     /// Just the host with scheme.
-    pub fn host_url(&self) -> Option<String> {
-        match self.host() {
-            Some(host) => {
-                Some(self.scheme() + "://" + &host + "/")
-            },
-            None => None,
-        }
+    pub fn host_url(&self) -> String {
+        self.scheme() + "://" + &self.host() + "/"
     }
 
     /// The current url.
-    pub fn url(&self) -> Option<String> {
-        let host_url = self.host_url();
-        let full_path = self.full_path();
-        if host_url.is_some() {
-            Some(host_url.unwrap() + &full_path.trim_left_matches('/'))
-        } else {
-            None
-        }
+    pub fn url(&self) -> String {
+        self.host_url() + &self.full_path().trim_left_matches('/')
     }
 
     /// The current url without the query string.
-    pub fn base_url(&self) -> Option<String> {
-        let host_url = self.host_url();
-        let path = self.path();
-        if host_url.is_some() {
-            Some(host_url.unwrap() + &path.trim_left_matches('/'))
-        } else {
-            None
-        }
+    pub fn base_url(&self) -> String {
+        self.host_url() + &self.path().trim_left_matches('/')
     }
 
     /// Whether the request is secure (https).
@@ -289,14 +272,7 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
 
 impl<'r, 'a, 'b: 'a> fmt::Debug for Request<'r, 'a, 'b> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self.url() {
-            Some(url) => {
-                write!(f, "<Pencil Request '{}' {}>", url, self.method())
-            },
-            None => {
-                write!(f, "<Pencil Request>")
-            }
-        }
+        write!(f, "<Pencil Request '{}' {}>", self.url(), self.method())
     }
 }
 
