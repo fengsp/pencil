@@ -5,8 +5,7 @@ use std::io::Read;
 
 use hyper;
 use hyper::mime::{Mime, TopLevel, SubLevel};
-use formdata::{get_multipart_boundary, parse_multipart};
-use formdata::uploaded_file::UploadedFile;
+use formdata::{read_formdata, FilePart};
 use url::form_urlencoded;
 
 use datastructures::MultiDict;
@@ -21,7 +20,7 @@ impl FormDataParser {
         FormDataParser
     }
 
-    pub fn parse(&self, request: &mut hyper::server::request::Request, mimetype: &Mime) -> (MultiDict<String>, MultiDict<UploadedFile>) {
+    pub fn parse(&self, request: &mut hyper::server::request::Request, mimetype: &Mime) -> (MultiDict<String>, MultiDict<FilePart>) {
         let default = (MultiDict::new(), MultiDict::new());
         match *mimetype {
             Mime(TopLevel::Application, SubLevel::WwwFormUrlEncoded, _) => {
@@ -40,24 +39,18 @@ impl FormDataParser {
                 }
             },
             Mime(TopLevel::Multipart, SubLevel::FormData, _) => {
-                match get_multipart_boundary(&request.headers) {
-                    Ok(boundary) => {
-                        match parse_multipart(request, boundary) {
-                            Ok(form_data) => {
-                                let mut form = MultiDict::new();
-                                let mut files = MultiDict::new();
-                                for (name, value) in form_data.fields {
-                                    form.add(name, value);
-                                }
-                                for (name, file) in form_data.files {
-                                    files.add(name, file);
-                                }
-                                (form, files)
-                            },
-                            Err(_) => {
-                                default
-                            }
+                let headers = request.headers.clone();
+                match read_formdata(request, &headers) {
+                    Ok(form_data) => {
+                        let mut form = MultiDict::new();
+                        let mut files = MultiDict::new();
+                        for (name, value) in form_data.fields {
+                            form.add(name, value);
                         }
+                        for (name, file) in form_data.files {
+                            files.add(name, file);
+                        }
+                        (form, files)
                     },
                     Err(_) => {
                         default

@@ -15,7 +15,7 @@ use hyper::mime::Mime;
 use hyper::method::Method;
 use url::Url;
 use url::form_urlencoded;
-use formdata::uploaded_file::UploadedFile;
+use formdata::FilePart;
 use rustc_serialize::json;
 use typemap::TypeMap;
 
@@ -46,7 +46,7 @@ pub struct Request<'r, 'a, 'b: 'a> {
     url: Url,
     args: Option<MultiDict<String>>,
     form: Option<MultiDict<String>>,
-    files: Option<MultiDict<UploadedFile>>,
+    files: Option<MultiDict<FilePart>>,
     cached_json: Option<Option<json::Json>>
 }
 
@@ -189,7 +189,7 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
     }
 
     /// All uploaded files.
-    pub fn files(&mut self) -> &MultiDict<UploadedFile> {
+    pub fn files(&mut self) -> &MultiDict<FilePart> {
         self.load_form_data();
         self.files.as_ref().unwrap()
     }
