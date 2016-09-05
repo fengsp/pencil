@@ -89,6 +89,10 @@ impl Matcher {
 /// If no converter is defined the `default` converter is used which means `string`.
 ///
 /// URL rules that end with a slash are branch URLs, others are leaves.
+/// All branch URLs that are matched without a trailing slash will trigger a
+/// redirect to the same URL with the missing slash appended.
+/// We have a url without a trailing slash for branch url rule.
+/// So we redirect to the same url but with a trailing slash.
 impl<'a> From<&'a str> for Matcher {
     fn from(rule: &'a str) -> Matcher {
         if !rule.starts_with('/') {
@@ -139,6 +143,20 @@ impl From<Regex> for Matcher {
 }
 
 
+/// Request Slash error.
+/// This is for example the case if you request `/foo`
+/// although the correct URL is `/foo/`.
+pub struct RequestSlashError;
+
+
+/// The map adapter matched value.
+pub enum MapAdapterMatched {
+    MatchedRule((Rule, ViewArgs)),
+    MatchedRedirect((String, u16)),
+    MatchedError(HTTPError)
+}
+
+
 /// A Rule represents one URL pattern.
 #[derive(Clone)]
 pub struct Rule {
@@ -180,17 +198,12 @@ impl Rule {
     }
 
     /// Check if the rule matches a given path.
-    pub fn matched(&self, path: String) -> Option<ViewArgs> {
+    pub fn matched(&self, path: String) -> Option<Result<ViewArgs, RequestSlashError>> {
         match self.matcher.regex.captures(&path) {
             Some(caps) => {
-                // All branch URLs that are matched without a trailing slash will trigger a
-                // redirect to the same URL with the missing slash appended.
-                // We have a url without a trailing slash for branch url rule.
-                // So we redirect to the same url but with a trailing slash.
                 if let Some(suffix) = caps.name("__suffix__") {
                     if suffix.is_empty() {
-                        // TODO: we should redirect here
-                        return None;
+                        return Some(Err(RequestSlashError));
                     }
                 }
                 let mut view_args: HashMap<String, String> = HashMap::new();
@@ -201,7 +214,7 @@ impl Rule {
                         }
                     }
                 }
-                Some(view_args)
+                Some(Ok(view_args))
             },
             None => None,
         }
@@ -230,8 +243,8 @@ impl Map {
         self.rules.push(rule);
     }
 
-    pub fn bind(&self, path: String, method: Method) -> MapAdapter {
-        MapAdapter::new(self, path, method)
+    pub fn bind(&self, host: String, path: String, query_string: Option<String>, method: Method) -> MapAdapter {
+        MapAdapter::new(self, host, path, query_string, method)
     }
 }
 
@@ -239,25 +252,52 @@ impl Map {
 /// Does the URL matching and building based on runtime information.
 pub struct MapAdapter<'m> {
     map: &'m Map,
+    url_scheme: String,
+    host: String,
     path: String,
+    query_string: Option<String>,
     method: Method,
 }
 
 impl<'m> MapAdapter<'m> {
-    pub fn new(map: &Map, path: String, method: Method) -> MapAdapter {
+    pub fn new(map: &Map, host: String, path: String, query_string: Option<String>, method: Method) -> MapAdapter {
         MapAdapter {
             map: map,
+            url_scheme: "http".to_owned(),
+            host: host,
             path: path,
+            query_string: query_string,
             method: method,
         }
     }
 
-    pub fn matched(&self) -> Result<(Rule, ViewArgs), HTTPError> {
+    fn make_redirect_url(&self) -> String {
+        let mut redirect_path = String::from("");
+        redirect_path = redirect_path + &self.path.trim_left_matches('/') + "/";
+        let mut suffix = String::from("");
+        if let Some(ref query_string) = self.query_string {
+            suffix = suffix + "?" + query_string;
+        }
+        format!("{}://{}/{}{}", self.url_scheme, self.host, redirect_path, suffix)
+    }
+
+    pub fn matched(&self) -> MapAdapterMatched {
         let mut have_match_for = HashSet::new();
         for rule in &self.map.rules {
-            let rv: ViewArgs;
+            let rule_view_args: ViewArgs;
             match rule.matched(self.path.clone()) {
-                Some(view_args) => { rv = view_args; },
+                Some(result) => {
+                    match result {
+                        Ok(view_args) => {
+                            rule_view_args = view_args;
+                        },
+                        // RequestSlashError, redirect here
+                        Err(_) => {
+                            let redirect_url = self.make_redirect_url();
+                            return MapAdapterMatched::MatchedRedirect((redirect_url, 301));
+                        }
+                    }
+                },
                 None => { continue; },
             }
             if !rule.methods.contains(&self.method) {
@@ -266,14 +306,14 @@ impl<'m> MapAdapter<'m> {
                 }
                 continue;
             }
-            return Ok((rule.clone(), rv))
+            return MapAdapterMatched::MatchedRule((rule.clone(), rule_view_args))
         }
         if !have_match_for.is_empty() {
             let mut allowed_methods = Vec::new();
             allowed_methods.extend(have_match_for.into_iter());
-            return Err(MethodNotAllowed(Some(allowed_methods)))
+            return MapAdapterMatched::MatchedError(MethodNotAllowed(Some(allowed_methods)))
         }
-        Err(NotFound)
+        MapAdapterMatched::MatchedError(NotFound)
     }
 
     /// Get the valid methods that match for the given path.
@@ -303,9 +343,9 @@ fn test_basic_routing() {
     map.add(Rule::new("/".into(), &[Method::Get], "index"));
     map.add(Rule::new("/foo".into(), &[Method::Get], "foo"));
     map.add(Rule::new("/bar/".into(), &[Method::Get], "bar"));
-    let adapter = map.bind(String::from("/bar/"), Method::Get);
+    let adapter = map.bind(String::from("localhost"), String::from("/bar/"), None, Method::Get);
     match adapter.matched() {
-        Ok((rule, view_args)) => {
+        MapAdapterMatched::MatchedRule((rule, view_args)) => {
             assert!(rule.methods.contains(&Method::Get));
             assert!(!rule.methods.contains(&Method::Post));
             assert!(rule.endpoint == String::from("bar"));

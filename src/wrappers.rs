@@ -23,7 +23,7 @@ use app::Pencil;
 use datastructures::MultiDict;
 use httputils::{get_name_by_http_code, get_content_type, get_host_value};
 use httputils::get_status_from_code;
-use routing::Rule;
+use routing::{Rule, MapAdapterMatched, MapAdapter};
 use types::ViewArgs;
 use http_errors::HTTPError;
 use formparser::FormDataParser;
@@ -39,7 +39,9 @@ pub struct Request<'r, 'a, 'b: 'a> {
     pub url_rule: Option<Rule>,
     /// A dict of view arguments that matched the request.
     pub view_args: ViewArgs,
-    /// If matching the URL failed, this will be the error.
+    /// If matching the URL requests a redirect, this will be the redirect.
+    pub routing_redirect: Option<(String, u16)>,
+    /// If matching the URL failed, this will be the routing error.
     pub routing_error: Option<HTTPError>,
     /// Storage for data of extensions.
     pub extensions_data: TypeMap,
@@ -80,6 +82,7 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
             request: request,
             url_rule: None,
             view_args: HashMap::new(),
+            routing_redirect: None,
             routing_error: None,
             extensions_data: TypeMap::new(),
             url: url,
@@ -91,16 +94,24 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
         })
     }
 
+    /// Get the url adapter for this request.
+    pub fn url_adapter(&self) -> MapAdapter {
+        self.app.url_map.bind(self.host(), self.path(), self.query_string(), self.method())
+    }
+
     /// Match the request, set the `url_rule` and `view_args` field.
     pub fn match_request(&mut self) {
-        let url_adapter = self.app.url_map.bind(self.path(), self.method());
+        let url_adapter = self.app.url_map.bind(self.host(), self.path(), self.query_string(), self.method());
         match url_adapter.matched() {
-            Ok((rule, view_args)) => {
+            MapAdapterMatched::MatchedRule((rule, view_args)) => {
                 self.url_rule = Some(rule);
                 self.view_args = view_args;
             },
-            Err(e) => {
-                self.routing_error = Some(e);
+            MapAdapterMatched::MatchedRedirect((redirect_url, redirect_code)) => {
+                self.routing_redirect = Some((redirect_url, redirect_code));
+            },
+            MapAdapterMatched::MatchedError(routing_error) => {
+                self.routing_error = Some(routing_error);
             },
         }
     }

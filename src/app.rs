@@ -36,7 +36,7 @@ use wrappers::{
     Request,
     Response,
 };
-use helpers::{PathBound, send_from_directory};
+use helpers::{PathBound, send_from_directory, redirect};
 use config::Config;
 use logging;
 use serving::run_server;
@@ -387,6 +387,9 @@ impl Pencil {
         if let Some(ref routing_error) = request.routing_error {
             return Err(PenHTTPError(routing_error.clone()));
         }
+        if let Some((ref redirect_url, redirect_code)) = request.routing_redirect {
+            return redirect(redirect_url, redirect_code);
+        }
         if let Some(default_options_response) = self.make_default_options_response(request) {
             return Ok(default_options_response);
         }
@@ -402,11 +405,11 @@ impl Pencil {
 
     /// This method is called to create the default `OPTIONS` response.
     fn make_default_options_response(&self, request: &Request) -> Option<Response> {
-        let url_adapter = self.url_map.bind(request.path(), request.method());
         if let Some(ref rule) = request.url_rule {
             // if we provide automatic options for this URL and the request
             // came with the OPTIONS method, reply automatically
             if rule.provide_automatic_options && request.method() == Method::Options {
+                let url_adapter = request.url_adapter();
                 let mut response = Response::new_empty();
                 response.headers.set(hyper::header::Allow(url_adapter.allowed_methods()));
                 return Some(response);

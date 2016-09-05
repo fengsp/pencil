@@ -88,7 +88,7 @@ fn main() {
     app.get("/hello_template", "hello_template", hello_template);
     app.get("/github", "github", github);
     app.get("/login", "login", login);
-    app.get("/search", "search", search);
+    app.get("/search/", "search", search);
 
     let mut demo_module = Module::new("demo", "/web/hello/demo");
     demo_module.route("/demo/hi", &[Get], "hi", hi_module);
