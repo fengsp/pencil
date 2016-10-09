@@ -14,3 +14,11 @@ Version 0.2.0
 Released on May 13th 2016
 
 - Changed routing format to <name:converter>
+
+Version 0.3.0
+-------------
+
+Released on Oct 9th 2016
+
+- Added request slash redirect support
+- Removed original http request from the pencil request type
