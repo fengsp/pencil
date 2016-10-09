@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Config` struct in crate `pencil`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Config">
+
+    <title>pencil::config::Config - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+    
+
+    <link rel="shortcut icon" href="https://raw.githubusercontent.com/fengsp/pencil/master/logo/favicon.ico">
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        <a href='../../pencil/index.html'><img src='https://raw.githubusercontent.com/fengsp/pencil/master/logo/pencil.png' alt='logo' width='100'></a>
+        <p class='location'><a href='../index.html'>pencil</a>::<wbr><a href='index.html'>config</a></p><script>window.sidebarCurrent = {name: 'Config', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content struct">
+<h1 class='fqn'><span class='in-band'>Struct <a href='../index.html'>pencil</a>::<wbr><a href='index.html'>config</a>::<wbr><a class='struct' href=''>Config</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-787' class='srclink' href='../../src/pencil/src/config.rs.html#34-36' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct Config {
+    // some fields omitted
+}</pre><div class='docblock'><p>The pencil <code>Config</code> type, We provide ways to fill it from JSON files:</p>
+
+<pre class='rust rust-example-rendered'>
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>app</span> <span class='op'>=</span> <span class='ident'>pencil</span>::<span class='ident'>Pencil</span>::<span class='ident'>new</span>(<span class='string'>&quot;/demo&quot;</span>);
+<span class='ident'>app</span>.<span class='ident'>config</span>.<span class='ident'>from_jsonfile</span>(<span class='string'>&quot;yourconfig.json&quot;</span>)</pre>
+
+<p>You can also load configurations from an environment variable
+pointing to a file:</p>
+
+<pre class='rust rust-example-rendered'>
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>app</span> <span class='op'>=</span> <span class='ident'>pencil</span>::<span class='ident'>Pencil</span>::<span class='ident'>new</span>(<span class='string'>&quot;/demo&quot;</span>);
+<span class='ident'>app</span>.<span class='ident'>config</span>.<span class='ident'>from_envvar</span>(<span class='string'>&quot;YOURAPPLICATION_SETTINGS&quot;</span>)</pre>
+
+<p>In this case, you have to set this environment variable to the file
+you want to use.  On Linux and OS X you can use the export statement:</p>
+
+<pre><code class="language-bash">export YOURAPPLICATION_SETTINGS=&quot;/path/to/config/file&quot;
+</code></pre>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl <a class='struct' href='../../pencil/config/struct.Config.html' title='pencil::config::Config'>Config</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-791' class='srclink' href='../../src/pencil/src/config.rs.html#44-106' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>() -&gt; <a class='struct' href='../../pencil/config/struct.Config.html' title='pencil::config::Config'>Config</a></code></h4>
+<div class='docblock'><p>Create a <code>Config</code> object.</p>
+</div><h4 id='method.set' class='method'><code>fn <a href='#method.set' class='fnname'>set</a>(&amp;mut self, key: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>, value: <a class='enum' href='../../rustc_serialize/json/enum.Json.html' title='rustc_serialize::json::Json'>Json</a>)</code></h4>
+<div class='docblock'><p>Set a value for the key.</p>
+</div><h4 id='method.get' class='method'><code>fn <a href='#method.get' class='fnname'>get</a>(&amp;self, key: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;&amp;<a class='enum' href='../../rustc_serialize/json/enum.Json.html' title='rustc_serialize::json::Json'>Json</a>&gt;</code></h4>
+<div class='docblock'><p>Returns a reference to the value corresponding to the key.</p>
+</div><h4 id='method.get_boolean' class='method'><code>fn <a href='#method.get_boolean' class='fnname'>get_boolean</a>(&amp;self, key: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>, default: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
+<div class='docblock'><p>Get a boolean configuration value.  If the key doesn&#39;t exist
+or the value is not a <code>Json::Boolean</code>, the default value
+will be returned.</p>
+</div><h4 id='method.from_envvar' class='method'><code>fn <a href='#method.from_envvar' class='fnname'>from_envvar</a>(&amp;mut self, variable_name: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>)</code></h4>
+<div class='docblock'><p>Loads a configuration from an environment variable pointing to
+a JSON configuration file.</p>
+</div><h4 id='method.from_jsonfile' class='method'><code>fn <a href='#method.from_jsonfile' class='fnname'>from_jsonfile</a>(&amp;mut self, filepath: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>)</code></h4>
+<div class='docblock'><p>Updates the values in the config from a JSON file.</p>
+</div><h4 id='method.from_object' class='method'><code>fn <a href='#method.from_object' class='fnname'>from_object</a>(&amp;mut self, object: <a class='type' href='../../rustc_serialize/json/type.Object.html' title='rustc_serialize::json::Object'>Object</a>)</code></h4>
+<div class='docblock'><p>Updates the values from the given <code>Object</code>.</p>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a> for <a class='struct' href='../../pencil/config/struct.Config.html' title='pencil::config::Config'>Config</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-783' class='srclink' href='../../src/pencil/src/config.rs.html#33' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.clone' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone' class='fnname'>clone</a>(&amp;self) -&gt; <a class='struct' href='../../pencil/config/struct.Config.html' title='pencil::config::Config'>Config</a></code></h4>
+<div class='docblock'><p>Returns a copy of the value. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone">Read more</a></p>
+</div><h4 id='method.clone_from' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from' class='fnname'>clone_from</a>(&amp;mut self, source: &amp;Self)</code><div class='since' title='Stable since Rust version 1.0.0'>1.0.0</div></h4>
+<div class='docblock'><p>Performs copy-assignment from <code>source</code>. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from">Read more</a></p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html' title='core::default::Default'>Default</a> for <a class='struct' href='../../pencil/config/struct.Config.html' title='pencil::config::Config'>Config</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-789' class='srclink' href='../../src/pencil/src/config.rs.html#38-42' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.default' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html#tymethod.default' class='fnname'>default</a>() -&gt; <a class='struct' href='../../pencil/config/struct.Config.html' title='pencil::config::Config'>Config</a></code></h4>
+<div class='docblock'><p>Returns the &quot;default value&quot; for a type. <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html#tymethod.default">Read more</a></p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../../pencil/config/struct.Config.html' title='pencil::config::Config'>Config</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-829' class='srclink' href='../../src/pencil/src/config.rs.html#108-112' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
+<div class='docblock'><p>Formats the value using the given formatter.</p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "pencil";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../../jquery.js"></script>
+    <script src="../../main.js"></script>
+    
+    <script defer src="../../search-index.js"></script>
+</body>
+</html>

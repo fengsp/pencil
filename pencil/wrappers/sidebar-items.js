@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Request","Request type."],["Response","Response type.  It is just one container with a couple of parameters (headers, body, status code etc)."],["ResponseBody","The response body."]],"trait":[["BodyWrite","A trait which writes the body of one response."]]});

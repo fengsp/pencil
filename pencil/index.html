@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `pencil` crate.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, pencil">
+
+    <title>pencil - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    <link rel="shortcut icon" href="https://raw.githubusercontent.com/fengsp/pencil/master/logo/favicon.ico">
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        <a href='../pencil/index.html'><img src='https://raw.githubusercontent.com/fengsp/pencil/master/logo/pencil.png' alt='logo' width='100'></a>
+        <p class='location'></p><script>window.sidebarCurrent = {name: 'pencil', ty: 'mod', relpath: '../'};</script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content mod">
+<h1 class='fqn'><span class='in-band'>Crate <a class='mod' href=''>pencil</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-0' class='srclink' href='../src/pencil/src/lib.rs.html#1-117' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>Pencil is a microframework for Rust inspired by <a href="http://flask.pocoo.org/">Flask</a>.</p>
+
+<h1 id='installation' class='section-header'><a href='#installation'>Installation</a></h1>
+<p>This crate is called <code>pencil</code> and you can depend on it via cargo:</p>
+
+<pre><code class="language-ini">[dependencies]
+pencil = &quot;*&quot;
+</code></pre>
+
+<h1 id='quickstart' class='section-header'><a href='#quickstart'>Quickstart</a></h1>
+<p>A short introduction to Pencil.</p>
+
+<h2 id='a-minimal-application' class='section-header'><a href='#a-minimal-application'>A Minimal Application</a></h2>
+<p>A minimal Pencil application looks something like this:</p>
+
+<pre class='rust rust-example-rendered'>
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>pencil</span>;
+
+<span class='kw'>use</span> <span class='ident'>pencil</span>::<span class='ident'>Pencil</span>;
+<span class='kw'>use</span> <span class='ident'>pencil</span>::{<span class='ident'>Request</span>, <span class='ident'>PencilResult</span>, <span class='ident'>Response</span>};
+<span class='kw'>use</span> <span class='ident'>pencil</span>::<span class='ident'>method</span>::<span class='ident'>Get</span>;
+
+
+<span class='kw'>fn</span> <span class='ident'>hello</span>(_: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Request</span>) <span class='op'>-&gt;</span> <span class='ident'>PencilResult</span> {
+    <span class='prelude-val'>Ok</span>(<span class='ident'>Response</span>::<span class='ident'>from</span>(<span class='string'>&quot;Hello World!&quot;</span>))
+}
+
+
+<span class='kw'>fn</span> <span class='ident'>main</span>() {
+    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>app</span> <span class='op'>=</span> <span class='ident'>Pencil</span>::<span class='ident'>new</span>(<span class='string'>&quot;/web/hello&quot;</span>);
+    <span class='ident'>app</span>.<span class='ident'>route</span>(<span class='string'>&quot;/&quot;</span>, <span class='kw-2'>&amp;</span>[<span class='ident'>Get</span>], <span class='string'>&quot;hello&quot;</span>, <span class='ident'>hello</span>);
+    <span class='ident'>app</span>.<span class='ident'>run</span>(<span class='string'>&quot;127.0.0.1:5000&quot;</span>);
+}</pre>
+</div><h2 id='reexports' class='section-header'><a href="#reexports">Reexports</a></h2>
+<table><tr><td><code>pub use types::{<a class='enum' href='../pencil/enum.PencilError.html' title='pencil::PencilError'>PenHTTPError</a>, <a class='enum' href='../pencil/enum.PencilError.html' title='pencil::PencilError'>PenUserError</a>};</code></td></tr><tr><td><code>pub use wrappers::{<a class='struct' href='../pencil/wrappers/struct.Request.html' title='pencil::wrappers::Request'>Request</a>, <a class='struct' href='../pencil/wrappers/struct.Response.html' title='pencil::wrappers::Response'>Response</a>};</code></td></tr><tr><td><code>pub use http_errors::{<a class='enum' href='../pencil/http_errors/enum.HTTPError.html' title='pencil::http_errors::HTTPError'>HTTPError</a>};</code></td></tr><tr><td><code>pub use json::<a class='fn' href='../pencil/json/fn.jsonify.html' title='pencil::json::jsonify'>jsonify</a>;</code></td></tr><tr><td><code>pub use config::{<a class='struct' href='../pencil/config/struct.Config.html' title='pencil::config::Config'>Config</a>};</code></td></tr><tr><td><code>pub use helpers::{<a class='trait' href='../pencil/helpers/trait.PathBound.html' title='pencil::helpers::PathBound'>PathBound</a>, <a class='fn' href='../pencil/helpers/fn.safe_join.html' title='pencil::helpers::safe_join'>safe_join</a>, <a class='fn' href='../pencil/helpers/fn.abort.html' title='pencil::helpers::abort'>abort</a>, <a class='fn' href='../pencil/helpers/fn.redirect.html' title='pencil::helpers::redirect'>redirect</a>, <a class='fn' href='../pencil/helpers/fn.escape.html' title='pencil::helpers::escape'>escape</a>, <a class='fn' href='../pencil/helpers/fn.send_file.html' title='pencil::helpers::send_file'>send_file</a>, <a class='fn' href='../pencil/helpers/fn.send_from_directory.html' title='pencil::helpers::send_from_directory'>send_from_directory</a>};</code></td></tr></table><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='mod' href='config/index.html'
+                                  title='pencil::config'>config</a></td>
+                           <td class='docblock short'>
+                                <p>This module implements configuration related stuff.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='mod' href='datastructures/index.html'
+                                  title='pencil::datastructures'>datastructures</a></td>
+                           <td class='docblock short'>
+                                <p>This module implements some useful objects.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='mod' href='helpers/index.html'
+                                  title='pencil::helpers'>helpers</a></td>
+                           <td class='docblock short'>
+                                <p>This module implements various helpers.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='mod' href='http_errors/index.html'
+                                  title='pencil::http_errors'>http_errors</a></td>
+                           <td class='docblock short'>
+                                <p>This module implements a number of http errors.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='mod' href='json/index.html'
+                                  title='pencil::json'>json</a></td>
+                           <td class='docblock short'>
+                                <p>This module implements helpers for the JSON support in Pencil.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='mod' href='method/index.html'
+                                  title='pencil::method'>method</a></td>
+                           <td class='docblock short'>
+                                <p>This module exports the http method.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='mod' href='routing/index.html'
+                                  title='pencil::routing'>routing</a></td>
+                           <td class='docblock short'>
+                                <p>This module implements the dispatcher.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='mod' href='wrappers/index.html'
+                                  title='pencil::wrappers'>wrappers</a></td>
+                           <td class='docblock short'>
+                                <p>This module implements simple request and response objects.</p>
+                           </td>
+                       </tr></table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.Module.html'
+                                  title='pencil::Module'>Module</a></td>
+                           <td class='docblock short'>
+                                <p>Represents a module.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.Pencil.html'
+                                  title='pencil::Pencil'>Pencil</a></td>
+                           <td class='docblock short'>
+                                <p>The pencil type.  It acts as the central application object.  Once it is created it
+will act as a central registry for the view functions, the URL rules and much more.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.UserError.html'
+                                  title='pencil::UserError'>UserError</a></td>
+                           <td class='docblock short'>
+                                <p>The Pencil User Error type.</p>
+                           </td>
+                       </tr></table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='enum' href='enum.PencilError.html'
+                                  title='pencil::PencilError'>PencilError</a></td>
+                           <td class='docblock short'>
+                                <p>The Pencil Error type.</p>
+                           </td>
+                       </tr></table><h2 id='types' class='section-header'><a href="#types">Type Definitions</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='type' href='type.AfterRequestFunc.html'
+                                  title='pencil::AfterRequestFunc'>AfterRequestFunc</a></td>
+                           <td class='docblock short'>
+                                <p>After request func type.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='type' href='type.BeforeRequestFunc.html'
+                                  title='pencil::BeforeRequestFunc'>BeforeRequestFunc</a></td>
+                           <td class='docblock short'>
+                                <p>Before request func type.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='type' href='type.HTTPErrorHandler.html'
+                                  title='pencil::HTTPErrorHandler'>HTTPErrorHandler</a></td>
+                           <td class='docblock short'>
+                                <p>HTTP Error handler type.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='type' href='type.PencilResult.html'
+                                  title='pencil::PencilResult'>PencilResult</a></td>
+                           <td class='docblock short'>
+                                <p>The Pencil Result type.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='type' href='type.TeardownRequestFunc.html'
+                                  title='pencil::TeardownRequestFunc'>TeardownRequestFunc</a></td>
+                           <td class='docblock short'>
+                                <p>Teardown request func type.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='type' href='type.UserErrorHandler.html'
+                                  title='pencil::UserErrorHandler'>UserErrorHandler</a></td>
+                           <td class='docblock short'>
+                                <p>User Error handler type.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='type' href='type.ViewArgs.html'
+                                  title='pencil::ViewArgs'>ViewArgs</a></td>
+                           <td class='docblock short'>
+                                <p>View arguments type.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='type' href='type.ViewFunc.html'
+                                  title='pencil::ViewFunc'>ViewFunc</a></td>
+                           <td class='docblock short'>
+                                <p>View function type.</p>
+                           </td>
+                       </tr></table></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "pencil";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    
+    <script defer src="../search-index.js"></script>
+</body>
+</html>

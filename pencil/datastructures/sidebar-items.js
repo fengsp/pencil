@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["MultiDict","This is used to deal with multiple values for the same key."],["MultiDictIter","`MultiDict` entries iterator."],["MultiDictValues","`MultiDict` values iterator."]]});

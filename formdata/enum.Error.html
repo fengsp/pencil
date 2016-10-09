@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Error` enum in crate `formdata`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Error">
+
+    <title>formdata::Error - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='index.html'>formdata</a></p><script>window.sidebarCurrent = {name: 'Error', ty: 'enum', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content enum">
+<h1 class='fqn'><span class='in-band'>Enum <a href='index.html'>formdata</a>::<wbr><a class='enum' href=''>Error</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-18' class='srclink' href='../src/formdata/error.rs.html#13-46' title='goto source code'>[src]</a></span></h1>
+<pre class='rust enum'>pub enum Error {
+    NoRequestContentType,
+    NotMultipart,
+    NotFormData,
+    BoundaryNotSpecified,
+    PartialHeaders,
+    MissingDisposition,
+    InvalidDisposition,
+    NoName,
+    Eof,
+    Httparse(<a class='enum' href='../httparse/enum.Error.html' title='httparse::Error'>Error</a>),
+    Io(<a class='struct' href='https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html' title='std::io::error::Error'>Error</a>),
+    Hyper(<a class='enum' href='../hyper/error/enum.Error.html' title='hyper::error::Error'>Error</a>),
+    Utf8(<a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.FromUtf8Error.html' title='collections::string::FromUtf8Error'>FromUtf8Error</a>),
+    Decoding(<a class='enum' href='https://doc.rust-lang.org/nightly/collections/borrow/enum.Cow.html' title='collections::borrow::Cow'>Cow</a>&lt;'static,&nbsp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>&gt;),
+    Multipart(<a class='enum' href='../mime_multipart/error/enum.Error.html' title='mime_multipart::error::Error'>Error</a>),
+    NotAFile,
+}</pre><div class='docblock'><p>An error type for the <code>formdata</code> crate.</p>
+</div><h2 class='variants'>Variants</h2>
+<span id='variant.NoRequestContentType' class='variant'><code>NoRequestContentType</code></span><div class='docblock'><p>The Hyper request did not have a Content-Type header.</p>
+</div><span id='variant.NotMultipart' class='variant'><code>NotMultipart</code></span><div class='docblock'><p>The Hyper request Content-Type top-level Mime was not <code>Multipart</code>.</p>
+</div><span id='variant.NotFormData' class='variant'><code>NotFormData</code></span><div class='docblock'><p>The Hyper request Content-Type sub-level Mime was not <code>FormData</code>.</p>
+</div><span id='variant.BoundaryNotSpecified' class='variant'><code>BoundaryNotSpecified</code></span><div class='docblock'><p>The Content-Type header failed to specify boundary token.</p>
+</div><span id='variant.PartialHeaders' class='variant'><code>PartialHeaders</code></span><div class='docblock'><p>A multipart section contained only partial headers.</p>
+</div><span id='variant.MissingDisposition' class='variant'><code>MissingDisposition</code></span><div class='docblock'><p>A multipart section did not have the required Content-Disposition header.</p>
+</div><span id='variant.InvalidDisposition' class='variant'><code>InvalidDisposition</code></span><div class='docblock'><p>A multipart section did not have a valid corresponding Content-Disposition.</p>
+</div><span id='variant.NoName' class='variant'><code>NoName</code></span><div class='docblock'><p>A multipart section Content-Disposition header failed to specify a name.</p>
+</div><span id='variant.Eof' class='variant'><code>Eof</code></span><div class='docblock'><p>The request body ended prior to reaching the expected terminating boundary.</p>
+</div><span id='variant.Httparse' class='variant'><code>Httparse(<a class='enum' href='../httparse/enum.Error.html' title='httparse::Error'>Error</a>)</code></span><div class='docblock'><p>An HTTP parsing error from a multipart section.</p>
+</div><span id='variant.Io' class='variant'><code>Io(<a class='struct' href='https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html' title='std::io::error::Error'>Error</a>)</code></span><div class='docblock'><p>An I/O error.</p>
+</div><span id='variant.Hyper' class='variant'><code>Hyper(<a class='enum' href='../hyper/error/enum.Error.html' title='hyper::error::Error'>Error</a>)</code></span><div class='docblock'><p>An error was returned from Hyper.</p>
+</div><span id='variant.Utf8' class='variant'><code>Utf8(<a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.FromUtf8Error.html' title='collections::string::FromUtf8Error'>FromUtf8Error</a>)</code></span><div class='docblock'><p>An error occurred during UTF-8 processing.</p>
+</div><span id='variant.Decoding' class='variant'><code>Decoding(<a class='enum' href='https://doc.rust-lang.org/nightly/collections/borrow/enum.Cow.html' title='collections::borrow::Cow'>Cow</a>&lt;'static,&nbsp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>&gt;)</code></span><div class='docblock'><p>An error occurred during character decoding</p>
+</div><span id='variant.Multipart' class='variant'><code>Multipart(<a class='enum' href='../mime_multipart/error/enum.Error.html' title='mime_multipart::error::Error'>Error</a>)</code></span><div class='docblock'><p>A MIME multipart error</p>
+</div><span id='variant.NotAFile' class='variant'><code>NotAFile</code></span><div class='docblock'><p>Filepart is not a file</p>
+</div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html' title='core::convert::From'>From</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html' title='std::io::error::Error'>Error</a>&gt; for <a class='enum' href='../formdata/enum.Error.html' title='formdata::Error'>Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-41' class='srclink' href='../src/formdata/error.rs.html#48-52' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.from' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html#tymethod.from' class='fnname'>from</a>(err: <a class='struct' href='https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html' title='std::io::error::Error'>Error</a>) -&gt; <a class='enum' href='../formdata/enum.Error.html' title='formdata::Error'>Error</a></code></h4>
+<div class='docblock'><p>Performs the conversion.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html' title='core::convert::From'>From</a>&lt;<a class='enum' href='../httparse/enum.Error.html' title='httparse::Error'>Error</a>&gt; for <a class='enum' href='../formdata/enum.Error.html' title='formdata::Error'>Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-44' class='srclink' href='../src/formdata/error.rs.html#54-58' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.from-1' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html#tymethod.from' class='fnname'>from</a>(err: <a class='enum' href='../httparse/enum.Error.html' title='httparse::Error'>Error</a>) -&gt; <a class='enum' href='../formdata/enum.Error.html' title='formdata::Error'>Error</a></code></h4>
+<div class='docblock'><p>Performs the conversion.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html' title='core::convert::From'>From</a>&lt;<a class='enum' href='../hyper/error/enum.Error.html' title='hyper::error::Error'>Error</a>&gt; for <a class='enum' href='../formdata/enum.Error.html' title='formdata::Error'>Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-47' class='srclink' href='../src/formdata/error.rs.html#60-64' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.from-2' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html#tymethod.from' class='fnname'>from</a>(err: <a class='enum' href='../hyper/error/enum.Error.html' title='hyper::error::Error'>Error</a>) -&gt; <a class='enum' href='../formdata/enum.Error.html' title='formdata::Error'>Error</a></code></h4>
+<div class='docblock'><p>Performs the conversion.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html' title='core::convert::From'>From</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.FromUtf8Error.html' title='collections::string::FromUtf8Error'>FromUtf8Error</a>&gt; for <a class='enum' href='../formdata/enum.Error.html' title='formdata::Error'>Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-50' class='srclink' href='../src/formdata/error.rs.html#66-70' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.from-3' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html#tymethod.from' class='fnname'>from</a>(err: <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.FromUtf8Error.html' title='collections::string::FromUtf8Error'>FromUtf8Error</a>) -&gt; <a class='enum' href='../formdata/enum.Error.html' title='formdata::Error'>Error</a></code></h4>
+<div class='docblock'><p>Performs the conversion.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html' title='core::convert::From'>From</a>&lt;<a class='enum' href='../mime_multipart/error/enum.Error.html' title='mime_multipart::error::Error'>Error</a>&gt; for <a class='enum' href='../formdata/enum.Error.html' title='formdata::Error'>Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-53' class='srclink' href='../src/formdata/error.rs.html#72-76' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.from-4' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html#tymethod.from' class='fnname'>from</a>(err: <a class='enum' href='../mime_multipart/error/enum.Error.html' title='mime_multipart::error::Error'>Error</a>) -&gt; <a class='enum' href='../formdata/enum.Error.html' title='formdata::Error'>Error</a></code></h4>
+<div class='docblock'><p>Performs the conversion.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html' title='core::fmt::Display'>Display</a> for <a class='enum' href='../formdata/enum.Error.html' title='formdata::Error'>Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-56' class='srclink' href='../src/formdata/error.rs.html#78-96' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
+<div class='docblock'><p>Formats the value using the given formatter.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='enum' href='../formdata/enum.Error.html' title='formdata::Error'>Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-86' class='srclink' href='../src/formdata/error.rs.html#98-106' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt-1' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
+<div class='docblock'><p>Formats the value using the given formatter.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/std/error/trait.Error.html' title='std::error::Error'>StdError</a> for <a class='enum' href='../formdata/enum.Error.html' title='formdata::Error'>Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-96' class='srclink' href='../src/formdata/error.rs.html#108-137' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.description' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/std/error/trait.Error.html#tymethod.description' class='fnname'>description</a>(&amp;self) -&gt; &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a></code></h4>
+<div class='docblock'><p>A short description of the error. <a href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html#tymethod.description">Read more</a></p>
+</div><h4 id='method.cause' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/std/error/trait.Error.html#method.cause' class='fnname'>cause</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;&amp;<a class='trait' href='https://doc.rust-lang.org/nightly/std/error/trait.Error.html' title='std::error::Error'>Error</a>&gt;</code><div class='since' title='Stable since Rust version 1.0.0'>1.0.0</div></h4>
+<div class='docblock'><p>The lower-level cause of this error, if any.</p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "formdata";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    
+    <script defer src="../search-index.js"></script>
+</body>
+</html>

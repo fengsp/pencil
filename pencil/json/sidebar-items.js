@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["jsonify","Creates a view result with the JSON representation of the given object with an *application/json* mimetype. Example usage:"]]});

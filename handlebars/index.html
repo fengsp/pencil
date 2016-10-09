@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `handlebars` crate.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, handlebars">
+
+    <title>handlebars - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'></p><script>window.sidebarCurrent = {name: 'handlebars', ty: 'mod', relpath: '../'};</script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content mod">
+<h1 class='fqn'><span class='in-band'>Crate <a class='mod' href=''>handlebars</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-0' class='srclink' href='../src/handlebars/lib.rs.html#1-288' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'>
+<h1 id='handlebars' class='section-header'><a href='#handlebars'>Handlebars</a></h1>
+<p>Handlebars is a modern and extensible templating solution originally created in the JavaScript world. It&#39;s used by many popular frameworks like <a href="http://emberjs.com">Ember.js</a> and Chaplin. It&#39;s also ported to some other platforms such as <a href="https://github.com/jknack/handlebars.java">Java</a>.</p>
+
+<p>And this is handlebars Rust implementation, designed for server-side page generation. It&#39;s a general-purpose library so you use it for any kind of text generation.</p>
+
+<h2 id='why-this-handlebars' class='section-header'><a href='#why-this-handlebars'>Why (this) Handlebars?</a></h2>
+<p>Handlebars is a real-world templating system that you can use to build
+your application without pain.</p>
+
+<h3 id='features' class='section-header'><a href='#features'>Features</a></h3>
+<h4 id='isolation-of-rust-and-html' class='section-header'><a href='#isolation-of-rust-and-html'>Isolation of Rust and HTML</a></h4>
+<p>This library doesn&#39;t attempt to use some macro magic to allow you to
+write your template within your rust code. I admit that it&#39;s fun to do
+that but it doesn&#39;t fit real-world use case.</p>
+
+<h4 id='limited-but-essential-control-structure-built-in' class='section-header'><a href='#limited-but-essential-control-structure-built-in'>Limited but essential control structure built-in</a></h4>
+<p>Only essential control directive <code>if</code> and <code>each</code> were built-in. This
+prevents you to put too much application logic into your template.</p>
+
+<h4 id='extensible-helper-system' class='section-header'><a href='#extensible-helper-system'>Extensible helper system</a></h4>
+<p>You can write your own helper with Rust! It can be a block helper or
+inline helper. Put you logic into the helper and don&#39;t repeat
+yourself.</p>
+
+<p>A helper can be as a simple as a Rust function like:</p>
+
+<pre class='rust rust-example-rendered'>
+<span class='kw'>fn</span> <span class='ident'>hex_helper</span> (<span class='ident'>c</span>: <span class='kw-2'>&amp;</span><span class='ident'>Context</span>, <span class='ident'>h</span>: <span class='kw-2'>&amp;</span><span class='ident'>Helper</span>, _: <span class='kw-2'>&amp;</span><span class='ident'>Handlebars</span>, <span class='ident'>rc</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>RenderContext</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>(), <span class='ident'>RenderError</span><span class='op'>&gt;</span> {
+    <span class='kw'>let</span> <span class='ident'>param</span> <span class='op'>=</span> <span class='ident'>h</span>.<span class='ident'>params</span>().<span class='ident'>get</span>(<span class='number'>0</span>).<span class='ident'>unwrap</span>();
+    <span class='kw'>let</span> <span class='ident'>rendered</span> <span class='op'>=</span> <span class='macro'>format</span><span class='macro'>!</span>(<span class='string'>&quot;{:x}&quot;</span>, <span class='ident'>c</span>.<span class='ident'>navigate</span>(<span class='ident'>rc</span>.<span class='ident'>get_path</span>(), <span class='ident'>param</span>).<span class='ident'>render</span>());
+    <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>rc</span>.<span class='ident'>writer</span>.<span class='ident'>write</span>(<span class='ident'>rendered</span>.<span class='ident'>into_bytes</span>().<span class='ident'>as_ref</span>()));
+    <span class='prelude-val'>Ok</span>(())
+}
+
+<span class='doccomment'>/// register the helper</span>
+<span class='ident'>handlebars</span>.<span class='ident'>register_helper</span>(<span class='string'>&quot;hex&quot;</span>, <span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='ident'>hex_helper</span>));</pre>
+
+<h4 id='template-inheritance' class='section-header'><a href='#template-inheritance'>Template inheritance</a></h4>
+<p>Every time I look into a templating system, I will investigate its
+support for <a href="https://docs.djangoproject.com/en/1.9/ref/templates/language/#template-inh%0Aeritance">template
+inheritance</a>.</p>
+
+<p>Template include is not enough. In most case you will need a skeleton
+of page as parent (header, footer, etc.), and embed you page into this
+parent.</p>
+
+<p>You can find a real example for template inheritance in
+<code>examples/partials.rs</code>, and templates used by this file.</p>
+
+<h3 id='limitations' class='section-header'><a href='#limitations'>Limitations</a></h3>
+<ul>
+<li>This implementation is <strong>not fully compatible</strong> with the original
+javascript version</li>
+<li>As a static typed language, it&#39;s a little verbose to use handlebars</li>
+<li>You will have to make your data <code>ToJson</code>-able, so we can render
+it. If you are on nightly channel, we have <a href="https://github.com/sunng87/tojson_macros">a syntax
+extension</a> to generate
+default <code>ToJson</code> implementation for you. If you use
+<a href="https://github.com/serde-rs/serde">serde</a>, you can enable
+<code>serde_type</code> feature of handlebars-rust and add <code>#[Serialize]</code> for
+your types.</li>
+</ul>
+
+<h2 id='usage' class='section-header'><a href='#usage'>Usage</a></h2>
+<h3 id='template-creation-and-registration' class='section-header'><a href='#template-creation-and-registration'>Template Creation and Registration</a></h3>
+<p>Templates are created from String and registered to <code>Handlebars</code> with a name.</p>
+
+<pre class='rust rust-example-rendered'>
+
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>handlebars</span>;
+
+<span class='kw'>use</span> <span class='ident'>handlebars</span>::<span class='ident'>Handlebars</span>;
+
+<span class='kw'>fn</span> <span class='ident'>main</span>() {
+  <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>handlebars</span> <span class='op'>=</span> <span class='ident'>Handlebars</span>::<span class='ident'>new</span>();
+  <span class='kw'>let</span> <span class='ident'>source</span> <span class='op'>=</span> <span class='string'>&quot;hello {{world}}&quot;</span>;
+
+  <span class='comment'>//compile returns an Option, we use unwrap() to deref it directly here</span>
+  <span class='ident'>handlebars</span>.<span class='ident'>register_template_string</span>(<span class='string'>&quot;helloworld&quot;</span>, <span class='ident'>source</span>.<span class='ident'>to_string</span>())
+          .<span class='ident'>ok</span>().<span class='ident'>unwrap</span>();
+}</pre>
+
+<p>On registeration, the template is parsed and cached in the registry. So further
+usage will benifite from the one-time work. Also features like include, inheritance
+that involves template reference requires you to register those template first so
+the registry can find it.</p>
+
+<p>If you template is small or just to expirement, you can use <code>template_render</code> APIs
+without registeration.</p>
+
+<h3 id='rendering-something' class='section-header'><a href='#rendering-something'>Rendering Something</a></h3>
+<p>I should say that rendering is a little tricky. Since handlebars is originally a JavaScript templating framework. It supports dynamic features like duck-typing, truthy/falsey values. But for a static language like Rust, this is a little difficult. As a solution, I&#39;m using the <code>serialize::json::Json</code> internally for data rendering, which seems good by far.</p>
+
+<p>That means, if you want to render something, you have to ensure that it implements the <code>rustc_serialize::json::ToJson</code> trait. Luckily, most built-in types already have trait. However, if you want to render your custom struct, you need to implement this trait manually, or use <a href="https://github.com/sunng87/tojson_macros">tojson_macros</a> to generate default <code>ToJson</code> implementation.</p>
+
+<p>You can use default <code>render</code> function to render a template into <code>String</code>. From 0.9, there&#39;s <code>renderw</code> to render text into anything of <code>std::io::Write</code>.</p>
+
+<p>From 0.13, we also support serde types by a feature flag <code>serde_type</code>.</p>
+
+<pre class='rust rust-example-rendered'>
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>rustc_serialize</span>;
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>handlebars</span>;
+
+<span class='kw'>use</span> <span class='ident'>rustc_serialize</span>::<span class='ident'>json</span>::{<span class='ident'>Json</span>, <span class='ident'>ToJson</span>};
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>collections</span>::<span class='ident'>BTreeMap</span>;
+
+<span class='kw'>use</span> <span class='ident'>handlebars</span>::<span class='ident'>Handlebars</span>;
+
+<span class='kw'>struct</span> <span class='ident'>Person</span> {
+  <span class='ident'>name</span>: <span class='ident'>String</span>,
+  <span class='ident'>age</span>: <span class='ident'>i16</span>,
+}
+
+<span class='kw'>impl</span> <span class='ident'>ToJson</span> <span class='kw'>for</span> <span class='ident'>Person</span> {
+  <span class='kw'>fn</span> <span class='ident'>to_json</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>Json</span> {
+    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>m</span>: <span class='ident'>BTreeMap</span><span class='op'>&lt;</span><span class='ident'>String</span>, <span class='ident'>Json</span><span class='op'>&gt;</span> <span class='op'>=</span> <span class='ident'>BTreeMap</span>::<span class='ident'>new</span>();
+    <span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;name&quot;</span>.<span class='ident'>to_string</span>(), <span class='self'>self</span>.<span class='ident'>name</span>.<span class='ident'>to_json</span>());
+    <span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;age&quot;</span>.<span class='ident'>to_string</span>(), <span class='self'>self</span>.<span class='ident'>age</span>.<span class='ident'>to_json</span>());
+    <span class='ident'>m</span>.<span class='ident'>to_json</span>()
+  }
+}
+
+<span class='kw'>fn</span> <span class='ident'>main</span>() {
+  <span class='kw'>let</span> <span class='ident'>source</span> <span class='op'>=</span> <span class='string'>&quot;Hello, {{name}}&quot;</span>;
+
+  <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>handlebars</span> <span class='op'>=</span> <span class='ident'>Handlebars</span>::<span class='ident'>new</span>();
+  <span class='ident'>handlebars</span>.<span class='ident'>register_template_string</span>(<span class='string'>&quot;hello&quot;</span>, <span class='ident'>source</span>.<span class='ident'>to_string</span>())
+          .<span class='ident'>ok</span>().<span class='ident'>unwrap</span>();
+
+  <span class='kw'>let</span> <span class='ident'>data</span> <span class='op'>=</span> <span class='ident'>Person</span> {
+      <span class='ident'>name</span>: <span class='string'>&quot;Ning Sun&quot;</span>.<span class='ident'>to_string</span>(),
+      <span class='ident'>age</span>: <span class='number'>27</span>
+  };
+  <span class='kw'>let</span> <span class='ident'>result</span> <span class='op'>=</span> <span class='ident'>handlebars</span>.<span class='ident'>render</span>(<span class='string'>&quot;hello&quot;</span>, <span class='kw-2'>&amp;</span><span class='ident'>data</span>);
+}</pre>
+
+<p>Or if you don&#39;t need the template to be cached or referenced by other ones, you can
+simply render it without registering.</p>
+
+<pre class='rust rust-example-rendered'>
+<span class='kw'>fn</span> <span class='ident'>main</span>() {
+  <span class='kw'>let</span> <span class='ident'>source</span> <span class='op'>=</span> <span class='string'>&quot;Hello, {{name}}&quot;</span>;
+
+  <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>handlebars</span> <span class='op'>=</span> <span class='ident'>Handlebars</span>::<span class='ident'>new</span>();
+
+  <span class='kw'>let</span> <span class='ident'>data</span> <span class='op'>=</span> <span class='ident'>Person</span> {
+      <span class='ident'>name</span>: <span class='string'>&quot;Ning Sun&quot;</span>.<span class='ident'>to_string</span>(),
+      <span class='ident'>age</span>: <span class='number'>27</span>
+  };
+  <span class='kw'>let</span> <span class='ident'>result</span> <span class='op'>=</span> <span class='ident'>handlebars</span>.<span class='ident'>template_render</span>(<span class='string'>&quot;Hello, {{name}}&quot;</span>, <span class='kw-2'>&amp;</span><span class='ident'>data</span>);
+}</pre>
+
+<h4 id='escaping' class='section-header'><a href='#escaping'>Escaping</a></h4>
+<p>As per the handlebars spec, output using <code>{{expression}}</code> is escaped by default (to be precise, the characters <code>&amp;&quot;&lt;&gt;</code> are replaced by their respective html / xml entities). However, since the use cases of a rust template engine are probably a bit more diverse than those of a JavaScript one, this implementation allows the user to supply a custom escape function to be used instead. For more information see the <code>EscapeFn</code> type and <code>Handlebars::register_escape_fn()</code> method.</p>
+
+<h3 id='custom-helper' class='section-header'><a href='#custom-helper'>Custom Helper</a></h3>
+<p>Handlebars is nothing without helpers. You can also create your own helpers with rust. Helpers in handlebars-rust are custom struct implements the <code>HelperDef</code> trait, concretely, the <code>call</code> function. For your convenience, most of stateless helpers can be implemented as bare functions.</p>
+
+<pre class='rust rust-example-rendered'>
+
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>handlebars</span>;
+
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='ident'>Write</span>;
+<span class='kw'>use</span> <span class='ident'>handlebars</span>::{<span class='ident'>Handlebars</span>, <span class='ident'>HelperDef</span>, <span class='ident'>RenderError</span>, <span class='ident'>RenderContext</span>, <span class='ident'>Helper</span>, <span class='ident'>Context</span>, <span class='ident'>JsonRender</span>};
+
+<span class='comment'>// implement by a structure impls HelperDef</span>
+<span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Clone</span>, <span class='ident'>Copy</span>)]</span>
+<span class='kw'>struct</span> <span class='ident'>SimpleHelper</span>;
+
+<span class='kw'>impl</span> <span class='ident'>HelperDef</span> <span class='kw'>for</span> <span class='ident'>SimpleHelper</span> {
+  <span class='kw'>fn</span> <span class='ident'>call</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>c</span>: <span class='kw-2'>&amp;</span><span class='ident'>Context</span>, <span class='ident'>h</span>: <span class='kw-2'>&amp;</span><span class='ident'>Helper</span>, _: <span class='kw-2'>&amp;</span><span class='ident'>Handlebars</span>, <span class='ident'>rc</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>RenderContext</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>(), <span class='ident'>RenderError</span><span class='op'>&gt;</span> {
+    <span class='kw'>let</span> <span class='ident'>param</span> <span class='op'>=</span> <span class='ident'>h</span>.<span class='ident'>params</span>().<span class='ident'>get</span>(<span class='number'>0</span>).<span class='ident'>unwrap</span>();
+
+    <span class='comment'>// get value from context data</span>
+    <span class='comment'>// rc.get_path() is current json parent path, you should always use it like this</span>
+    <span class='comment'>// param is the key of value you want to display</span>
+    <span class='kw'>let</span> <span class='ident'>value</span> <span class='op'>=</span> <span class='ident'>c</span>.<span class='ident'>navigate</span>(<span class='ident'>rc</span>.<span class='ident'>get_path</span>(), <span class='ident'>param</span>);
+    <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>rc</span>.<span class='ident'>writer</span>.<span class='ident'>write</span>(<span class='string'>&quot;Ny helper dumps: &quot;</span>.<span class='ident'>as_bytes</span>()));
+    <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>rc</span>.<span class='ident'>writer</span>.<span class='ident'>write</span>(<span class='ident'>value</span>.<span class='ident'>render</span>().<span class='ident'>into_bytes</span>().<span class='ident'>as_ref</span>()));
+    <span class='prelude-val'>Ok</span>(())
+  }
+}
+
+<span class='comment'>// implement via bare function</span>
+<span class='kw'>fn</span> <span class='ident'>another_simple_helper</span> (<span class='ident'>c</span>: <span class='kw-2'>&amp;</span><span class='ident'>Context</span>, <span class='ident'>h</span>: <span class='kw-2'>&amp;</span><span class='ident'>Helper</span>, _: <span class='kw-2'>&amp;</span><span class='ident'>Handlebars</span>, <span class='ident'>rc</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>RenderContext</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>(), <span class='ident'>RenderError</span><span class='op'>&gt;</span> {
+    <span class='kw'>let</span> <span class='ident'>param</span> <span class='op'>=</span> <span class='ident'>h</span>.<span class='ident'>params</span>().<span class='ident'>get</span>(<span class='number'>0</span>).<span class='ident'>unwrap</span>();
+
+    <span class='comment'>// get value from context data</span>
+    <span class='comment'>// rc.get_path() is current json parent path, you should always use it like this</span>
+    <span class='comment'>// param is the key of value you want to display</span>
+    <span class='kw'>let</span> <span class='ident'>value</span> <span class='op'>=</span> <span class='ident'>c</span>.<span class='ident'>navigate</span>(<span class='ident'>rc</span>.<span class='ident'>get_path</span>(), <span class='ident'>param</span>);
+    <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>rc</span>.<span class='ident'>writer</span>.<span class='ident'>write</span>(<span class='string'>&quot;My second helper dumps: &quot;</span>.<span class='ident'>as_bytes</span>()));
+    <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>rc</span>.<span class='ident'>writer</span>.<span class='ident'>write</span>(<span class='ident'>value</span>.<span class='ident'>render</span>().<span class='ident'>into_bytes</span>().<span class='ident'>as_ref</span>()));
+    <span class='prelude-val'>Ok</span>(())
+}
+
+
+<span class='kw'>fn</span> <span class='ident'>main</span>() {
+  <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>handlebars</span> <span class='op'>=</span> <span class='ident'>Handlebars</span>::<span class='ident'>new</span>();
+  <span class='ident'>handlebars</span>.<span class='ident'>register_helper</span>(<span class='string'>&quot;simple-helper&quot;</span>, <span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='ident'>SimpleHelper</span>));
+  <span class='ident'>handlebars</span>.<span class='ident'>register_helper</span>(<span class='string'>&quot;another-simple-helper&quot;</span>, <span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='ident'>another_simple_helper</span>));
+  <span class='comment'>// via closure</span>
+  <span class='ident'>handlebars</span>.<span class='ident'>register_helper</span>(<span class='string'>&quot;closure-helper&quot;</span>,
+      <span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='op'>|</span><span class='ident'>c</span>: <span class='kw-2'>&amp;</span><span class='ident'>Context</span>, <span class='ident'>h</span>: <span class='kw-2'>&amp;</span><span class='ident'>Helper</span>, <span class='ident'>r</span>: <span class='kw-2'>&amp;</span><span class='ident'>Handlebars</span>, <span class='ident'>rc</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>RenderContext</span><span class='op'>|</span> <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>(), <span class='ident'>RenderError</span><span class='op'>&gt;</span>{
+        <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>rc</span>.<span class='ident'>writer</span>.<span class='ident'>write</span>(<span class='string'>&quot;...&quot;</span>.<span class='ident'>as_bytes</span>()));
+        <span class='prelude-val'>Ok</span>(())
+      }));
+
+  <span class='comment'>//...</span>
+}</pre>
+
+<h4 id='arguments-of-helpdef' class='section-header'><a href='#arguments-of-helpdef'>Arguments of HelpDef</a></h4>
+<p>You can get data from the <code>Helper</code> argument about the template information:</p>
+
+<ul>
+<li><code>name()</code> for the helper name. This is known to you for most situation but if you are defining <code>helperMissing</code> or <code>blockHelperMissing</code>, this is important.</li>
+<li><code>params()</code> is a vector of String as params in helper, like <code>{{#somehelper param1 param2 param3}}</code>.</li>
+<li><code>hash()</code> is a map of String key and Json value, defined in helper as <code>{{@somehelper a=1 b=&quot;2&quot; c=true}}</code>.</li>
+<li><code>template()</code> gives you the nested template of block helper.</li>
+<li><code>inverse()</code> gives you the inversed template of it, inversed template is the template behind <code>{{else}}</code>.</li>
+</ul>
+
+<p>You can learn more about helpers by looking into source code of built-in helpers.</p>
+
+<h4 id='built-in-helpers' class='section-header'><a href='#built-in-helpers'>Built-in Helpers</a></h4>
+<ul>
+<li><code>{{#raw}} ... {{/raw}}</code> escape handlebars expression within the block</li>
+<li><code>{{#if ...}} ... {{else}} ... {{/if}}</code> if-else block</li>
+<li><code>{{#unless ...}} ... {{else}} .. {{/unless}}</code> if-not-else block</li>
+<li><code>{{#each ...}} ... {{/each}}</code> iterates over an array or object. Handlebar-rust doesn&#39;t support mustach iteration syntax so use this instead.</li>
+<li><code>{{#with ...}} ... {{/with}}</code> change current context. Similar to {{#each}}, used for replace corresponding mustach syntax.</li>
+<li><code>{{lookup ... ...}}</code> get value from array by <code>@index</code> or <code>@key</code></li>
+<li><code>{{#partial ...}} ... {{/partial}}</code> template reuse, used to replace block with same name</li>
+<li><code>{{#block ...}} ... {{/block}}</code> template reuse, used to be replaced by partial with same name, with default content if partial not found.</li>
+<li><code>{{&gt; ...}}</code> include template with name</li>
+<li><code>{{log ...}}</code> log value with rust logger, default level: INFO. Currently you cannot change the level.</li>
+</ul>
+</div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.Context.html'
+                                  title='handlebars::Context'>Context</a></td>
+                           <td class='docblock short'>
+                                <p>The context wrap data you render on your templates.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.Handlebars.html'
+                                  title='handlebars::Handlebars'>Handlebars</a></td>
+                           <td class='docblock short'>
+                                <p>The single entry point of your Handlebars templates</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.Helper.html'
+                                  title='handlebars::Helper'>Helper</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.RenderContext.html'
+                                  title='handlebars::RenderContext'>RenderContext</a></td>
+                           <td class='docblock short'>
+                                <p>The context of a render call</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.RenderError.html'
+                                  title='handlebars::RenderError'>RenderError</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.Template.html'
+                                  title='handlebars::Template'>Template</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr></table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='enum' href='enum.TemplateError.html'
+                                  title='handlebars::TemplateError'>TemplateError</a></td>
+                           <td class='docblock short'>
+                                <p>Template parsing error</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='enum' href='enum.TemplateFileError.html'
+                                  title='handlebars::TemplateFileError'>TemplateFileError</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='enum' href='enum.TemplateRenderError.html'
+                                  title='handlebars::TemplateRenderError'>TemplateRenderError</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr></table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='trait' href='trait.HelperDef.html'
+                                  title='handlebars::HelperDef'>HelperDef</a></td>
+                           <td class='docblock short'>
+                                <p>Helper Definition</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='trait' href='trait.JsonRender.html'
+                                  title='handlebars::JsonRender'>JsonRender</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='trait' href='trait.JsonTruthy.html'
+                                  title='handlebars::JsonTruthy'>JsonTruthy</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='trait' href='trait.Renderable.html'
+                                  title='handlebars::Renderable'>Renderable</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr></table><h2 id='types' class='section-header'><a href="#types">Type Definitions</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='type' href='type.EscapeFn.html'
+                                  title='handlebars::EscapeFn'>EscapeFn</a></td>
+                           <td class='docblock short'>
+                                <p>This type represents an <em>escape fn</em>, that is a function who&#39;s purpose it is
+to escape potentially problematic characters in a string.</p>
+                           </td>
+                       </tr></table></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "handlebars";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    
+    <script defer src="../search-index.js"></script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Config","The pencil `Config` type, We provide ways to fill it from JSON files:"]]});

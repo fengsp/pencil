@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `mime_multipart` crate.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, mime_multipart">
+
+    <title>mime_multipart - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'></p><script>window.sidebarCurrent = {name: 'mime_multipart', ty: 'mod', relpath: '../'};</script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content mod">
+<h1 class='fqn'><span class='in-band'>Crate <a class='mod' href=''>mime_multipart</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-0' class='srclink' href='../src/mime_multipart/lib.rs.html#8-602' title='goto source code'>[src]</a></span></h1>
+<h2 id='reexports' class='section-header'><a href="#reexports">Reexports</a></h2>
+<table><tr><td><code>pub use error::<a class='enum' href='../mime_multipart/error/enum.Error.html' title='mime_multipart::error::Error'>Error</a>;</code></td></tr></table><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='mod' href='error/index.html'
+                                  title='mime_multipart::error'>error</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr></table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.FilePart.html'
+                                  title='mime_multipart::FilePart'>FilePart</a></td>
+                           <td class='docblock short'>
+                                <p>A file that is to be inserted into a <code>multipart/*</code> or alternatively an uploaded file that
+was received as part of <code>multipart/*</code> parsing.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.Part.html'
+                                  title='mime_multipart::Part'>Part</a></td>
+                           <td class='docblock short'>
+                                <p>A multipart part which is not a file (stored in memory)</p>
+                           </td>
+                       </tr></table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='enum' href='enum.Node.html'
+                                  title='mime_multipart::Node'>Node</a></td>
+                           <td class='docblock short'>
+                                <p>A multipart part which could be either a file, in memory, or another multipart
+container containing nested parts.</p>
+                           </td>
+                       </tr></table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.generate_boundary.html'
+                                  title='mime_multipart::generate_boundary'>generate_boundary</a></td>
+                           <td class='docblock short'>
+                                <p>Generate a valid multipart boundary, statistically unlikely to be found within
+the content of the parts.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.get_multipart_boundary.html'
+                                  title='mime_multipart::get_multipart_boundary'>get_multipart_boundary</a></td>
+                           <td class='docblock short'>
+                                <p>Get the <code>multipart/*</code> boundary string from <code>hyper::Headers</code></p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.read_multipart.html'
+                                  title='mime_multipart::read_multipart'>read_multipart</a></td>
+                           <td class='docblock short'>
+                                <p>Parse a MIME <code>multipart/*</code> from a <code>Read</code>able stream into a <code>Vec</code> of <code>Node</code>s, streaming
+files to disk and keeping the rest in memory.  Recursive <code>multipart/*</code> parts will are
+parsed as well and returned within a <code>Node::Multipart</code> variant.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.read_multipart_body.html'
+                                  title='mime_multipart::read_multipart_body'>read_multipart_body</a></td>
+                           <td class='docblock short'>
+                                <p>Parse a MIME <code>multipart/*</code> from a <code>Read</code>able stream into a <code>Vec</code> of <code>Node</code>s, streaming
+files to disk and keeping the rest in memory.  Recursive <code>multipart/*</code> parts will are
+parsed as well and returned within a <code>Node::Multipart</code> variant.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.write_chunk.html'
+                                  title='mime_multipart::write_chunk'>write_chunk</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.write_multipart.html'
+                                  title='mime_multipart::write_multipart'>write_multipart</a></td>
+                           <td class='docblock short'>
+                                <p>Stream a multipart body to the output <code>stream</code> given, made up of the <code>parts</code>
+given.  Top-level headers are NOT included in this stream; the caller must send
+those prior to calling write_multipart().
+Returns the number of bytes written, or an error.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.write_multipart_chunked.html'
+                                  title='mime_multipart::write_multipart_chunked'>write_multipart_chunked</a></td>
+                           <td class='docblock short'>
+                                <p>Stream a multipart body to the output <code>stream</code> given, made up of the <code>parts</code>
+given, using Tranfer-Encoding: Chunked.  Top-level headers are NOT included in this
+stream; the caller must send those prior to calling write_multipart().</p>
+                           </td>
+                       </tr></table></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "mime_multipart";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    
+    <script defer src="../search-index.js"></script>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Request` struct in crate `pencil`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Request">
+
+    <title>pencil::wrappers::Request - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+    
+
+    <link rel="shortcut icon" href="https://raw.githubusercontent.com/fengsp/pencil/master/logo/favicon.ico">
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        <a href='../../pencil/index.html'><img src='https://raw.githubusercontent.com/fengsp/pencil/master/logo/pencil.png' alt='logo' width='100'></a>
+        <p class='location'><a href='../index.html'>pencil</a>::<wbr><a href='index.html'>wrappers</a></p><script>window.sidebarCurrent = {name: 'Request', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content struct">
+<h1 class='fqn'><span class='in-band'>Struct <a href='../index.html'>pencil</a>::<wbr><a href='index.html'>wrappers</a>::<wbr><a class='struct' href=''>Request</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-304' class='srclink' href='../../src/pencil/src/wrappers.rs.html#37-64' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct Request&lt;'r,&nbsp;'a,&nbsp;'b: 'a&gt; {
+    pub app: &amp;'r <a class='struct' href='../../pencil/struct.Pencil.html' title='pencil::Pencil'>Pencil</a>,
+    pub remote_addr: <a class='enum' href='https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html' title='std::net::addr::SocketAddr'>SocketAddr</a>,
+    pub method: <a class='enum' href='../../pencil/method/enum.Method.html' title='pencil::method::Method'>Method</a>,
+    pub headers: <a class='struct' href='../../hyper/header/struct.Headers.html' title='hyper::header::Headers'>Headers</a>,
+    pub url: <a class='struct' href='../../url/struct.Url.html' title='url::Url'>Url</a>,
+    pub url_rule: <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='../../pencil/routing/struct.Rule.html' title='pencil::routing::Rule'>Rule</a>&gt;,
+    pub view_args: <a class='type' href='../../pencil/type.ViewArgs.html' title='pencil::ViewArgs'>ViewArgs</a>,
+    pub routing_redirect: <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>(</a><a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>, <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u16.html'>u16</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>)</a>&gt;,
+    pub routing_error: <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='enum' href='../../pencil/http_errors/enum.HTTPError.html' title='pencil::http_errors::HTTPError'>HTTPError</a>&gt;,
+    pub extensions_data: <a class='struct' href='../../typemap/struct.TypeMap.html' title='typemap::TypeMap'>TypeMap</a>,
+    // some fields omitted
+}</pre><div class='docblock'><p>Request type.</p>
+</div><h2 class='fields'>Fields</h2><span id='structfield.app' class='structfield'><code>app: &amp;'r <a class='struct' href='../../pencil/struct.Pencil.html' title='pencil::Pencil'>Pencil</a></code>
+                           </span><span class='stab '></span><span id='structfield.remote_addr' class='structfield'><code>remote_addr: <a class='enum' href='https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html' title='std::net::addr::SocketAddr'>SocketAddr</a></code>
+                           </span><span class='stab '></span><div class='docblock'><p>The IP address of the remote connection.</p>
+</div><span id='structfield.method' class='structfield'><code>method: <a class='enum' href='../../pencil/method/enum.Method.html' title='pencil::method::Method'>Method</a></code>
+                           </span><span class='stab '></span><div class='docblock'><p>The request method.</p>
+</div><span id='structfield.headers' class='structfield'><code>headers: <a class='struct' href='../../hyper/header/struct.Headers.html' title='hyper::header::Headers'>Headers</a></code>
+                           </span><span class='stab '></span><div class='docblock'><p>The headers of the incoming request.</p>
+</div><span id='structfield.url' class='structfield'><code>url: <a class='struct' href='../../url/struct.Url.html' title='url::Url'>Url</a></code>
+                           </span><span class='stab '></span><div class='docblock'><p>The requested url.</p>
+</div><span id='structfield.url_rule' class='structfield'><code>url_rule: <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='../../pencil/routing/struct.Rule.html' title='pencil::routing::Rule'>Rule</a>&gt;</code>
+                           </span><span class='stab '></span><div class='docblock'><p>The URL rule that matched the request.  This is
+going to be <code>None</code> if nothing matched.</p>
+</div><span id='structfield.view_args' class='structfield'><code>view_args: <a class='type' href='../../pencil/type.ViewArgs.html' title='pencil::ViewArgs'>ViewArgs</a></code>
+                           </span><span class='stab '></span><div class='docblock'><p>A dict of view arguments that matched the request.</p>
+</div><span id='structfield.routing_redirect' class='structfield'><code>routing_redirect: <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>(</a><a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>, <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u16.html'>u16</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>)</a>&gt;</code>
+                           </span><span class='stab '></span><div class='docblock'><p>If matching the URL requests a redirect, this will be the redirect.</p>
+</div><span id='structfield.routing_error' class='structfield'><code>routing_error: <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='enum' href='../../pencil/http_errors/enum.HTTPError.html' title='pencil::http_errors::HTTPError'>HTTPError</a>&gt;</code>
+                           </span><span class='stab '></span><div class='docblock'><p>If matching the URL failed, this will be the routing error.</p>
+</div><span id='structfield.extensions_data' class='structfield'><code>extensions_data: <a class='struct' href='../../typemap/struct.TypeMap.html' title='typemap::TypeMap'>TypeMap</a></code>
+                           </span><span class='stab '></span><div class='docblock'><p>Storage for data of extensions.</p>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl&lt;'r,&nbsp;'a,&nbsp;'b: 'a&gt; <a class='struct' href='../../pencil/wrappers/struct.Request.html' title='pencil::wrappers::Request'>Request</a>&lt;'r,&nbsp;'a,&nbsp;'b&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a id='src-324' class='srclink' href='../../src/pencil/src/wrappers.rs.html#66-293' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>(app: &amp;'r <a class='struct' href='../../pencil/struct.Pencil.html' title='pencil::Pencil'>Pencil</a>, http_request: <a class='struct' href='../../hyper/server/request/struct.Request.html' title='hyper::server::request::Request'>HttpRequest</a>&lt;'a,&nbsp;'b&gt;) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a class='struct' href='../../pencil/wrappers/struct.Request.html' title='pencil::wrappers::Request'>Request</a>&lt;'r,&nbsp;'a,&nbsp;'b&gt;,&nbsp;<a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>&gt;</code></h4>
+<div class='docblock'><p>Create a <code>Request</code>.</p>
+</div><h4 id='method.url_adapter' class='method'><code>fn <a href='#method.url_adapter' class='fnname'>url_adapter</a>(&amp;self) -&gt; <a class='struct' href='../../pencil/routing/struct.MapAdapter.html' title='pencil::routing::MapAdapter'>MapAdapter</a></code></h4>
+<div class='docblock'><p>Get the url adapter for this request.</p>
+</div><h4 id='method.match_request' class='method'><code>fn <a href='#method.match_request' class='fnname'>match_request</a>(&amp;mut self)</code></h4>
+<div class='docblock'><p>Match the request, set the <code>url_rule</code> and <code>view_args</code> field.</p>
+</div><h4 id='method.endpoint' class='method'><code>fn <a href='#method.endpoint' class='fnname'>endpoint</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>&gt;</code></h4>
+<div class='docblock'><p>The endpoint that matched the request.</p>
+</div><h4 id='method.module_name' class='method'><code>fn <a href='#method.module_name' class='fnname'>module_name</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>&gt;</code></h4>
+<div class='docblock'><p>The current module name.</p>
+</div><h4 id='method.args' class='method'><code>fn <a href='#method.args' class='fnname'>args</a>(&amp;mut self) -&gt; &amp;<a class='struct' href='../../pencil/datastructures/struct.MultiDict.html' title='pencil::datastructures::MultiDict'>MultiDict</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>&gt;</code></h4>
+<div class='docblock'><p>The parsed URL parameters.</p>
+</div><h4 id='method.get_json' class='method'><code>fn <a href='#method.get_json' class='fnname'>get_json</a>(&amp;mut self) -&gt; &amp;<a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='enum' href='../../rustc_serialize/json/enum.Json.html' title='rustc_serialize::json::Json'>Json</a>&gt;</code></h4>
+<div class='docblock'><p>Parses the incoming JSON request data.</p>
+</div><h4 id='method.form' class='method'><code>fn <a href='#method.form' class='fnname'>form</a>(&amp;mut self) -&gt; &amp;<a class='struct' href='../../pencil/datastructures/struct.MultiDict.html' title='pencil::datastructures::MultiDict'>MultiDict</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>&gt;</code></h4>
+<div class='docblock'><p>The form parameters.</p>
+</div><h4 id='method.files' class='method'><code>fn <a href='#method.files' class='fnname'>files</a>(&amp;mut self) -&gt; &amp;<a class='struct' href='../../pencil/datastructures/struct.MultiDict.html' title='pencil::datastructures::MultiDict'>MultiDict</a>&lt;<a class='struct' href='../../mime_multipart/struct.FilePart.html' title='mime_multipart::FilePart'>FilePart</a>&gt;</code></h4>
+<div class='docblock'><p>All uploaded files.</p>
+</div><h4 id='method.headers' class='method'><code>fn <a href='#method.headers' class='fnname'>headers</a>(&amp;self) -&gt; &amp;<a class='struct' href='../../hyper/header/struct.Headers.html' title='hyper::header::Headers'>Headers</a></code></h4>
+<div class='docblock'><p>The headers.</p>
+</div><h4 id='method.path' class='method'><code>fn <a href='#method.path' class='fnname'>path</a>(&amp;self) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a></code></h4>
+<div class='docblock'><p>Requested path.</p>
+</div><h4 id='method.full_path' class='method'><code>fn <a href='#method.full_path' class='fnname'>full_path</a>(&amp;self) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a></code></h4>
+<div class='docblock'><p>Requested path including the query string.</p>
+</div><h4 id='method.host' class='method'><code>fn <a href='#method.host' class='fnname'>host</a>(&amp;self) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a></code></h4>
+<div class='docblock'><p>The host including the port if available.</p>
+</div><h4 id='method.query_string' class='method'><code>fn <a href='#method.query_string' class='fnname'>query_string</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>&gt;</code></h4>
+<div class='docblock'><p>The query string.</p>
+</div><h4 id='method.cookies' class='method'><code>fn <a href='#method.cookies' class='fnname'>cookies</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;&amp;<a class='struct' href='../../hyper/header/common/cookie/struct.Cookie.html' title='hyper::header::common::cookie::Cookie'>Cookie</a>&gt;</code></h4>
+<div class='docblock'><p>The retrieved cookies.</p>
+</div><h4 id='method.method' class='method'><code>fn <a href='#method.method' class='fnname'>method</a>(&amp;self) -&gt; <a class='enum' href='../../pencil/method/enum.Method.html' title='pencil::method::Method'>Method</a></code></h4>
+<div class='docblock'><p>The request method.</p>
+</div><h4 id='method.remote_addr' class='method'><code>fn <a href='#method.remote_addr' class='fnname'>remote_addr</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html' title='std::net::addr::SocketAddr'>SocketAddr</a></code></h4>
+<div class='docblock'><p>The remote address of the client.</p>
+</div><h4 id='method.scheme' class='method'><code>fn <a href='#method.scheme' class='fnname'>scheme</a>(&amp;self) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a></code></h4>
+<div class='docblock'><p>URL scheme (http or https)</p>
+</div><h4 id='method.host_url' class='method'><code>fn <a href='#method.host_url' class='fnname'>host_url</a>(&amp;self) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a></code></h4>
+<div class='docblock'><p>Just the host with scheme.</p>
+</div><h4 id='method.url' class='method'><code>fn <a href='#method.url' class='fnname'>url</a>(&amp;self) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a></code></h4>
+<div class='docblock'><p>The current url.</p>
+</div><h4 id='method.base_url' class='method'><code>fn <a href='#method.base_url' class='fnname'>base_url</a>(&amp;self) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a></code></h4>
+<div class='docblock'><p>The current url without the query string.</p>
+</div><h4 id='method.is_secure' class='method'><code>fn <a href='#method.is_secure' class='fnname'>is_secure</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
+<div class='docblock'><p>Whether the request is secure (https).</p>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl&lt;'r,&nbsp;'a,&nbsp;'b: 'a&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../../pencil/wrappers/struct.Request.html' title='pencil::wrappers::Request'>Request</a>&lt;'r,&nbsp;'a,&nbsp;'b&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a id='src-425' class='srclink' href='../../src/pencil/src/wrappers.rs.html#295-299' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
+<div class='docblock'><p>Formats the value using the given formatter.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;'r,&nbsp;'a,&nbsp;'b: 'a&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/std/io/trait.Read.html' title='std::io::Read'>Read</a> for <a class='struct' href='../../pencil/wrappers/struct.Request.html' title='pencil::wrappers::Request'>Request</a>&lt;'r,&nbsp;'a,&nbsp;'b&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a id='src-435' class='srclink' href='../../src/pencil/src/wrappers.rs.html#301-305' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.read' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/std/io/trait.Read.html#tymethod.read' class='fnname'>read</a>(&amp;mut self, buf: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;mut [</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>&gt;</code></h4>
+<div class='docblock'><p>Pull some bytes from this source into the specified buffer, returning how many bytes were read. <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html#tymethod.read">Read more</a></p>
+</div><h4 id='method.read_to_end' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/std/io/trait.Read.html#method.read_to_end' class='fnname'>read_to_end</a>(&amp;mut self, buf: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>&gt;) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>,&nbsp;<a class='struct' href='https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html' title='std::io::error::Error'>Error</a>&gt;</code><div class='since' title='Stable since Rust version 1.0.0'>1.0.0</div></h4>
+<div class='docblock'><p>Read all bytes until EOF in this source, placing them into <code>buf</code>. <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html#method.read_to_end">Read more</a></p>
+</div><h4 id='method.read_to_string' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/std/io/trait.Read.html#method.read_to_string' class='fnname'>read_to_string</a>(&amp;mut self, buf: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>,&nbsp;<a class='struct' href='https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html' title='std::io::error::Error'>Error</a>&gt;</code><div class='since' title='Stable since Rust version 1.0.0'>1.0.0</div></h4>
+<div class='docblock'><p>Read all bytes until EOF in this source, placing them into <code>buf</code>. <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html#method.read_to_string">Read more</a></p>
+</div><h4 id='method.read_exact' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/std/io/trait.Read.html#method.read_exact' class='fnname'>read_exact</a>(&amp;mut self, buf: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;mut [</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>,&nbsp;<a class='struct' href='https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html' title='std::io::error::Error'>Error</a>&gt;</code><div class='since' title='Stable since Rust version 1.6.0'>1.6.0</div></h4>
+<div class='docblock'><p>Read the exact number of bytes required to fill <code>buf</code>. <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html#method.read_exact">Read more</a></p>
+</div><h4 id='method.by_ref' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/std/io/trait.Read.html#method.by_ref' class='fnname'>by_ref</a>(&amp;mut self) -&gt; &amp;mut Self</code><div class='since' title='Stable since Rust version 1.0.0'>1.0.0</div></h4>
+<div class='docblock'><p>Creates a &quot;by reference&quot; adaptor for this instance of <code>Read</code>. <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html#method.by_ref">Read more</a></p>
+</div><h4 id='method.bytes' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/std/io/trait.Read.html#method.bytes' class='fnname'>bytes</a>(self) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/std/io/struct.Bytes.html' title='std::io::Bytes'>Bytes</a>&lt;Self&gt;</code><div class='since' title='Stable since Rust version 1.0.0'>1.0.0</div></h4>
+<div class='docblock'><p>Transforms this <code>Read</code> instance to an <code>Iterator</code> over its bytes. <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html#method.bytes">Read more</a></p>
+</div><h4 id='method.chars' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/std/io/trait.Read.html#method.chars' class='fnname'>chars</a>(self) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/std/io/struct.Chars.html' title='std::io::Chars'>Chars</a>&lt;Self&gt;</code></h4>
+<div class='stability'><em class='stab unstable'>Unstable (<code>io</code>)<p>: the semantics of a partial read/write of where errors happen is currently unclear and may change</p>
+</em></div><div class='docblock'><p>Transforms this <code>Read</code> instance to an <code>Iterator</code> over <code>char</code>s. <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html#method.chars">Read more</a></p>
+</div><h4 id='method.chain' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/std/io/trait.Read.html#method.chain' class='fnname'>chain</a>&lt;R&gt;(self, next: R) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/std/io/struct.Chain.html' title='std::io::Chain'>Chain</a>&lt;Self,&nbsp;R&gt; <span class='where'>where R: <a class='trait' href='https://doc.rust-lang.org/nightly/std/io/trait.Read.html' title='std::io::Read'>Read</a></span></code><div class='since' title='Stable since Rust version 1.0.0'>1.0.0</div></h4>
+<div class='docblock'><p>Creates an adaptor which will chain this stream with another. <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html#method.chain">Read more</a></p>
+</div><h4 id='method.take' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/std/io/trait.Read.html#method.take' class='fnname'>take</a>(self, limit: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u64.html'>u64</a>) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/std/io/struct.Take.html' title='std::io::Take'>Take</a>&lt;Self&gt;</code><div class='since' title='Stable since Rust version 1.0.0'>1.0.0</div></h4>
+<div class='docblock'><p>Creates an adaptor which will read at most <code>limit</code> bytes from it. <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html#method.take">Read more</a></p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "pencil";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../../jquery.js"></script>
+    <script src="../../main.js"></script>
+    
+    <script defer src="../../search-index.js"></script>
+</body>
+</html>
