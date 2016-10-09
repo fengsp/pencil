@@ -9,10 +9,14 @@ use std::io::{Read, Write};
 use std::convert;
 
 use hyper;
+use hyper::server::request::Request as HttpRequest;
 use hyper::uri::RequestUri::{AbsolutePath, AbsoluteUri, Authority, Star};
 use hyper::header::{Headers, ContentLength, ContentType, Cookie};
 use hyper::mime::Mime;
 use hyper::method::Method;
+use hyper::http::h1::HttpReader;
+use hyper::net::NetworkStream;
+use hyper::buffer::BufReader;
 use url::Url;
 use url::form_urlencoded;
 use formdata::FilePart;
@@ -32,8 +36,14 @@ use formparser::FormDataParser;
 /// Request type.
 pub struct Request<'r, 'a, 'b: 'a> {
     pub app: &'r Pencil,
-    /// The original hyper request object.
-    pub request: hyper::server::request::Request<'a, 'b>,
+    /// The IP address of the remote connection.
+    pub remote_addr: SocketAddr,
+    /// The request method.
+    pub method: Method,
+    /// The headers of the incoming request.
+    pub headers: Headers,
+    /// The requested url.
+    pub url: Url,
     /// The URL rule that matched the request.  This is
     /// going to be `None` if nothing matched.
     pub url_rule: Option<Rule>,
@@ -45,7 +55,7 @@ pub struct Request<'r, 'a, 'b: 'a> {
     pub routing_error: Option<HTTPError>,
     /// Storage for data of extensions.
     pub extensions_data: TypeMap,
-    url: Url,
+    body: HttpReader<&'a mut BufReader<&'b mut NetworkStream>>,
     host: hyper::header::Host,
     args: Option<MultiDict<String>>,
     form: Option<MultiDict<String>>,
@@ -55,14 +65,15 @@ pub struct Request<'r, 'a, 'b: 'a> {
 
 impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
     /// Create a `Request`.
-    pub fn new(app: &'r Pencil, request: hyper::server::request::Request<'a, 'b>) -> Result<Request<'r, 'a, 'b>, String> {
-        let host = match request.headers.get::<hyper::header::Host>() {
+    pub fn new(app: &'r Pencil, http_request: HttpRequest<'a, 'b>) -> Result<Request<'r, 'a, 'b>, String> {
+        let (remote_addr, method, headers, uri, _, body) = http_request.deconstruct();
+        let host = match headers.get::<hyper::header::Host>() {
             Some(host) => host.clone(),
             None => {
                 return Err("No host specified in your request".into());
             }
         };
-        let url = match request.uri {
+        let url = match uri {
             AbsolutePath(ref path) => {
                 let url_string = format!("http://{}{}", get_host_value(&host), path);
                 match Url::parse(&url_string) {
@@ -79,13 +90,16 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
         };
         Ok(Request {
             app: app,
-            request: request,
+            remote_addr: remote_addr,
+            method: method,
+            headers: headers,
+            url: url,
             url_rule: None,
             view_args: HashMap::new(),
             routing_redirect: None,
             routing_error: None,
             extensions_data: TypeMap::new(),
-            url: url,
+            body: body,
             host: host,
             args: None,
             form: None,
@@ -152,7 +166,7 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
 
     /// Get content type.
     fn content_type(&self) -> Option<ContentType> {
-        let content_type: Option<&ContentType> = self.request.headers.get();
+        let content_type: Option<&ContentType> = self.headers.get();
         content_type.cloned()
     }
 
@@ -160,7 +174,7 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
     pub fn get_json(&mut self) -> &Option<json::Json> {
         if self.cached_json.is_none() {
             let mut data = String::from("");
-            let rv = match self.request.read_to_string(&mut data) {
+            let rv = match self.read_to_string(&mut data) {
                 Ok(_) => {
                     match json::Json::from_str(&data) {
                         Ok(json) => Some(json),
@@ -184,7 +198,7 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
         let (form, files) = match self.content_type() {
             Some(ContentType(mimetype)) => {
                 let parser = FormDataParser::new();
-                parser.parse(&mut self.request, &mimetype)
+                parser.parse(&mut self.body, &self.headers, &mimetype)
             },
             None => {
                 (MultiDict::new(), MultiDict::new())
@@ -208,7 +222,7 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
 
     /// The headers.
     pub fn headers(&self) -> &Headers {
-        &self.request.headers
+        &self.headers
     }
 
     /// Requested path.
@@ -239,24 +253,21 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
 
     /// The retrieved cookies.
     pub fn cookies(&self) -> Option<&Cookie> {
-        self.request.headers.get()
+        self.headers.get()
     }
 
     /// The request method.
     pub fn method(&self) -> Method {
-        self.request.method.clone()
+        self.method.clone()
     }
 
     /// The remote address of the client.
     pub fn remote_addr(&self) -> SocketAddr {
-        self.request.remote_addr
+        self.remote_addr
     }
 
     /// URL scheme (http or https)
     pub fn scheme(&self) -> String {
-        if let AbsoluteUri(ref url) = self.request.uri {
-            return url.scheme().to_owned();
-        }
         String::from("http")
     }
 
@@ -289,7 +300,7 @@ impl<'r, 'a, 'b: 'a> fmt::Debug for Request<'r, 'a, 'b> {
 
 impl<'r, 'a, 'b: 'a> Read for Request<'r, 'a, 'b> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        self.request.read(buf)
+        self.body.read(buf)
     }
 }
 

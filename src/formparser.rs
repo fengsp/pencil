@@ -3,7 +3,7 @@
 
 use std::io::Read;
 
-use hyper;
+use hyper::header::Headers;
 use hyper::mime::{Mime, TopLevel, SubLevel};
 use formdata::{read_formdata, FilePart};
 use url::form_urlencoded;
@@ -20,15 +20,15 @@ impl FormDataParser {
         FormDataParser
     }
 
-    pub fn parse(&self, request: &mut hyper::server::request::Request, mimetype: &Mime) -> (MultiDict<String>, MultiDict<FilePart>) {
+    pub fn parse<B: Read>(&self, body: &mut B, headers: &Headers, mimetype: &Mime) -> (MultiDict<String>, MultiDict<FilePart>) {
         let default = (MultiDict::new(), MultiDict::new());
         match *mimetype {
             Mime(TopLevel::Application, SubLevel::WwwFormUrlEncoded, _) => {
-                let mut body: Vec<u8> = Vec::new();
-                match request.read_to_end(&mut body) {
+                let mut body_vec: Vec<u8> = Vec::new();
+                match body.read_to_end(&mut body_vec) {
                     Ok(_) => {
                         let mut form = MultiDict::new();
-                        for (k, v) in form_urlencoded::parse(&body).into_owned() {
+                        for (k, v) in form_urlencoded::parse(&body_vec).into_owned() {
                             form.add(k, v);
                         }
                         (form, MultiDict::new())
@@ -39,8 +39,7 @@ impl FormDataParser {
                 }
             },
             Mime(TopLevel::Multipart, SubLevel::FormData, _) => {
-                let headers = request.headers.clone();
-                match read_formdata(request, &headers) {
+                match read_formdata(body, headers) {
                     Ok(form_data) => {
                         let mut form = MultiDict::new();
                         let mut files = MultiDict::new();

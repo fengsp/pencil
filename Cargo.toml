@@ -15,9 +15,9 @@ default = ["ssl"]
 ssl = ["hyper/ssl", "formdata/ssl"]
 
 [dependencies]
-regex = "0.1.74"
+regex = "0.1.77"
 rustc-serialize = "0.3.19"
-url = "1.2.0"
+url = "1.2.1"
 log = "0.3.6"
 handlebars = "0.16.1"
 typemap = "0.3.3"
@@ -29,5 +29,5 @@ version = "0.9.10"
 default_features = false
 
 [dependencies.formdata]
-version = "0.10.2"
+version = "0.11.0"
 default_features = false
