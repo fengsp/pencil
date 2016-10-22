@@ -1,7 +1,10 @@
 //! This module implements helpers for the JSON support in Pencil.
 
-use rustc_serialize::json;
-use rustc_serialize::Encodable;
+// use rustc_serialize::json;
+// use rustc_serialize::Encodable;
+
+use serde::Serialize;
+use serde_json;
 
 use wrappers::{Response};
 use types::{PencilResult, PenUserError, UserError};
@@ -29,8 +32,8 @@ use types::{PencilResult, PenUserError, UserError};
 ///     return jsonify(&user);
 /// }
 /// ```
-pub fn jsonify<T: Encodable>(object: &T) -> PencilResult {
-    match json::encode(object) {
+pub fn jsonify<T: Serialize>(object: &T) -> PencilResult {
+    match serde_json::to_string(object) {
         Ok(encoded) => {
             let mut response = Response::from(encoded);
             response.set_content_type("application/json");

@@ -6,8 +6,10 @@ use std::io::Read;
 use std::fs::File;
 use std::path::Path;
 use std::collections::BTreeMap;
-use rustc_serialize::json::{Object, Json};
+use serde_json::{Value, self};
+use serde_json::value::Map;
 
+pub type Object = Map<String, Value>;   
 
 /// The pencil `Config` type, We provide ways to fill it from JSON files:
 ///
@@ -32,7 +34,7 @@ use rustc_serialize::json::{Object, Json};
 /// ```
 #[derive(Clone)]
 pub struct Config {
-    config: Object,
+    config: Map<String, Value>,
 }
 
 impl Default for Config {
@@ -51,12 +53,12 @@ impl Config {
     }
 
     /// Set a value for the key.
-    pub fn set(&mut self, key: &str, value: Json) {
+    pub fn set(&mut self, key: &str, value: Value) {
         self.config.insert(key.to_string(), value);
     }
 
     /// Returns a reference to the value corresponding to the key.
-    pub fn get(&self, key: &str) -> Option<&Json> {
+    pub fn get(&self, key: &str) -> Option<&Value> {
         self.config.get(&key.to_string())
     }
 
@@ -67,7 +69,7 @@ impl Config {
         match self.get(key) {
             Some(value) => {
                 match *value {
-                    Json::Boolean(value) => value,
+                    Value::Bool(value) => value,
                     _ => default
                 }   
             },  
@@ -90,9 +92,9 @@ impl Config {
         let mut file = File::open(&path).unwrap();
         let mut content = String::new();
         file.read_to_string(&mut content).unwrap();
-        let object: Json = Json::from_str(&content).unwrap();
+        let object: Value = serde_json::from_str(&content).unwrap();
         match object {
-            Json::Object(object) => { self.from_object(object); },
+            Value::Object(object) => { self.from_object(object); },
             _ => { panic!("The configuration file is not an JSON object."); }
         }
     }

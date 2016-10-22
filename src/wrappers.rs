@@ -20,7 +20,7 @@ use hyper::buffer::BufReader;
 use url::Url;
 use url::form_urlencoded;
 use formdata::FilePart;
-use rustc_serialize::json;
+use serde_json;
 use typemap::TypeMap;
 
 use app::Pencil;
@@ -60,7 +60,7 @@ pub struct Request<'r, 'a, 'b: 'a> {
     args: Option<MultiDict<String>>,
     form: Option<MultiDict<String>>,
     files: Option<MultiDict<FilePart>>,
-    cached_json: Option<Option<json::Json>>
+    cached_json: Option<Option<serde_json::Value>>
 }
 
 impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
@@ -171,12 +171,12 @@ impl<'r, 'a, 'b: 'a> Request<'r, 'a, 'b> {
     }
 
     /// Parses the incoming JSON request data.
-    pub fn get_json(&mut self) -> &Option<json::Json> {
+    pub fn get_json(&mut self) -> &Option<serde_json::Value> {
         if self.cached_json.is_none() {
             let mut data = String::from("");
             let rv = match self.read_to_string(&mut data) {
                 Ok(_) => {
-                    match json::Json::from_str(&data) {
+                    match serde_json::from_str(&data) {
                         Ok(json) => Some(json),
                         Err(_) => None
                     }
