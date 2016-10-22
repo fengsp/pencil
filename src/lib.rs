@@ -49,7 +49,6 @@
 #[macro_use]
 extern crate log;
 extern crate hyper;
-extern crate rustc_serialize;
 extern crate regex;
 extern crate url;
 extern crate formdata;
@@ -57,6 +56,8 @@ extern crate handlebars;
 extern crate typemap;
 extern crate mime;
 extern crate mime_guess;
+extern crate serde;
+extern crate serde_json;    
 
 /* public api */
 pub use app::Pencil;

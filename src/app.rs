@@ -9,8 +9,8 @@ use std::fs::File;
 use std::path::PathBuf;
 use std::net::ToSocketAddrs;
 
-use rustc_serialize::json::Json;
-use rustc_serialize::json::ToJson;
+use serde::Serialize;
+use serde_json::Value;
 use handlebars::Handlebars;
 use hyper;
 use hyper::method::Method;
@@ -81,8 +81,8 @@ pub struct Pencil {
 
 fn default_config() -> Config {
     let mut config = Config::new();
-    config.set("DEBUG", Json::Boolean(false));
-    config.set("TESTING", Json::Boolean(false));
+    config.set("DEBUG", Value::Bool(false));
+    config.set("TESTING", Value::Bool(false));
     config
 }
 
@@ -136,14 +136,14 @@ impl Pencil {
     /// with the `DEBUG` configuration key.  Set this to `True` to
     /// enable debugging of the application.
     pub fn set_debug(&mut self, flag: bool) {
-        self.config.set("DEBUG", Json::Boolean(flag));
+        self.config.set("DEBUG", Value::Bool(flag));
     }
 
     /// Set the testing flag.  This field is configured from the config
     /// with the `TESTING` configuration key.  Set this to `True` to
     /// enable the test mode of the application.
     pub fn set_testing(&mut self, flag: bool) {
-        self.config.set("TESTING", Json::Boolean(flag));
+        self.config.set("TESTING", Value::Bool(flag));
     }
 
     /// Set global log level based on the application's debug flag.
@@ -553,7 +553,7 @@ impl Pencil {
     /// Renders a template from the template folder with the given context.
     /// The template name is the name of the template to be rendered.
     /// The context is the variables that should be available in the template.
-    pub fn render_template<T: ToJson>(&self, template_name: &str, context: &T) -> PencilResult {
+    pub fn render_template<T: Serialize>(&self, template_name: &str, context: &T) -> PencilResult {
         render_template(self, template_name, context)
     }
 
@@ -562,7 +562,7 @@ impl Pencil {
     /// with the given context.
     /// The source is the sourcecode of the template to be rendered.
     /// The context is the variables that should be available in the template.
-    pub fn render_template_string<T: ToJson>(&self, source: &str, context: &T) -> PencilResult {
+    pub fn render_template_string<T: Serialize>(&self, source: &str, context: &T) -> PencilResult {
         render_template_string(self, source, context)
     }
 

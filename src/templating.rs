@@ -6,7 +6,7 @@ use std::fs::File;
 use std::path::PathBuf;
 use std::error::Error;
 
-use rustc_serialize::json::ToJson;
+use serde::Serialize;
 use handlebars::{RenderError, TemplateRenderError};
 
 use app::Pencil;
@@ -25,7 +25,7 @@ impl convert::From<TemplateRenderError> for PencilError {
     }
 }
 
-pub fn render_template<T: ToJson>(app: &Pencil, template_name: &str, context: &T) -> PencilResult {
+pub fn render_template<T: Serialize>(app: &Pencil, template_name: &str, context: &T) -> PencilResult {
     let registry_read_rv = app.handlebars_registry.read();
     if registry_read_rv.is_err() {
         return Err(PenUserError(UserError::new("Can't acquire handlebars registry")));
@@ -35,7 +35,7 @@ pub fn render_template<T: ToJson>(app: &Pencil, template_name: &str, context: &T
     Ok(Response::from(rv))
 }
 
-pub fn render_template_string<T: ToJson>(app: &Pencil, source: &str, context: &T) -> PencilResult {
+pub fn render_template_string<T: Serialize>(app: &Pencil, source: &str, context: &T) -> PencilResult {
     let registry_read_rv = app.handlebars_registry.read();
     if registry_read_rv.is_err() {
         return Err(PenUserError(UserError::new("Can't acquire handlebars registry")));
