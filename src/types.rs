@@ -109,7 +109,7 @@ pub type BeforeRequestFunc = fn(&mut Request) -> Option<PencilResult>;
 
 
 /// After request func type.
-pub type AfterRequestFunc = fn(&Request, &mut Response);
+pub type AfterRequestFunc = fn(&mut Request, &mut Response);
 
 
 /// Teardown request func type.

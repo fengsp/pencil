@@ -428,7 +428,7 @@ impl Pencil {
     }
 
     /// Modify the response object before it's sent to the HTTP server.
-    fn process_response(&self, request: &Request, response: &mut Response) {
+    fn process_response(&self, mut request: &mut Request, response: &mut Response) {
         if let Some(module) = self.get_module(request.module_name()) {
             for func in module.after_request_funcs.iter().rev() {
                 func(request, response);
@@ -505,7 +505,7 @@ impl Pencil {
 
     /// Dispatches the request and performs request pre and postprocessing
     /// as well as HTTP error handling and User error handling.
-    fn full_dispatch_request(&self, request: &mut Request) -> Result<Response, PencilError> {
+    fn full_dispatch_request(&self, mut request: &mut Request) -> Result<Response, PencilError> {
         let result = match self.preprocess_request(request) {
             Some(result) => result,
             None => self.dispatch_request(request),
@@ -516,7 +516,7 @@ impl Pencil {
         };
         match rv {
             Ok(mut response) => {
-                self.process_response(request, &mut response);
+                self.process_response(&mut request, &mut response);
                 Ok(response)
             },
             Err(e) => Err(e),
