@@ -431,11 +431,11 @@ impl Pencil {
     fn process_response(&self, request: &Request, response: &mut Response) {
         if let Some(module) = self.get_module(request.module_name()) {
             for func in module.after_request_funcs.iter().rev() {
-                func(response);
+                func(request, response);
             }
         }
         for func in self.after_request_funcs.iter().rev() {
-            func(response);
+            func(request, response);
         }
     }
 
