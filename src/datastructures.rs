@@ -35,7 +35,7 @@ impl<'a, T: 'a> iter::Iterator for MultiDictIter<'a, T> {
 }
 
 /// This is used to deal with multiple values for the same key.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct MultiDict<T> {
     map: HashMap<String, Vec<T>>,
 }
