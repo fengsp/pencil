@@ -107,7 +107,7 @@ pub mod config;
 pub mod helpers;
 pub mod method;
 mod testing;
-mod app;
+pub mod app;
 mod types;
 mod logging;
 mod serving;
