@@ -20,8 +20,8 @@ use hyper::server::Response as HTTPResponse;
 
 use types::{
     PencilError,
-        PenHTTPError,
-        PenUserError,
+    PenHTTPError,
+    PenUserError,
 
     UserError,
     PencilResult,
